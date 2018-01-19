@@ -1,0 +1,19 @@
+[package]
+name = "zohohorrorshow"
+version = "0.1.0"
+authors = ["Xymist <james.duerden@marketdojo.com>"]
+
+[dependencies]
+error-chain = "0.11"
+hyper = "0.11"
+reqwest = "0.8"
+serde = "1.0"
+serde_derive = "1.0"
+clippy = {version = "*", optional = true}
+
+[dependencies.chrono]
+features = ["serde"]
+version = "0.4"
+
+[features]
+default = ["clippy"]
