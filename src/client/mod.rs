@@ -23,7 +23,7 @@ impl ZohoClient {
         }
     }
 
-    fn get_url<T>(&self, url: &str) -> Result<T>
+    pub fn get_url<T>(&self, url: &str) -> Result<T>
     where
         T: serde::de::DeserializeOwned,
     {

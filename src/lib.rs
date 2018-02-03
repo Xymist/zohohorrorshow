@@ -13,7 +13,6 @@ extern crate serde_derive;
 pub mod bugs;
 pub mod client;
 pub mod dashboard;
-pub mod errors;
 pub mod events;
 pub mod forums;
 pub mod milestones;
@@ -23,7 +22,7 @@ pub mod tasklists;
 pub mod tasks;
 pub mod timesheets;
 pub mod users;
-
+pub mod errors;
 use errors::*;
 
 pub trait RelativePath<U> {

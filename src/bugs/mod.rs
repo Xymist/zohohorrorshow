@@ -1,7 +1,7 @@
 use errors::*;
 use RelativePath;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct ZohoBugs {
     pub milestone: Option<String>,
     pub issue_labels: Option<Vec<String>>,
@@ -20,15 +20,15 @@ pub struct Bug {
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct Classification {
-    id: Option<u64>,
+    pub id: Option<u64>,
     #[serde(rename = "type")]
     pub type_name: Option<String>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct Status {
-    color_code: Option<String>,
-    id: Option<String>,
+    pub color_code: Option<String>,
+    pub id: Option<String>,
     #[serde(rename = "type")]
     pub type_name: Option<String>,
 }
