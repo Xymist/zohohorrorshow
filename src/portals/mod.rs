@@ -3,73 +3,78 @@ use RelativePath;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ZohoPortals {
-    pub login_id: String,
+    #[serde(rename = "login_id")]
+    pub login_id: i64,
+    #[serde(rename = "portals")]
     pub portals: Vec<Portal>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Portal {
-    pub trial_enabled: bool,
-    pub settings: PortalSettings,
-    pub gmt_time_zone: String,
-    pub project_count: ProjectCount,
-    pub role: String,
-    pub bug_singular: String,
-    pub link: ProjectLink,
-    pub bug_plan: String,
-    pub locale: PortalLocale,
-    pub available_projects: i32,
-    pub default: bool,
-    pub profile_id: i64,
+    #[serde(rename = "id")]
+    pub id: i64,
+    #[serde(rename = "name")]
     pub name: String,
-    pub id_string: String,
-    pub id: i32,
-    pub bug_plural: String,
-    pub plan: String,
+    #[serde(rename = "default")]
+    pub purple_default: bool,
+    #[serde(rename = "gmt_time_zone")]
+    pub gmt_time_zone: String,
+    #[serde(rename = "role")]
+    pub role: String,
+    #[serde(rename = "project_count")]
+    pub project_count: ProjectCount,
+    #[serde(rename = "settings")]
+    pub settings: Settings,
+    #[serde(rename = "locale")]
+    pub locale: Locale,
+    #[serde(rename = "link")]
+    pub link: Link,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct PortalLocale {
-    pub country: String,
-    pub code: String,
-    pub language: String,
+pub struct Link {
+    #[serde(rename = "project")]
+    pub project: Project,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ProjectLink {
-    pub project: ProjectLinkProject,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ProjectLinkProject {
+pub struct Project {
+    #[serde(rename = "url")]
     pub url: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct Locale {
+    #[serde(rename = "code")]
+    pub code: String,
+    #[serde(rename = "language")]
+    pub language: String,
+    #[serde(rename = "country")]
+    pub country: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ProjectCount {
-    pub active: i32,
+    #[serde(rename = "template")]
+    pub template: i64,
+    #[serde(rename = "archived")]
+    pub archived: i64,
+    #[serde(rename = "active")]
+    pub active: i64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct PortalSettings {
-    pub timelog_period: TimeLogPeriod,
+pub struct Settings {
+    #[serde(rename = "company_name")]
     pub company_name: String,
-    pub date_format: String,
+    #[serde(rename = "website_url")]
+    pub website_url: String,
+    #[serde(rename = "time_zone")]
     pub time_zone: String,
-    pub startday_of_week: String,
-    pub task_date_format: String,
+    #[serde(rename = "date_format")]
+    pub date_format: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TimeLogPeriod {
-    pub log_future_time: Permission,
-    pub log_past_time: Permission,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Permission {
-    pub allowed: bool,
-}
 
 // For reasons best known to Zoho, retrieving one portal record actually
 // returns an array of length 1, containing the record we actually want.

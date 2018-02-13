@@ -1,7 +1,3 @@
-#![cfg_attr(feature = "clippy", feature(plugin))]
-#![cfg_attr(feature = "clippy", plugin(clippy))]
-#![feature(type_ascription)]
-
 extern crate chrono;
 #[macro_use]
 extern crate error_chain;

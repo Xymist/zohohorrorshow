@@ -1,49 +1,90 @@
 use errors::*;
 use RelativePath;
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ZohoBugs {
-    pub milestone: Option<String>,
-    pub issue_labels: Option<Vec<String>>,
-    pub bugs: Option<Vec<Bug>>,
+    #[serde(rename = "bugs")]
+    pub bugs: Vec<Bug>,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Bug {
-    pub key: Option<String>,
-    pub title: Option<String>,
-    pub milestone: Option<BugMilestone>,
-    pub customfields: Option<Vec<CustomField>>,
-    pub status: Option<Status>,
-    pub classification: Option<Classification>,
+    #[serde(rename = "module")]
+    pub module: Module,
+    #[serde(rename = "created_time_long")]
+    pub created_time_long: i64,
+    #[serde(rename = "customfields")]
+    pub customfields: Vec<Customfield>,
+    #[serde(rename = "status")]
+    pub status: Classification,
+    #[serde(rename = "reproducible")]
+    pub reproducible: Classification,
+    #[serde(rename = "link")]
+    pub link: Link,
+    #[serde(rename = "severity")]
+    pub severity: Classification,
+    #[serde(rename = "reported_person")]
+    pub reported_person: String,
+    #[serde(rename = "id")]
+    pub id: i64,
+    #[serde(rename = "title")]
+    pub title: String,
+    #[serde(rename = "flag")]
+    pub flag: String,
+    #[serde(rename = "assignee_name")]
+    pub assignee_name: String,
+    #[serde(rename = "reporter_id")]
+    pub reporter_id: String,
+    #[serde(rename = "classification")]
+    pub classification: Classification,
+    #[serde(rename = "created_time_format")]
+    pub created_time_format: String,
+    #[serde(rename = "closed")]
+    pub closed: bool,
+    #[serde(rename = "created_time")]
+    pub created_time: String,
+    #[serde(rename = "key")]
+    pub key: i64,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Classification {
-    pub id: Option<u64>,
+    #[serde(rename = "id")]
+    pub id: i64,
     #[serde(rename = "type")]
-    pub type_name: Option<String>,
+    pub purple_type: String,
 }
 
-#[derive(Deserialize, Debug, Clone)]
-pub struct Status {
-    pub color_code: Option<String>,
-    pub id: Option<String>,
-    #[serde(rename = "type")]
-    pub type_name: Option<String>,
-}
-
-#[derive(Deserialize, Debug, Clone)]
-pub struct CustomField {
-    pub column_name: String,
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Customfield {
+    #[serde(rename = "label_name")]
     pub label_name: String,
+    #[serde(rename = "value")]
     pub value: String,
+    #[serde(rename = "column_name")]
+    pub column_name: String,
 }
 
-#[derive(Deserialize, Debug, Clone)]
-pub struct BugMilestone {
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Link {
+    #[serde(rename = "self")]
+    pub self_link: SelfLink,
+    #[serde(rename = "timesheet")]
+    pub timesheet: SelfLink,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SelfLink {
+    #[serde(rename = "url")]
+    pub url: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Module {
+    #[serde(rename = "id")]
+    pub id: i64,
+    #[serde(rename = "name")]
     pub name: String,
-    pub id: String,
 }
 
 impl<'a> RelativePath<[&'a str; 2]> for ZohoBugs {

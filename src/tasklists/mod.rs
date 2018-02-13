@@ -1,58 +1,84 @@
 use errors::*;
 use RelativePath;
-use tasks::Task;
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Serialize, Deserialize)]
 pub struct ZohoTasklists {
+    #[serde(rename = "tasklists")]
     pub tasklists: Vec<Tasklist>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Serialize, Deserialize)]
 pub struct Tasklist {
-    pub id: u64,
+    #[serde(rename = "id")]
+    pub id: i64,
+    #[serde(rename = "name")]
     pub name: String,
-    pub milestone: TaskListMilestone,
+    #[serde(rename = "milestone")]
+    pub milestone: Milestone,
+    #[serde(rename = "completed")]
     pub completed: bool,
+    #[serde(rename = "created_time")]
     pub created_time: String,
-    pub created_time_long: u64,
+    #[serde(rename = "created_time_long")]
+    pub created_time_long: i64,
+    #[serde(rename = "rolled")]
     pub rolled: bool,
-    pub sequence: i32,
-    pub view_type: Option<String>,
+    #[serde(rename = "sequence")]
+    pub sequence: i64,
+    #[serde(rename = "view_type")]
+    pub view_type: String,
+    #[serde(rename = "link")]
+    pub link: TasklistLink,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct TaskListMilestone {
-    pub id: u64,
-    pub link: TaskListMilestoneLink,
+#[derive(Serialize, Deserialize)]
+pub struct TasklistLink {
+    #[serde(rename = "self")]
+    pub link: Link,
+    #[serde(rename = "task")]
+    pub task: Link,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Link {
+    #[serde(rename = "url")]
+    pub url: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Milestone {
+    #[serde(rename = "id")]
+    pub id: i64,
+    #[serde(rename = "link")]
+    pub link: MilestoneLink,
+    #[serde(rename = "name")]
     pub name: String,
+    #[serde(rename = "owner_name")]
     pub owner_name: String,
+    #[serde(rename = "owner_id")]
     pub owner_id: String,
+    #[serde(rename = "flag")]
     pub flag: String,
+    #[serde(rename = "start_date")]
     pub start_date: String,
-    pub start_date_long: u64,
+    #[serde(rename = "start_date_long")]
+    pub start_date_long: i64,
+    #[serde(rename = "end_date")]
     pub end_date: String,
-    pub end_date_long: u64,
+    #[serde(rename = "end_date_long")]
+    pub end_date_long: i64,
+    #[serde(rename = "status")]
     pub status: String,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct TaskListMilestoneLink {
+#[derive(Serialize, Deserialize)]
+pub struct MilestoneLink {
     #[serde(rename = "self")]
-    self_link: Option<Link>,
-    status: Link,
+    pub link: Link,
+    #[serde(rename = "status")]
+    pub status: Link,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct TasklistLink {
-    #[serde(rename = "self")]
-    self_link: Option<Link>,
-    task: Link,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct Link {
-    pub url: String,
-}
 
 // Requires a query of either &flag=internal or &flag=external
 impl<'a> RelativePath<[&'a str; 2]> for ZohoTasklists {

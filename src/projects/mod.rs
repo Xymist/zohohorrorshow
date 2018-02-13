@@ -1,99 +1,89 @@
-use errors::*;
+use pub errors::*;
 use RelativePath;
+use pub std::collections::HashMap;
 
-// Represents a group of projects. If you pass the ID of the project you want,
-// will return that project as the only element of the .projects vector.
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ZohoProjects {
+    #[serde(rename = "projects")]
     pub projects: Vec<Project>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct BugCount {
-    pub closed: i32,
-    pub open: i32,
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Project {
+    #[serde(rename = "custom_fields")]
+    pub custom_fields: Vec<CustomField>,
+    #[serde(rename = "created_date")]
+    pub created_date: String,
+    #[serde(rename = "IS_BUG_ENABLED")]
+    pub is_bug_enabled: bool,
+    #[serde(rename = "owner_name")]
+    pub owner_name: String,
+    #[serde(rename = "task_count")]
+    pub task_count: Count,
+    #[serde(rename = "start_date_long")]
+    pub start_date_long: i64,
+    #[serde(rename = "status")]
+    pub status: String,
+    #[serde(rename = "link")]
+    pub link: HashMap<String, Link>,
+    #[serde(rename = "created_date_format")]
+    pub created_date_format: String,
+    #[serde(rename = "workspace_id")]
+    pub workspace_id: String,
+    #[serde(rename = "milestone_count")]
+    pub milestone_count: Count,
+    #[serde(rename = "created_date_long")]
+    pub created_date_long: i64,
+    #[serde(rename = "end_date_format")]
+    pub end_date_format: String,
+    #[serde(rename = "id")]
+    pub id: i64,
+    #[serde(rename = "end_date")]
+    pub end_date: String,
+    #[serde(rename = "id_string")]
+    pub id_string: String,
+    #[serde(rename = "description")]
+    pub description: String,
+    #[serde(rename = "name")]
+    pub name: String,
+    #[serde(rename = "owner_id")]
+    pub owner_id: String,
+    #[serde(rename = "end_date_long")]
+    pub end_date_long: i64,
+    #[serde(rename = "role")]
+    pub role: String,
+    #[serde(rename = "start_date_format")]
+    pub start_date_format: String,
+    #[serde(rename = "start_date")]
+    pub start_date: String,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct LinkList {
-    pub activity: Link,
-    pub document: Link,
-    pub forum: Link,
-    pub timesheet: Link,
-    pub task: Link,
-    pub folder: Link,
-    pub milestone: Link,
-    pub bug: Link,
-    #[serde(rename = "self")]
-    pub self_link: Link,
-    pub tasklist: Link,
-    pub event: Link,
-    pub user: Link,
-    pub status: Link,
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CustomField {
+    #[serde(rename = "Template design")]
+    pub template_design: Option<String>,
+    #[serde(rename = "Promos per second")]
+    pub promos_per_second: Option<String>,
+    #[serde(rename = "Blog announcement")]
+    pub blog_announcement: Option<String>,
+    #[serde(rename = "Promo publish date")]
+    pub promo_publish_date: Option<String>,
+    #[serde(rename = "Content approval")]
+    pub content_approval: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Link {
+    #[serde(rename = "url")]
     pub url: String,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct MilestoneCount {
-    pub closed: i32,
-    pub open: i32,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct TaskCount {
-    pub open: i32,
-    pub closed: i32,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct LayoutDetails {
-    pub task: TaskLayout,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct TaskLayout {
-    pub name: String,
-    pub id: String,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct Project {
-    pub is_strict: String,
-    pub role: String,
-    pub bug_count: BugCount,
-    #[serde(rename = "IS_BUG_ENABLED")]
-    pub bug_enabled: bool,
-    pub owner_id: String,
-    pub link: LinkList,
-    pub description: Option<String>,
-    pub milestone_count: MilestoneCount,
-    pub start_date_long: Option<i64>,
-    pub updated_date_long: Option<i64>,
-    pub task_count: TaskCount,
-    pub updated_date_format: Option<String>,
-    pub workspace_id: String,
-    pub user_disabled_tab: Vec<String>,
-    pub billing_status: String,
-    pub id: i64,
-    pub is_chat_enabled: bool,
-    pub start_date: Option<String>,
-    pub owner_name: String,
-    pub created_date_long: i64,
-    pub created_date_format: String,
-    pub profile_id: i64,
-    pub enabled_tabs: Option<Vec<String>>,
-    pub name: String,
-    pub is_public: String,
-    pub id_string: String,
-    pub created_date: String,
-    pub updated_date: Option<String>,
-    pub bug_prefix: String,
-    pub layout_details: LayoutDetails,
-    pub status: String,
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Count {
+    #[serde(rename = "open")]
+    pub open: i64,
+    #[serde(rename = "closed")]
+    pub closed: i64,
 }
 
 // Return all Projects for a Portal
