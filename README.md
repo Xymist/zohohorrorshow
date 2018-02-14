@@ -6,7 +6,6 @@ absent documentation.
 
 Work in progress:
 
-- Finish defining all (de)serializations
 - Finish implementing all GET and POST urls
 - Consistently wrap inconsistent fields (no numeric strings!)
 - Make sure everything that might be nil is wrapped in an Option

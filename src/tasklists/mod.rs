@@ -79,7 +79,6 @@ pub struct MilestoneLink {
     pub status: Link,
 }
 
-
 // Requires a query of either &flag=internal or &flag=external
 impl<'a> RelativePath<[&'a str; 2]> for ZohoTasklists {
     fn relative_path(params: [&'a str; 2]) -> Result<String> {

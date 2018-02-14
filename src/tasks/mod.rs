@@ -82,13 +82,13 @@ pub struct Owner {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Link {
     #[serde(rename = "self")]
-    pub link: Link,
+    pub self_link: SelfLink,
     #[serde(rename = "timesheet")]
-    pub timesheet: Link,
+    pub timesheet: SelfLink,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Link {
+pub struct SelfLink {
     #[serde(rename = "url")]
     pub url: String,
 }
@@ -113,7 +113,6 @@ pub struct Tasklist {
     pub name: String,
 }
 
-
 impl<'a> RelativePath<[&'a str; 2]> for ZohoTasks {
     fn relative_path(params: [&'a str; 2]) -> Result<String> {
         Ok(format!(
@@ -123,7 +122,7 @@ impl<'a> RelativePath<[&'a str; 2]> for ZohoTasks {
     }
 }
 
-impl<'a> RelativePath<[&'a str; 3]> for ZohoTasklistTasks {
+impl<'a> RelativePath<[&'a str; 3]> for ZohoTasks {
     fn relative_path(params: [&'a str; 3]) -> Result<String> {
         Ok(format!(
             "portal/{}/projects/{}/tasklists/{}/tasks/",

@@ -75,7 +75,6 @@ pub struct Settings {
     pub date_format: String,
 }
 
-
 // For reasons best known to Zoho, retrieving one portal record actually
 // returns an array of length 1, containing the record we actually want.
 impl RelativePath<Option<i32>> for ZohoPortals {
