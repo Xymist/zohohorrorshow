@@ -87,8 +87,8 @@ pub struct Count {
 }
 
 // Return all Projects for a Portal
-impl<'a> RelativePath<&'a str> for ZohoProjects {
-    fn relative_path(portal_id: &str) -> Result<String> {
+impl RelativePath<i64> for ZohoProjects {
+    fn relative_path(portal_id: i64) -> Result<String> {
         Ok(format!("portal/{}/projects/", portal_id))
     }
 }

@@ -77,20 +77,11 @@ pub struct Settings {
 
 // For reasons best known to Zoho, retrieving one portal record actually
 // returns an array of length 1, containing the record we actually want.
-impl RelativePath<Option<i32>> for ZohoPortals {
-    fn relative_path(param: Option<i32>) -> Result<String> {
+impl RelativePath<Option<i64>> for ZohoPortals {
+    fn relative_path(param: Option<i64>) -> Result<String> {
         match param {
             Some(portal_id) => Ok(format!("portals/{}", portal_id)),
             None => Ok("portals/".to_string()),
         }
-    }
-}
-
-impl RelativePath<Option<i32>> for Portal {
-    fn relative_path(_param: Option<i32>) -> Result<String> {
-        bail!(
-            "This doesn't work; if you need a single Portal pass the id to a
-             ZohoPortals struct and call .portals[0] on the result."
-        )
     }
 }
