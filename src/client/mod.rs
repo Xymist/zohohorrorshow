@@ -4,13 +4,14 @@ use serde;
 use RelativePath;
 use projects::{Project, ZohoProjects};
 use portals::{Portal, ZohoPortals};
-use bugs::{Bug, ZohoBugs};
+use bugs::{Bug, BugFragment, ZohoBugs};
+use milestones::{Milestone, ZohoMilestones};
 
 #[derive(Debug)]
 pub struct ZohoClient {
     authtoken: String,
     client: reqwest::Client,
-    portal_id: Option<i64>
+    portal_id: Option<i64>,
 }
 
 impl ZohoClient {
@@ -38,7 +39,7 @@ impl ZohoClient {
         }
     }
 
-    fn get_url<T>(&self, url: &str) -> Result<T>
+    pub fn get_url<T>(&self, url: &str) -> Result<T>
     where
         T: serde::de::DeserializeOwned,
     {
@@ -50,7 +51,7 @@ impl ZohoClient {
         Ok(res_obj)
     }
 
-    fn get<T, U>(&self, params: U, query: Option<&str>) -> Result<T>
+    pub fn get<T, U>(&self, params: U, query: Option<&str>) -> Result<T>
     where
         T: serde::de::DeserializeOwned + RelativePath<U>,
     {
@@ -63,31 +64,44 @@ impl ZohoClient {
         Ok(())
     }
 
-    pub fn get_portals(&self) -> Result<Vec<Portal>> {
+    pub fn portals(&self) -> Result<Vec<Portal>> {
         let portals: Result<ZohoPortals> = self.get(None, None);
         let portal_list: ZohoPortals = portals.unwrap();
         Ok(portal_list.portals)
     }
 
-    pub fn get_portal(&self) -> Result<Option<Portal>> {
+    pub fn portal(&self) -> Result<Option<Portal>> {
         let portals: Result<ZohoPortals> = self.get(Some(self.pid()), None);
         let mut portal_list: ZohoPortals = portals.unwrap();
         match portal_list.portals.len() {
             n if n > 0 => Ok(Some(portal_list.portals.remove(0))),
-            _ => Ok(None)
+            _ => Ok(None),
         }
     }
 
-    pub fn get_projects(&self) -> Result<Vec<Project>> {
+    pub fn projects(&self) -> Result<Vec<Project>> {
         let projects: Result<ZohoProjects> = self.get(self.pid(), None);
         let project_list: ZohoProjects = projects.unwrap();
         Ok(project_list.projects)
     }
 
-    pub fn get_bugs(&self, project_id: &str) -> Result<Vec<Bug>> {
-        let bugs: Result<ZohoBugs> = self.get([format!("{}", self.pid()).as_ref(), project_id], None);
+    pub fn bugs(&self, project_id: &str) -> Result<Vec<Bug>> {
+        let bugs: Result<ZohoBugs> =
+            self.get([format!("{}", self.pid()).as_ref(), project_id], None);
         let bug_list: ZohoBugs = bugs.unwrap();
         Ok(bug_list.bugs)
+    }
+
+    pub fn filtered_bugs(&self, project_id: &str) -> BugFragment {
+        BugFragment {
+            client: &self,
+            path: self.make_uri(
+                ZohoBugs::relative_path([format!("{}", self.pid()).as_ref(), project_id])
+                    .unwrap()
+                    .as_ref(),
+                None,
+            ).unwrap(),
+        }
     }
 }
 

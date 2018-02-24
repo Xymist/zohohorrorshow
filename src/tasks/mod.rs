@@ -100,7 +100,7 @@ pub struct Status {
     #[serde(rename = "id")]
     pub id: String,
     #[serde(rename = "type")]
-    pub purple_type: String,
+    pub status_type: String,
     #[serde(rename = "color_code")]
     pub color_code: String,
 }

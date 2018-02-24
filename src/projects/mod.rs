@@ -11,7 +11,7 @@ pub struct ZohoProjects {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Project {
     #[serde(rename = "custom_fields")]
-    pub custom_fields: Vec<CustomField>,
+    pub custom_fields: Option<Vec<CustomField>>,
     #[serde(rename = "created_date")]
     pub created_date: String,
     #[serde(rename = "IS_BUG_ENABLED")]
@@ -21,7 +21,7 @@ pub struct Project {
     #[serde(rename = "task_count")]
     pub task_count: Count,
     #[serde(rename = "start_date_long")]
-    pub start_date_long: i64,
+    pub start_date_long: Option<i64>,
     #[serde(rename = "status")]
     pub status: String,
     #[serde(rename = "link")]
@@ -35,27 +35,27 @@ pub struct Project {
     #[serde(rename = "created_date_long")]
     pub created_date_long: i64,
     #[serde(rename = "end_date_format")]
-    pub end_date_format: String,
+    pub end_date_format: Option<String>,
     #[serde(rename = "id")]
     pub id: i64,
     #[serde(rename = "end_date")]
-    pub end_date: String,
+    pub end_date: Option<String>,
     #[serde(rename = "id_string")]
     pub id_string: String,
     #[serde(rename = "description")]
-    pub description: String,
+    pub description: Option<String>,
     #[serde(rename = "name")]
     pub name: String,
     #[serde(rename = "owner_id")]
     pub owner_id: String,
     #[serde(rename = "end_date_long")]
-    pub end_date_long: i64,
+    pub end_date_long: Option<i64>,
     #[serde(rename = "role")]
     pub role: String,
     #[serde(rename = "start_date_format")]
-    pub start_date_format: String,
+    pub start_date_format: Option<String>,
     #[serde(rename = "start_date")]
-    pub start_date: String,
+    pub start_date: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

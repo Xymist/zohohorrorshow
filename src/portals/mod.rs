@@ -4,7 +4,7 @@ use RelativePath;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ZohoPortals {
     #[serde(rename = "login_id")]
-    pub login_id: i64,
+    pub login_id: String,
     #[serde(rename = "portals")]
     pub portals: Vec<Portal>,
 }
@@ -16,7 +16,7 @@ pub struct Portal {
     #[serde(rename = "name")]
     pub name: String,
     #[serde(rename = "default")]
-    pub purple_default: bool,
+    pub default_portal: bool,
     #[serde(rename = "gmt_time_zone")]
     pub gmt_time_zone: String,
     #[serde(rename = "role")]
@@ -56,9 +56,9 @@ pub struct Locale {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ProjectCount {
     #[serde(rename = "template")]
-    pub template: i64,
+    pub template: Option<i64>,
     #[serde(rename = "archived")]
-    pub archived: i64,
+    pub archived: Option<i64>,
     #[serde(rename = "active")]
     pub active: i64,
 }
@@ -68,7 +68,7 @@ pub struct Settings {
     #[serde(rename = "company_name")]
     pub company_name: String,
     #[serde(rename = "website_url")]
-    pub website_url: String,
+    pub website_url: Option<String>,
     #[serde(rename = "time_zone")]
     pub time_zone: String,
     #[serde(rename = "date_format")]
