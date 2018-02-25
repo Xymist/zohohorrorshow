@@ -5,7 +5,6 @@ use RelativePath;
 use projects::{Project, ZohoProjects};
 use portals::{Portal, ZohoPortals};
 use bugs::{Bug, BugFragment, ZohoBugs};
-use milestones::{Milestone, ZohoMilestones};
 
 #[derive(Debug)]
 pub struct ZohoClient {
