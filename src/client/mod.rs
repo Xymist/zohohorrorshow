@@ -66,12 +66,18 @@ impl ZohoClient {
 
     pub fn portals(&self) -> Result<Vec<Portal>> {
         let portals: Result<ZohoPortals> = self.get(None, None);
+        if portals.is_err() {
+            return Err(portals.err().unwrap());
+        }
         let portal_list: ZohoPortals = portals.unwrap();
         Ok(portal_list.portals)
     }
 
     pub fn portal(&self) -> Result<Option<Portal>> {
         let portals: Result<ZohoPortals> = self.get(Some(self.pid()), None);
+        if portals.is_err() {
+            return Err(portals.err().unwrap());
+        }
         let mut portal_list: ZohoPortals = portals.unwrap();
         match portal_list.portals.len() {
             n if n > 0 => Ok(Some(portal_list.portals.remove(0))),
@@ -81,6 +87,9 @@ impl ZohoClient {
 
     pub fn projects(&self) -> Result<Vec<Project>> {
         let projects: Result<ZohoProjects> = self.get(self.pid(), None);
+        if projects.is_err() {
+            return Err(projects.err().unwrap());
+        }
         let project_list: ZohoProjects = projects.unwrap();
         Ok(project_list.projects)
     }
@@ -88,6 +97,9 @@ impl ZohoClient {
     pub fn bugs(&self, project_id: &str) -> Result<Vec<Bug>> {
         let bugs: Result<ZohoBugs> =
             self.get([format!("{}", self.pid()).as_ref(), project_id], None);
+        if bugs.is_err() {
+            return Err(bugs.err().unwrap());
+        }
         let bug_list: ZohoBugs = bugs.unwrap();
         Ok(bug_list.bugs)
     }
@@ -106,9 +118,26 @@ impl ZohoClient {
 }
 
 pub fn create_client(auth_token: &str) -> Result<ZohoClient> {
-    Ok(ZohoClient {
+    let new_client = ZohoClient {
         authtoken: format!("?authtoken={}", auth_token),
         client: reqwest::Client::new(),
         portal_id: None,
-    })
+    };
+    // If the provided auth token is invalid, this lib is useless, so return
+    // an error instead of a client.
+    new_client
+        .portals()
+        .chain_err(|| "Failed to create client connection. Is your auth_token correct?")?;
+    Ok(new_client)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn create_invalid_client() {
+        let client = create_client("bad-auth-token");
+        assert!(client.is_err());
+    }
 }
