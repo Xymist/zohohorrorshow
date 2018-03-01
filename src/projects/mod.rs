@@ -1,6 +1,68 @@
 use errors::*;
 use RelativePath;
+use client::ZohoClient;
 use std::collections::HashMap;
+
+#[derive(Debug)]
+pub struct ProjectFragment<'a> {
+    pub client: &'a ZohoClient,
+    pub path: String,
+}
+
+impl<'a> ProjectFragment<'a> {
+    // Index number of the project.
+    pub fn index(self, index: i64) -> ProjectFragment<'a> {
+        ProjectFragment {
+            client: self.client,
+            path: format!("{}&index={}", self.path, index),
+        }
+    }
+    // Range of the project.
+    pub fn range(self, range: i64) -> ProjectFragment<'a> {
+        ProjectFragment {
+            client: self.client,
+            path: format!("{}&range={}", self.path, range),
+        }
+    }
+    // Status of the project - active, archive or template
+    pub fn status(self, status: String) -> ProjectFragment<'a> {
+        ProjectFragment {
+            client: self.client,
+            path: format!("{}&status={}", self.path, status),
+        }
+    }
+    // Sort projects using the last modified time or time of creation.
+    // created_time or last_modified_time
+    pub fn sort_column(self, sort_column: String) -> ProjectFragment<'a> {
+        ProjectFragment {
+            client: self.client,
+            path: format!("{}&sort_column={}", self.path, sort_column),
+        }
+    }
+    // Sort order - ascending or descending
+    pub fn sort_order(self, sort_order: String) -> ProjectFragment<'a> {
+        ProjectFragment {
+            client: self.client,
+            path: format!("{}&sort_order={}", self.path, sort_order),
+        }
+    }
+    // Fetch a specific portal
+    pub fn by_id(self, id: i64) -> ProjectFragment<'a> {
+        if self.path.contains("&") {
+            panic!("Cannot both filter and find by ID")
+        }
+        let path_frags = self.path.split("?").collect::<Vec<&str>>();
+        ProjectFragment {
+            client: self.client,
+            path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
+        }
+    }
+    // Execute the query against the Zoho API
+    pub fn call(self) -> Vec<Project> {
+        let project_list: ZohoProjects = self.client.get_url(&self.path).unwrap();
+        project_list.projects
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ZohoProjects {
@@ -90,17 +152,5 @@ pub struct Count {
 impl RelativePath<i64> for ZohoProjects {
     fn relative_path(portal_id: i64) -> Result<String> {
         Ok(format!("portal/{}/projects/", portal_id))
-    }
-}
-
-// Return the Project for a Portal and Project ID. This actually returns a
-// single-element ZohoProjects object, because whoever designed this API
-// was insane.
-impl<'a> RelativePath<[&'a str; 2]> for ZohoProjects {
-    fn relative_path(portal_project: [&str; 2]) -> Result<String> {
-        Ok(format!(
-            "portal/{}/projects/{}/",
-            portal_project[0], portal_project[1]
-        ))
     }
 }

@@ -2,9 +2,10 @@ use errors::*;
 use reqwest;
 use serde;
 use RelativePath;
-use projects::{Project, ZohoProjects};
-use portals::{Portal, ZohoPortals};
+use projects::{Project, ZohoProjects, ProjectFragment};
+use portals::{Portal, ZohoPortals, PortalFragment};
 use bugs::{Bug, BugFragment, ZohoBugs};
+use milestones::{ZohoMilestones, Milestone, MilestoneFragment};
 
 #[derive(Debug)]
 pub struct ZohoClient {
@@ -63,51 +64,55 @@ impl ZohoClient {
         Ok(())
     }
 
-    pub fn portals(&self) -> Result<Vec<Portal>> {
-        let portals: Result<ZohoPortals> = self.get(None, None);
-        if portals.is_err() {
-            return Err(portals.err().unwrap());
-        }
-        let portal_list: ZohoPortals = portals.unwrap();
-        Ok(portal_list.portals)
-    }
-
     pub fn portal(&self) -> Result<Option<Portal>> {
-        let portals: Result<ZohoPortals> = self.get(Some(self.pid()), None);
-        if portals.is_err() {
-            return Err(portals.err().unwrap());
-        }
-        let mut portal_list: ZohoPortals = portals.unwrap();
-        match portal_list.portals.len() {
-            n if n > 0 => Ok(Some(portal_list.portals.remove(0))),
+        let mut portals = self.portals().by_id(self.pid()).call();
+        match portals.len() {
+            n if n > 0 => Ok(Some(portals.remove(0))),
             _ => Ok(None),
         }
     }
 
-    pub fn projects(&self) -> Result<Vec<Project>> {
-        let projects: Result<ZohoProjects> = self.get(self.pid(), None);
-        if projects.is_err() {
-            return Err(projects.err().unwrap());
+    pub fn portals(&self) -> PortalFragment {
+        PortalFragment {
+            client: &self,
+            path: self.make_uri(
+                ZohoPortals::relative_path(None)
+                    .unwrap()
+                    .as_ref(),
+                None,
+            ).unwrap(),
         }
-        let project_list: ZohoProjects = projects.unwrap();
-        Ok(project_list.projects)
     }
 
-    pub fn bugs(&self, project_id: &str) -> Result<Vec<Bug>> {
-        let bugs: Result<ZohoBugs> =
-            self.get([format!("{}", self.pid()).as_ref(), project_id], None);
-        if bugs.is_err() {
-            return Err(bugs.err().unwrap());
+    pub fn projects(&self) -> ProjectFragment {
+        ProjectFragment {
+            client: &self,
+            path: self.make_uri(
+                ZohoProjects::relative_path(self.pid())
+                    .unwrap()
+                    .as_ref(),
+                None,
+            ).unwrap(),
         }
-        let bug_list: ZohoBugs = bugs.unwrap();
-        Ok(bug_list.bugs)
     }
 
-    pub fn filtered_bugs(&self, project_id: &str) -> BugFragment {
+    pub fn bugs(&self, project_id: &str) -> BugFragment {
         BugFragment {
             client: &self,
             path: self.make_uri(
                 ZohoBugs::relative_path([format!("{}", self.pid()).as_ref(), project_id])
+                    .unwrap()
+                    .as_ref(),
+                None,
+            ).unwrap(),
+        }
+    }
+
+    pub fn milestones(&self, project_id: &str) -> MilestoneFragment {
+        MilestoneFragment {
+            client: &self,
+            path: self.make_uri(
+                ZohoMilestones::relative_path([format!("{}", self.pid()).as_ref(), project_id])
                     .unwrap()
                     .as_ref(),
                 None,
@@ -126,7 +131,7 @@ pub fn create_client(auth_token: &str) -> Result<ZohoClient> {
     // an error instead of a client.
     new_client
         .portals()
-        .chain_err(|| "Failed to create client connection. Is your auth_token correct?")?;
+        .call();
     Ok(new_client)
 }
 

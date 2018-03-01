@@ -125,6 +125,18 @@ impl<'a> BugFragment<'a> {
             path: format!("{}&affected=[{}]", self.path, affected.join(",")),
         }
     }
+    // Fetch a specific bug
+    pub fn by_id(self, id: i64) -> BugFragment<'a> {
+        if self.path.contains("&") {
+            panic!("Cannot both filter and find by ID")
+        }
+        let path_frags = self.path.split("?").collect::<Vec<&str>>();
+        BugFragment {
+            client: self.client,
+            path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
+        }
+    }
+    // Execute the query against the Zoho API
     pub fn call(self) -> Vec<Bug> {
         let bug_list: ZohoBugs = self.client.get_url(&self.path).unwrap();
         bug_list.bugs
@@ -137,7 +149,7 @@ pub struct ZohoBugs {
     pub bugs: Vec<Bug>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Bug {
     #[serde(rename = "module")]
     pub module: Module,
@@ -177,7 +189,7 @@ pub struct Bug {
     pub key: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct IntClassification {
     #[serde(rename = "id")]
     pub id: i64,
@@ -185,7 +197,7 @@ pub struct IntClassification {
     pub classification_type: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct StrClassification {
     #[serde(rename = "id")]
     pub id: String,
@@ -193,7 +205,7 @@ pub struct StrClassification {
     pub classification_type: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Customfield {
     #[serde(rename = "label_name")]
     pub label_name: String,
@@ -203,7 +215,7 @@ pub struct Customfield {
     pub column_name: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Link {
     #[serde(rename = "self")]
     pub self_link: SelfLink,
@@ -211,13 +223,13 @@ pub struct Link {
     pub timesheet: SelfLink,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct SelfLink {
     #[serde(rename = "url")]
     pub url: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Module {
     #[serde(rename = "id")]
     pub id: i64,

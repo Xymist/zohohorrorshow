@@ -1,5 +1,34 @@
 use errors::*;
 use RelativePath;
+use client::ZohoClient;
+
+// A fragment of the path to call for the Zoho Tasks API. This carries
+// with it a reference to the client which will be used to call it.
+#[derive(Debug)]
+pub struct TaskFragment<'a> {
+    pub client: &'a ZohoClient,
+    pub path: String,
+}
+
+impl<'a> TaskFragment<'a> {
+    // Fetch a specific portal
+    pub fn by_id(self, id: i64) -> TaskFragment<'a> {
+        if self.path.contains("&") {
+            panic!("Cannot both filter and find by ID")
+        }
+        let path_frags = self.path.split("?").collect::<Vec<&str>>();
+        TaskFragment {
+            client: self.client,
+            path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
+        }
+    }
+
+    // Execute the query against the Zoho API
+    pub fn call(self) -> Vec<Task> {
+        let task_list: ZohoTasks = self.client.get_url(&self.path).unwrap();
+        task_list.tasks
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ZohoTasks {

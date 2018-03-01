@@ -1,5 +1,32 @@
 use errors::*;
 use RelativePath;
+use client::ZohoClient;
+
+#[derive(Debug)]
+pub struct PortalFragment<'a> {
+    pub client: &'a ZohoClient,
+    pub path: String,
+}
+
+impl<'a> PortalFragment<'a> {
+    // Fetch a specific portal
+    pub fn by_id(self, id: i64) -> PortalFragment<'a> {
+        if self.path.contains("&") {
+            panic!("Cannot both filter and find by ID")
+        }
+        let path_frags = self.path.split("?").collect::<Vec<&str>>();
+        PortalFragment {
+            client: self.client,
+            path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
+        }
+    }
+
+    // Execute the query against the Zoho API
+    pub fn call(self) -> Vec<Portal> {
+        let portal_list: ZohoPortals = self.client.get_url(&self.path).unwrap();
+        portal_list.portals
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ZohoPortals {
@@ -75,13 +102,8 @@ pub struct Settings {
     pub date_format: String,
 }
 
-// For reasons best known to Zoho, retrieving one portal record actually
-// returns an array of length 1, containing the record we actually want.
-impl RelativePath<Option<i64>> for ZohoPortals {
-    fn relative_path(param: Option<i64>) -> Result<String> {
-        match param {
-            Some(portal_id) => Ok(format!("portals/{}", portal_id)),
-            None => Ok("portals/".to_string()),
-        }
+impl RelativePath<Option<i8>> for ZohoPortals {
+    fn relative_path(_params: Option<i8>) -> Result<String> {
+        Ok(String::from("portals/"))
     }
 }

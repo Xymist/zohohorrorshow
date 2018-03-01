@@ -1,5 +1,55 @@
 use errors::*;
 use RelativePath;
+use client::ZohoClient;
+
+#[derive(Debug)]
+pub struct MilestoneFragment<'a> {
+    pub client: &'a ZohoClient,
+    pub path: String,
+}
+
+impl<'a> MilestoneFragment<'a> {
+    // Index number of the milestone.
+    pub fn index(self, index: i64) -> MilestoneFragment<'a> {
+        MilestoneFragment {
+            client: self.client,
+            path: format!("{}&index={}", self.path, index),
+        }
+    }
+    // Range of the milestones.
+    pub fn range(self, range: i64) -> MilestoneFragment<'a>{
+        MilestoneFragment {
+            client: self.client,
+            path: format!("{}&range={}", self.path, range),
+        }
+    }
+    // Status of the milestone. Accepts 'completed' or 'notcompleted'.
+    pub fn status(self, status: String) -> MilestoneFragment<'a>{
+        MilestoneFragment {
+            client: self.client,
+            path: format!("{}&status={}", self.path, status),
+        }
+    }
+    // Milestone type. Accepts 'upcoming' or 'delayed'.
+    pub fn display_type(self, display_type: String) -> MilestoneFragment<'a>{
+        MilestoneFragment {
+            client: self.client,
+            path: format!("{}&display_type={}", self.path, display_type),
+        }
+    }
+    // Milestone flag. Accepts 'internal' or 'external'.
+    pub fn flag(self, flag: String) -> MilestoneFragment<'a>{
+        MilestoneFragment {
+            client: self.client,
+            path: format!("{}&flag={}", self.path, flag),
+        }
+    }
+    // Execute the query against the Zoho API
+    pub fn call(self) -> Vec<Milestone> {
+        let milestone_list: ZohoMilestones = self.client.get_url(&self.path).unwrap();
+        milestone_list.milestones
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ZohoMilestones {
@@ -32,9 +82,22 @@ pub struct Milestone {
     #[serde(rename = "status")]
     pub status: String,
     #[serde(rename = "completed_date")]
-    pub completed_date: String,
+    pub completed_date: Option<String>,
     #[serde(rename = "completed_date_long")]
-    pub completed_date_long: i64,
+    pub completed_date_long: Option<i64>,
+}
+
+impl Milestone {
+     pub fn completed(&self) -> bool {
+         match self.completed_date {
+             Some(_) => true,
+             None => false,
+         }
+     }
+     pub fn overdue(&self) -> bool {
+        //  End date < current date?
+         unimplemented!();
+     }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

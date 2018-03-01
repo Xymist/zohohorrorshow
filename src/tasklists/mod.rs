@@ -1,5 +1,33 @@
 use errors::*;
 use RelativePath;
+use client::ZohoClient;
+
+#[derive(Debug)]
+pub struct TasklistFragment<'a> {
+    pub client: &'a ZohoClient,
+    pub path: String,
+}
+
+impl<'a> TasklistFragment<'a> {
+    // Designate a specific tasklist. This cannot be used to fetch it,
+    // but can be POSTed to in order to update or delete.
+    pub fn by_id(self, id: i64) -> TasklistFragment<'a> {
+        if self.path.contains("&") {
+            panic!("Cannot both filter and find by ID")
+        }
+        let path_frags = self.path.split("?").collect::<Vec<&str>>();
+        TasklistFragment {
+            client: self.client,
+            path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
+        }
+    }
+
+    // Execute the query against the Zoho API
+    pub fn call(self) -> Vec<Tasklist> {
+        let tasklist_list: ZohoTasklists = self.client.get_url(&self.path).unwrap();
+        tasklist_list.tasklists
+    }
+}
 
 #[derive(Serialize, Deserialize)]
 pub struct ZohoTasklists {
