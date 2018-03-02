@@ -42,17 +42,11 @@ impl ZohoClient {
         }
     }
 
-    fn make_uri(&self, relative_path: String, query: Option<&str>) -> Result<String> {
-        match query {
-            Some(query_string) => Ok(format!(
-                "https://projectsapi.zoho.com/restapi/{}{}{}",
-                relative_path, self.authtoken, query_string
-            )),
-            None => Ok(format!(
+    fn make_uri(&self, relative_path: &str) -> Result<String> {
+        Ok(format!(
                 "https://projectsapi.zoho.com/restapi/{}{}",
                 relative_path, self.authtoken
-            )),
-        }
+            ))
     }
 
     pub fn get_url<T>(&self, url: &str) -> Result<T>
@@ -67,11 +61,11 @@ impl ZohoClient {
         Ok(res_obj)
     }
 
-    pub fn get<T, U>(&self, params: U, query: Option<&str>) -> Result<T>
+    pub fn get<T, U>(&self, params: U) -> Result<T>
     where
         T: serde::de::DeserializeOwned + RelativePath<U>,
     {
-        let url: String = self.make_uri(T::relative_path(params)?, query)?;
+        let url: String = self.make_uri(&T::relative_path(params)?)?;
         self.get_url(&url)
     }
 
@@ -98,7 +92,7 @@ impl ZohoClient {
     pub fn portals(&self) -> PortalFragment {
         PortalFragment {
             client: &self,
-            path: self.make_uri(ZohoPortals::relative_path(None).unwrap(), None)
+            path: self.make_uri(&ZohoPortals::relative_path(None).unwrap())
                 .unwrap(),
         }
     }
@@ -106,7 +100,7 @@ impl ZohoClient {
     pub fn projects(&self) -> ProjectFragment {
         ProjectFragment {
             client: &self,
-            path: self.make_uri(ZohoProjects::relative_path(self.po_id()).unwrap(), None)
+            path: self.make_uri(&ZohoProjects::relative_path(self.po_id()).unwrap())
                 .unwrap(),
         }
     }
@@ -123,8 +117,7 @@ impl ZohoClient {
         BugFragment {
             client: &self,
             path: self.make_uri(
-                ZohoBugs::relative_path([self.po_id(), self.pt_id()]).unwrap(),
-                None,
+                &ZohoBugs::relative_path([self.po_id(), self.pt_id()]).unwrap()
             ).unwrap(),
         }
     }
@@ -133,8 +126,7 @@ impl ZohoClient {
         MilestoneFragment {
             client: &self,
             path: self.make_uri(
-                ZohoMilestones::relative_path([self.po_id(), self.pt_id()]).unwrap(),
-                None,
+                &ZohoMilestones::relative_path([self.po_id(), self.pt_id()]).unwrap()
             ).unwrap(),
         }
     }
@@ -143,8 +135,7 @@ impl ZohoClient {
         TasklistFragment {
             client: &self,
             path: self.make_uri(
-                ZohoTasklists::relative_path([self.po_id(), self.pt_id()]).unwrap(),
-                None,
+                &ZohoTasklists::relative_path([self.po_id(), self.pt_id()]).unwrap()
             ).unwrap(),
         }
     }
@@ -152,8 +143,7 @@ impl ZohoClient {
         TaskFragment {
             client: &self,
             path: self.make_uri(
-                ZohoTasks::relative_path([self.po_id(), self.pt_id()]).unwrap(),
-                None,
+                &ZohoTasks::relative_path([self.po_id(), self.pt_id()]).unwrap()
             ).unwrap(),
         }
     }

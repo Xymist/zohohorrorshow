@@ -88,3 +88,12 @@ pub struct Project {
     #[serde(rename = "name")]
     pub name: String,
 }
+
+impl<'a> RelativePath<[i64; 2]> for ZohoTimelogs {
+    fn relative_path(params: [i64; 2]) -> Result<String> {
+        Ok(format!(
+            "portal/{}/projects/{}/logs/",
+            params[0], params[1]
+        ))
+    }
+}

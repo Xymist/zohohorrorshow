@@ -2,7 +2,7 @@ use errors::*;
 use RelativePath;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct EventList {
+pub struct ZohoEvents {
     #[serde(rename = "events")]
     pub events: Vec<Event>,
 }
@@ -43,4 +43,13 @@ pub struct Participant {
     pub participant_id: String,
     #[serde(rename = "participant_person")]
     pub participant_person: String,
+}
+
+impl<'a> RelativePath<[i64; 2]> for ZohoEvents {
+    fn relative_path(params: [i64; 2]) -> Result<String> {
+        Ok(format!(
+            "portal/{}/projects/{}/events/",
+            params[0], params[1]
+        ))
+    }
 }

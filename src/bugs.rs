@@ -52,21 +52,21 @@ impl<'a> BugFragment<'a> {
         }
     }
     // Status IDs
-    pub fn status(self, status: Vec<&str>) -> BugFragment<'a> {
+    pub fn status(self, status: &[&str]) -> BugFragment<'a> {
         BugFragment {
             client: self.client,
             path: format!("{}&status=[{}]", self.path, status.join(",")),
         }
     }
     // Severity IDs
-    pub fn severity(self, severity: Vec<&str>) -> BugFragment<'a> {
+    pub fn severity(self, severity: &[&str]) -> BugFragment<'a> {
         BugFragment {
             client: self.client,
             path: format!("{}&severity=[{}]", self.path, severity.join(",")),
         }
     }
     // Classification IDs
-    pub fn classification(self, classification: Vec<&str>) -> BugFragment<'a> {
+    pub fn classification(self, classification: &[&str]) -> BugFragment<'a> {
         BugFragment {
             client: self.client,
             path: format!(
@@ -77,14 +77,14 @@ impl<'a> BugFragment<'a> {
         }
     }
     // Module IDs
-    pub fn module(self, module: Vec<&str>) -> BugFragment<'a> {
+    pub fn module(self, module: &[&str]) -> BugFragment<'a> {
         BugFragment {
             client: self.client,
             path: format!("{}&module=[{}]", self.path, module.join(",")),
         }
     }
     // Milestone IDs
-    pub fn milestone(self, milestone: Vec<&str>) -> BugFragment<'a> {
+    pub fn milestone(self, milestone: &[&str]) -> BugFragment<'a> {
         BugFragment {
             client: self.client,
             path: format!("{}&milestone=[{}]", self.path, milestone.join(",")),
@@ -98,28 +98,28 @@ impl<'a> BugFragment<'a> {
         }
     }
     // Assignee IDs
-    pub fn assignee(self, assignee: Vec<&str>) -> BugFragment<'a> {
+    pub fn assignee(self, assignee: &[&str]) -> BugFragment<'a> {
         BugFragment {
             client: self.client,
             path: format!("{}&assignee=[{}]", self.path, assignee.join(",")),
         }
     }
     // Escalation IDs
-    pub fn escalation(self, escalation: Vec<&str>) -> BugFragment<'a> {
+    pub fn escalation(self, escalation: &[&str]) -> BugFragment<'a> {
         BugFragment {
             client: self.client,
             path: format!("{}&escalation=[{}]", self.path, escalation.join(",")),
         }
     }
     // Reporter IDs
-    pub fn reporter(self, reporter: Vec<&str>) -> BugFragment<'a> {
+    pub fn reporter(self, reporter: &[&str]) -> BugFragment<'a> {
         BugFragment {
             client: self.client,
             path: format!("{}&reporter=[{}]", self.path, reporter.join(",")),
         }
     }
     // Affected milestone IDs
-    pub fn affected(self, affected: Vec<&str>) -> BugFragment<'a> {
+    pub fn affected(self, affected: &[&str]) -> BugFragment<'a> {
         BugFragment {
             client: self.client,
             path: format!("{}&affected=[{}]", self.path, affected.join(",")),
@@ -127,10 +127,10 @@ impl<'a> BugFragment<'a> {
     }
     // Fetch a specific bug
     pub fn by_id(self, id: i64) -> BugFragment<'a> {
-        if self.path.contains("&") {
+        if self.path.contains('&') {
             panic!("Cannot both filter and find by ID")
         }
-        let path_frags = self.path.split("?").collect::<Vec<&str>>();
+        let path_frags = self.path.split('?').collect::<Vec<&str>>();
         BugFragment {
             client: self.client,
             path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
