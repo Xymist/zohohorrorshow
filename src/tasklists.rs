@@ -34,10 +34,10 @@ impl<'a> TasklistFragment<'a> {
     // Designate a specific tasklist. This cannot be used to fetch it,
     // but can be POSTed to in order to update or delete.
     pub fn by_id(self, id: i64) -> TasklistPath<'a> {
-        if self.path.contains("&") {
+        if self.path.contains('&') {
             panic!("Cannot both filter and find by ID")
         }
-        let path_frags = self.path.split("?").collect::<Vec<&str>>();
+        let path_frags = self.path.split('?').collect::<Vec<&str>>();
         TasklistPath {
             client: self.client,
             path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
@@ -64,7 +64,7 @@ impl<'a> TasklistPath<'a> {
     // Designate a specific tasklist. This cannot be used to fetch it,
     // but can be POSTed to in order to update or delete.
     pub fn tasks(self) -> TasklistTasksPath<'a> {
-        let path_frags = self.path.split("?").collect::<Vec<&str>>();
+        let path_frags = self.path.split('?').collect::<Vec<&str>>();
         TasklistTasksPath {
             client: self.client,
             path: format!("{}{}/?{}", path_frags[0], "tasks", path_frags[1]),

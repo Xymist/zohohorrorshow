@@ -1,6 +1,3 @@
-use errors::*;
-use RelativePath;
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ZohoUsers {
     #[serde(rename = "users")]

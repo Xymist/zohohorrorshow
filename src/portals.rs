@@ -69,7 +69,7 @@ fn filter_by_id(portals: Vec<Portal>, id: i64) -> Option<Portal> {
 fn filter_by_name(portals: Vec<Portal>, name: &str) -> Option<Portal> {
     let mut filtered = portals
         .into_iter()
-        .filter(|p| p.name == String::from(name))
+        .filter(|p| p.name == name)
         .collect::<Vec<Portal>>();
     match filtered.len() {
         0 => None,

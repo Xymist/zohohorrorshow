@@ -24,21 +24,21 @@ impl<'a> MilestoneFragment<'a> {
         }
     }
     // Status of the milestone. Accepts 'completed' or 'notcompleted'.
-    pub fn status(self, status: String) -> MilestoneFragment<'a> {
+    pub fn status(self, status: &str) -> MilestoneFragment<'a> {
         MilestoneFragment {
             client: self.client,
             path: format!("{}&status={}", self.path, status),
         }
     }
     // Milestone type. Accepts 'upcoming' or 'delayed'.
-    pub fn display_type(self, display_type: String) -> MilestoneFragment<'a> {
+    pub fn display_type(self, display_type: &str) -> MilestoneFragment<'a> {
         MilestoneFragment {
             client: self.client,
             path: format!("{}&display_type={}", self.path, display_type),
         }
     }
     // Milestone flag. Accepts 'internal' or 'external'.
-    pub fn flag(self, flag: String) -> MilestoneFragment<'a> {
+    pub fn flag(self, flag: &str) -> MilestoneFragment<'a> {
         MilestoneFragment {
             client: self.client,
             path: format!("{}&flag={}", self.path, flag),

@@ -25,7 +25,7 @@ impl<'a> ProjectFragment<'a> {
         }
     }
     // Status of the project - active, archive or template
-    pub fn status(self, status: String) -> ProjectFragment<'a> {
+    pub fn status(self, status: &str) -> ProjectFragment<'a> {
         ProjectFragment {
             client: self.client,
             path: format!("{}&status={}", self.path, status),
@@ -33,14 +33,14 @@ impl<'a> ProjectFragment<'a> {
     }
     // Sort projects using the last modified time or time of creation.
     // created_time or last_modified_time
-    pub fn sort_column(self, sort_column: String) -> ProjectFragment<'a> {
+    pub fn sort_column(self, sort_column: &str) -> ProjectFragment<'a> {
         ProjectFragment {
             client: self.client,
             path: format!("{}&sort_column={}", self.path, sort_column),
         }
     }
     // Sort order - ascending or descending
-    pub fn sort_order(self, sort_order: String) -> ProjectFragment<'a> {
+    pub fn sort_order(self, sort_order: &str) -> ProjectFragment<'a> {
         ProjectFragment {
             client: self.client,
             path: format!("{}&sort_order={}", self.path, sort_order),
@@ -48,10 +48,10 @@ impl<'a> ProjectFragment<'a> {
     }
     // Fetch a specific portal
     pub fn by_id(self, id: i64) -> ProjectFilter<'a> {
-        if self.path.contains("&") {
+        if self.path.contains('&') {
             panic!("Cannot both filter and find by ID")
         }
-        let path_frags = self.path.split("?").collect::<Vec<&str>>();
+        let path_frags = self.path.split('?').collect::<Vec<&str>>();
         ProjectFilter {
             client: self.client,
             path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
@@ -60,7 +60,7 @@ impl<'a> ProjectFragment<'a> {
     }
     // Fetch a specific portal
     pub fn by_name(self, name: &'a str) -> ProjectFilter<'a> {
-        if self.path.contains("&") {
+        if self.path.contains('&') {
             panic!("Cannot both filter and find by name")
         }
         ProjectFilter {
@@ -115,7 +115,7 @@ fn filter_by_id(projects: Vec<Project>, id: i64) -> Option<Project> {
 fn filter_by_name(projects: Vec<Project>, name: &str) -> Option<Project> {
     let mut filtered = projects
         .into_iter()
-        .filter(|p| p.name == String::from(name))
+        .filter(|p| p.name == name)
         .collect::<Vec<Project>>();
     match filtered.len() {
         0 => None,

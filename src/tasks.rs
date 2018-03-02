@@ -33,21 +33,21 @@ impl<'a> TaskFragment<'a> {
         }
     }
     // Status of the task. Accepts 'all', 'completed' or 'notcompleted'
-    pub fn status(self, status: String) -> TaskFragment<'a> {
+    pub fn status(self, status: &str) -> TaskFragment<'a> {
         TaskFragment {
             client: self.client,
             path: format!("{}&status={}", self.path, status),
         }
     }
     // Time period of the task. Accepts 'all', 'overdue', 'today' or 'tomorrow'
-    pub fn time(self, time: String) -> TaskFragment<'a> {
+    pub fn time(self, time: &str) -> TaskFragment<'a> {
         TaskFragment {
             client: self.client,
             path: format!("{}&time={}", self.path, time),
         }
     }
     // Priority of the task. Accepts 'all', 'none', 'low', 'medium', or 'high'.
-    pub fn priority(self, priority: String) -> TaskFragment<'a> {
+    pub fn priority(self, priority: &str) -> TaskFragment<'a> {
         TaskFragment {
             client: self.client,
             path: format!("{}&priority={}", self.path, priority),
@@ -69,10 +69,10 @@ impl<'a> TaskFragment<'a> {
     }
     // Fetch a specific task
     pub fn by_id(self, id: i64) -> TaskFragment<'a> {
-        if self.path.contains("&") {
+        if self.path.contains('&') {
             panic!("Cannot both filter and find by ID")
         }
-        let path_frags = self.path.split("?").collect::<Vec<&str>>();
+        let path_frags = self.path.split('?').collect::<Vec<&str>>();
         TaskFragment {
             client: self.client,
             path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
