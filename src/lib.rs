@@ -8,7 +8,8 @@ extern crate serde_derive;
 
 pub mod bugs;
 pub mod client;
-pub mod dashboard;
+pub mod statuses;
+pub mod activities;
 pub mod events;
 pub mod forums;
 pub mod milestones;

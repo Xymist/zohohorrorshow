@@ -1,6 +1,6 @@
 [package]
 name = "zohohorrorshow"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Xymist <james.duerden@marketdojo.com>"]
 
 [dependencies]
@@ -13,3 +13,6 @@ serde_derive = "1.0"
 [dependencies.chrono]
 features = ["serde"]
 version = "0.4"
+
+[dev-dependencies]
+dotenv = "0.10.1"

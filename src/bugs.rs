@@ -24,7 +24,7 @@ impl<'a> BugFragment<'a> {
         }
     }
     // Accepted values: open/closed
-    pub fn status_type(self, status_type: String) -> BugFragment<'a> {
+    pub fn status_type(self, status_type: &str) -> BugFragment<'a> {
         BugFragment {
             client: self.client,
             path: format!("{}&statustype={}", self.path, status_type),
@@ -38,35 +38,35 @@ impl<'a> BugFragment<'a> {
         }
     }
     // Accepted values: created_time/last_modified_time
-    pub fn sort_column(self, sort_column: String) -> BugFragment<'a> {
+    pub fn sort_column(self, sort_column: &str) -> BugFragment<'a> {
         BugFragment {
             client: self.client,
             path: format!("{}&sort_column={}", self.path, sort_column),
         }
     }
     // Accepted values: ascending/descending
-    pub fn sort_order(self, sort_order: String) -> BugFragment<'a> {
+    pub fn sort_order(self, sort_order: &str) -> BugFragment<'a> {
         BugFragment {
             client: self.client,
             path: format!("{}&sort_order={}", self.path, sort_order),
         }
     }
     // Status IDs
-    pub fn status(self, status: Vec<String>) -> BugFragment<'a> {
+    pub fn status(self, status: Vec<&str>) -> BugFragment<'a> {
         BugFragment {
             client: self.client,
             path: format!("{}&status=[{}]", self.path, status.join(",")),
         }
     }
     // Severity IDs
-    pub fn severity(self, severity: Vec<String>) -> BugFragment<'a> {
+    pub fn severity(self, severity: Vec<&str>) -> BugFragment<'a> {
         BugFragment {
             client: self.client,
             path: format!("{}&severity=[{}]", self.path, severity.join(",")),
         }
     }
     // Classification IDs
-    pub fn classification(self, classification: Vec<String>) -> BugFragment<'a> {
+    pub fn classification(self, classification: Vec<&str>) -> BugFragment<'a> {
         BugFragment {
             client: self.client,
             path: format!(
@@ -77,49 +77,49 @@ impl<'a> BugFragment<'a> {
         }
     }
     // Module IDs
-    pub fn module(self, module: Vec<String>) -> BugFragment<'a> {
+    pub fn module(self, module: Vec<&str>) -> BugFragment<'a> {
         BugFragment {
             client: self.client,
             path: format!("{}&module=[{}]", self.path, module.join(",")),
         }
     }
     // Milestone IDs
-    pub fn milestone(self, milestone: Vec<String>) -> BugFragment<'a> {
+    pub fn milestone(self, milestone: Vec<&str>) -> BugFragment<'a> {
         BugFragment {
             client: self.client,
             path: format!("{}&milestone=[{}]", self.path, milestone.join(",")),
         }
     }
     // Accepted values: Internal/External
-    pub fn flag(self, flag: String) -> BugFragment<'a> {
+    pub fn flag(self, flag: &str) -> BugFragment<'a> {
         BugFragment {
             client: self.client,
             path: format!("{}&flag={}", self.path, flag),
         }
     }
     // Assignee IDs
-    pub fn assignee(self, assignee: Vec<String>) -> BugFragment<'a> {
+    pub fn assignee(self, assignee: Vec<&str>) -> BugFragment<'a> {
         BugFragment {
             client: self.client,
             path: format!("{}&assignee=[{}]", self.path, assignee.join(",")),
         }
     }
     // Escalation IDs
-    pub fn escalation(self, escalation: Vec<String>) -> BugFragment<'a> {
+    pub fn escalation(self, escalation: Vec<&str>) -> BugFragment<'a> {
         BugFragment {
             client: self.client,
             path: format!("{}&escalation=[{}]", self.path, escalation.join(",")),
         }
     }
     // Reporter IDs
-    pub fn reporter(self, reporter: Vec<String>) -> BugFragment<'a> {
+    pub fn reporter(self, reporter: Vec<&str>) -> BugFragment<'a> {
         BugFragment {
             client: self.client,
             path: format!("{}&reporter=[{}]", self.path, reporter.join(",")),
         }
     }
     // Affected milestone IDs
-    pub fn affected(self, affected: Vec<String>) -> BugFragment<'a> {
+    pub fn affected(self, affected: Vec<&str>) -> BugFragment<'a> {
         BugFragment {
             client: self.client,
             path: format!("{}&affected=[{}]", self.path, affected.join(",")),
@@ -237,8 +237,8 @@ pub struct Module {
     pub name: String,
 }
 
-impl<'a> RelativePath<[&'a str; 2]> for ZohoBugs {
-    fn relative_path(params: [&'a str; 2]) -> Result<String> {
+impl<'a> RelativePath<[i64; 2]> for ZohoBugs {
+    fn relative_path(params: [i64; 2]) -> Result<String> {
         Ok(format!("portal/{}/projects/{}/bugs/", params[0], params[1]))
     }
 }

@@ -1,6 +1,7 @@
 use errors::*;
 use RelativePath;
 use client::ZohoClient;
+use tasks::{Task, ZohoTasks};
 
 #[derive(Debug)]
 pub struct TasklistFragment<'a> {
@@ -9,14 +10,35 @@ pub struct TasklistFragment<'a> {
 }
 
 impl<'a> TasklistFragment<'a> {
+    // Index number of the tasklist.
+    pub fn index(self, index: i64) -> TasklistFragment<'a> {
+        TasklistFragment {
+            client: self.client,
+            path: format!("{}&index={}", self.path, index),
+        }
+    }
+    // Range of the tasklist.
+    pub fn range(self, range: i64) -> TasklistFragment<'a> {
+        TasklistFragment {
+            client: self.client,
+            path: format!("{}&range={}", self.path, range),
+        }
+    }
+    // Accepted values: Internal/External
+    pub fn flag(self, flag: &str) -> TasklistFragment<'a> {
+        TasklistFragment {
+            client: self.client,
+            path: format!("{}&flag={}", self.path, flag),
+        }
+    }
     // Designate a specific tasklist. This cannot be used to fetch it,
     // but can be POSTed to in order to update or delete.
-    pub fn by_id(self, id: i64) -> TasklistFragment<'a> {
+    pub fn by_id(self, id: i64) -> TasklistPath<'a> {
         if self.path.contains("&") {
             panic!("Cannot both filter and find by ID")
         }
         let path_frags = self.path.split("?").collect::<Vec<&str>>();
-        TasklistFragment {
+        TasklistPath {
             client: self.client,
             path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
         }
@@ -24,18 +46,59 @@ impl<'a> TasklistFragment<'a> {
 
     // Execute the query against the Zoho API
     pub fn call(self) -> Vec<Tasklist> {
+        if !self.path.contains("flag") {
+            panic!("The 'flag' parameter is mandatory. Please call '.flag()' with either 'internal' or 'external' before calling.")
+        }
         let tasklist_list: ZohoTasklists = self.client.get_url(&self.path).unwrap();
         tasklist_list.tasklists
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
+pub struct TasklistPath<'a> {
+    pub client: &'a ZohoClient,
+    pub path: String,
+}
+
+impl<'a> TasklistPath<'a> {
+    // Designate a specific tasklist. This cannot be used to fetch it,
+    // but can be POSTed to in order to update or delete.
+    pub fn tasks(self) -> TasklistTasksPath<'a> {
+        let path_frags = self.path.split("?").collect::<Vec<&str>>();
+        TasklistTasksPath {
+            client: self.client,
+            path: format!("{}{}/?{}", path_frags[0], "tasks", path_frags[1]),
+        }
+    }
+
+    // Execute the query against the Zoho API
+    pub fn call(self) -> Tasklist {
+        let mut tasklist_list: ZohoTasklists = self.client.get_url(&self.path).unwrap();
+        tasklist_list.tasklists.remove(0)
+    }
+}
+
+#[derive(Debug)]
+pub struct TasklistTasksPath<'a> {
+    pub client: &'a ZohoClient,
+    pub path: String,
+}
+
+impl<'a> TasklistTasksPath<'a> {
+    // Execute the query against the Zoho API
+    pub fn call(self) -> Vec<Task> {
+        let task_list: ZohoTasks = self.client.get_url(&self.path).unwrap();
+        task_list.tasks
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ZohoTasklists {
     #[serde(rename = "tasklists")]
     pub tasklists: Vec<Tasklist>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Tasklist {
     #[serde(rename = "id")]
     pub id: i64,
@@ -54,12 +117,12 @@ pub struct Tasklist {
     #[serde(rename = "sequence")]
     pub sequence: i64,
     #[serde(rename = "view_type")]
-    pub view_type: String,
+    pub view_type: Option<String>,
     #[serde(rename = "link")]
     pub link: TasklistLink,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct TasklistLink {
     #[serde(rename = "self")]
     pub link: Link,
@@ -67,13 +130,13 @@ pub struct TasklistLink {
     pub task: Link,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Link {
     #[serde(rename = "url")]
     pub url: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Milestone {
     #[serde(rename = "id")]
     pub id: i64,
@@ -99,7 +162,7 @@ pub struct Milestone {
     pub status: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct MilestoneLink {
     #[serde(rename = "self")]
     pub link: Link,
@@ -108,8 +171,8 @@ pub struct MilestoneLink {
 }
 
 // Requires a query of either &flag=internal or &flag=external
-impl<'a> RelativePath<[&'a str; 2]> for ZohoTasklists {
-    fn relative_path(params: [&'a str; 2]) -> Result<String> {
+impl<'a> RelativePath<[i64; 2]> for ZohoTasklists {
+    fn relative_path(params: [i64; 2]) -> Result<String> {
         Ok(format!(
             "portal/{}/projects/{}/tasklists/",
             params[0], params[1]

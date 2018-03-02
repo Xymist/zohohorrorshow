@@ -17,28 +17,28 @@ impl<'a> MilestoneFragment<'a> {
         }
     }
     // Range of the milestones.
-    pub fn range(self, range: i64) -> MilestoneFragment<'a>{
+    pub fn range(self, range: i64) -> MilestoneFragment<'a> {
         MilestoneFragment {
             client: self.client,
             path: format!("{}&range={}", self.path, range),
         }
     }
     // Status of the milestone. Accepts 'completed' or 'notcompleted'.
-    pub fn status(self, status: String) -> MilestoneFragment<'a>{
+    pub fn status(self, status: String) -> MilestoneFragment<'a> {
         MilestoneFragment {
             client: self.client,
             path: format!("{}&status={}", self.path, status),
         }
     }
     // Milestone type. Accepts 'upcoming' or 'delayed'.
-    pub fn display_type(self, display_type: String) -> MilestoneFragment<'a>{
+    pub fn display_type(self, display_type: String) -> MilestoneFragment<'a> {
         MilestoneFragment {
             client: self.client,
             path: format!("{}&display_type={}", self.path, display_type),
         }
     }
     // Milestone flag. Accepts 'internal' or 'external'.
-    pub fn flag(self, flag: String) -> MilestoneFragment<'a>{
+    pub fn flag(self, flag: String) -> MilestoneFragment<'a> {
         MilestoneFragment {
             client: self.client,
             path: format!("{}&flag={}", self.path, flag),
@@ -88,16 +88,16 @@ pub struct Milestone {
 }
 
 impl Milestone {
-     pub fn completed(&self) -> bool {
-         match self.completed_date {
-             Some(_) => true,
-             None => false,
-         }
-     }
-     pub fn overdue(&self) -> bool {
+    pub fn completed(&self) -> bool {
+        match self.completed_date {
+            Some(_) => true,
+            None => false,
+        }
+    }
+    pub fn overdue(&self) -> bool {
         //  End date < current date?
-         unimplemented!();
-     }
+        unimplemented!();
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -114,8 +114,8 @@ pub struct SelfLink {
     pub url: String,
 }
 
-impl<'a> RelativePath<[&'a str; 2]> for ZohoMilestones {
-    fn relative_path(params: [&'a str; 2]) -> Result<String> {
+impl<'a> RelativePath<[i64; 2]> for ZohoMilestones {
+    fn relative_path(params: [i64; 2]) -> Result<String> {
         Ok(format!(
             "portal/{}/projects/{}/milestones/",
             params[0], params[1]

@@ -9,22 +9,71 @@ pub struct PortalFragment<'a> {
 }
 
 impl<'a> PortalFragment<'a> {
-    // Fetch a specific portal
-    pub fn by_id(self, id: i64) -> PortalFragment<'a> {
-        if self.path.contains("&") {
-            panic!("Cannot both filter and find by ID")
-        }
-        let path_frags = self.path.split("?").collect::<Vec<&str>>();
-        PortalFragment {
+    pub fn by_id(self, id: i64) -> PortalFilter<'a> {
+        PortalFilter {
             client: self.client,
-            path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
+            path: self.path,
+            filter: Filter::ID(id),
         }
     }
-
+    pub fn by_name(self, name: &'a str) -> PortalFilter<'a> {
+        PortalFilter {
+            client: self.client,
+            path: self.path,
+            filter: Filter::Name(name),
+        }
+    }
     // Execute the query against the Zoho API
     pub fn call(self) -> Vec<Portal> {
         let portal_list: ZohoPortals = self.client.get_url(&self.path).unwrap();
         portal_list.portals
+    }
+}
+
+#[derive(Debug)]
+enum Filter<'a> {
+    ID(i64),
+    Name(&'a str),
+}
+
+#[derive(Debug)]
+pub struct PortalFilter<'a> {
+    client: &'a ZohoClient,
+    path: String,
+    filter: Filter<'a>,
+}
+
+impl<'a> PortalFilter<'a> {
+    // Execute the query against the Zoho API
+    pub fn call(self) -> Option<Portal> {
+        let portal_list: ZohoPortals = self.client.get_url(&self.path).unwrap();
+        let portals = portal_list.portals;
+        match self.filter {
+            Filter::ID(id) => filter_by_id(portals, id),
+            Filter::Name(name) => filter_by_name(portals, name),
+        }
+    }
+}
+
+fn filter_by_id(portals: Vec<Portal>, id: i64) -> Option<Portal> {
+    let mut filtered = portals
+        .into_iter()
+        .filter(|p| p.id == id)
+        .collect::<Vec<Portal>>();
+    match filtered.len() {
+        0 => None,
+        _ => Some(filtered.remove(0)),
+    }
+}
+
+fn filter_by_name(portals: Vec<Portal>, name: &str) -> Option<Portal> {
+    let mut filtered = portals
+        .into_iter()
+        .filter(|p| p.name == String::from(name))
+        .collect::<Vec<Portal>>();
+    match filtered.len() {
+        0 => None,
+        _ => Some(filtered.remove(0)),
     }
 }
 

@@ -47,20 +47,79 @@ impl<'a> ProjectFragment<'a> {
         }
     }
     // Fetch a specific portal
-    pub fn by_id(self, id: i64) -> ProjectFragment<'a> {
+    pub fn by_id(self, id: i64) -> ProjectFilter<'a> {
         if self.path.contains("&") {
             panic!("Cannot both filter and find by ID")
         }
         let path_frags = self.path.split("?").collect::<Vec<&str>>();
-        ProjectFragment {
+        ProjectFilter {
             client: self.client,
             path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
+            filter: Filter::ID(id),
+        }
+    }
+    // Fetch a specific portal
+    pub fn by_name(self, name: &'a str) -> ProjectFilter<'a> {
+        if self.path.contains("&") {
+            panic!("Cannot both filter and find by name")
+        }
+        ProjectFilter {
+            client: self.client,
+            path: self.path,
+            filter: Filter::Name(name),
         }
     }
     // Execute the query against the Zoho API
     pub fn call(self) -> Vec<Project> {
         let project_list: ZohoProjects = self.client.get_url(&self.path).unwrap();
         project_list.projects
+    }
+}
+
+#[derive(Debug)]
+enum Filter<'a> {
+    ID(i64),
+    Name(&'a str),
+}
+
+#[derive(Debug)]
+pub struct ProjectFilter<'a> {
+    client: &'a ZohoClient,
+    path: String,
+    filter: Filter<'a>,
+}
+
+impl<'a> ProjectFilter<'a> {
+    // Execute the query against the Zoho API
+    pub fn call(self) -> Option<Project> {
+        let project_list: ZohoProjects = self.client.get_url(&self.path).unwrap();
+        let projects = project_list.projects;
+        match self.filter {
+            Filter::ID(id) => filter_by_id(projects, id),
+            Filter::Name(name) => filter_by_name(projects, name),
+        }
+    }
+}
+
+fn filter_by_id(projects: Vec<Project>, id: i64) -> Option<Project> {
+    let mut filtered = projects
+        .into_iter()
+        .filter(|p| p.id == id)
+        .collect::<Vec<Project>>();
+    match filtered.len() {
+        0 => None,
+        _ => Some(filtered.remove(0)),
+    }
+}
+
+fn filter_by_name(projects: Vec<Project>, name: &str) -> Option<Project> {
+    let mut filtered = projects
+        .into_iter()
+        .filter(|p| p.name == String::from(name))
+        .collect::<Vec<Project>>();
+    match filtered.len() {
+        0 => None,
+        _ => Some(filtered.remove(0)),
     }
 }
 

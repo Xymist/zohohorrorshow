@@ -11,7 +11,63 @@ pub struct TaskFragment<'a> {
 }
 
 impl<'a> TaskFragment<'a> {
-    // Fetch a specific portal
+    // Index number of the task.
+    pub fn index(self, index: i64) -> TaskFragment<'a> {
+        TaskFragment {
+            client: self.client,
+            path: format!("{}&index={}", self.path, index),
+        }
+    }
+    // Range of the task.
+    pub fn range(self, range: i64) -> TaskFragment<'a> {
+        TaskFragment {
+            client: self.client,
+            path: format!("{}&range={}", self.path, range),
+        }
+    }
+    // Owner of the task. Defaults to all.
+    pub fn owner(self, owner: i64) -> TaskFragment<'a> {
+        TaskFragment {
+            client: self.client,
+            path: format!("{}&owner={}", self.path, owner),
+        }
+    }
+    // Status of the task. Accepts 'all', 'completed' or 'notcompleted'
+    pub fn status(self, status: String) -> TaskFragment<'a> {
+        TaskFragment {
+            client: self.client,
+            path: format!("{}&status={}", self.path, status),
+        }
+    }
+    // Time period of the task. Accepts 'all', 'overdue', 'today' or 'tomorrow'
+    pub fn time(self, time: String) -> TaskFragment<'a> {
+        TaskFragment {
+            client: self.client,
+            path: format!("{}&time={}", self.path, time),
+        }
+    }
+    // Priority of the task. Accepts 'all', 'none', 'low', 'medium', or 'high'.
+    pub fn priority(self, priority: String) -> TaskFragment<'a> {
+        TaskFragment {
+            client: self.client,
+            path: format!("{}&priority={}", self.path, priority),
+        }
+    }
+    // Tasklist_id of the task.
+    pub fn tasklist_id(self, tasklist_id: i64) -> TaskFragment<'a> {
+        TaskFragment {
+            client: self.client,
+            path: format!("{}&tasklist_id={}", self.path, tasklist_id),
+        }
+    }
+    // The ID of a custom status for the task
+    pub fn custom_status(self, custom_status: i64) -> TaskFragment<'a> {
+        TaskFragment {
+            client: self.client,
+            path: format!("{}&custom_status={}", self.path, custom_status),
+        }
+    }
+    // Fetch a specific task
     pub fn by_id(self, id: i64) -> TaskFragment<'a> {
         if self.path.contains("&") {
             panic!("Cannot both filter and find by ID")
@@ -22,7 +78,6 @@ impl<'a> TaskFragment<'a> {
             path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
         }
     }
-
     // Execute the query against the Zoho API
     pub fn call(self) -> Vec<Task> {
         let task_list: ZohoTasks = self.client.get_url(&self.path).unwrap();
@@ -51,27 +106,27 @@ pub struct Task {
     #[serde(rename = "priority")]
     pub priority: String,
     #[serde(rename = "percent_complete")]
-    pub percent_complete: i64,
+    pub percent_complete: String,
     #[serde(rename = "start_date")]
-    pub start_date: String,
+    pub start_date: Option<String>,
     #[serde(rename = "start_date_long")]
-    pub start_date_long: i64,
+    pub start_date_long: Option<i64>,
     #[serde(rename = "end_date")]
-    pub end_date: String,
+    pub end_date: Option<String>,
     #[serde(rename = "end_date_long")]
-    pub end_date_long: i64,
+    pub end_date_long: Option<i64>,
     #[serde(rename = "custom_fields")]
-    pub custom_fields: Vec<CustomField>,
+    pub custom_fields: Option<Vec<CustomField>>,
     #[serde(rename = "dependency")]
-    pub dependency: Dependency,
+    pub dependency: Option<Dependency>,
     #[serde(rename = "duration")]
-    pub duration: String,
+    pub duration: Option<String>,
     #[serde(rename = "details")]
     pub details: Details,
     #[serde(rename = "link")]
     pub link: Link,
     #[serde(rename = "tasklist")]
-    pub tasklist: Tasklist,
+    pub tasklist: Option<Tasklist>,
     #[serde(rename = "status")]
     pub status: Status,
 }
@@ -142,20 +197,11 @@ pub struct Tasklist {
     pub name: String,
 }
 
-impl<'a> RelativePath<[&'a str; 2]> for ZohoTasks {
-    fn relative_path(params: [&'a str; 2]) -> Result<String> {
+impl<'a> RelativePath<[i64; 2]> for ZohoTasks {
+    fn relative_path(params: [i64; 2]) -> Result<String> {
         Ok(format!(
             "portal/{}/projects/{}/tasks/",
             params[0], params[1]
-        ))
-    }
-}
-
-impl<'a> RelativePath<[&'a str; 3]> for ZohoTasks {
-    fn relative_path(params: [&'a str; 3]) -> Result<String> {
-        Ok(format!(
-            "portal/{}/projects/{}/tasklists/{}/tasks/",
-            params[0], params[1], params[2]
         ))
     }
 }
