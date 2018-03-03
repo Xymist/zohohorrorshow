@@ -1,5 +1,7 @@
 # ZohoHorrorShow
 
+![](https://travis-ci.org/Xymist/zohohorrorshow.svg?branch=master)
+
 A library for interacting with the Zoho Projects API, because it's an awful
 nightmare of ambiguous fields, optional fields, random casing and entirely
 absent documentation.
