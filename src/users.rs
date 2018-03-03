@@ -35,7 +35,7 @@ impl<'a> RelativePath<i64> for PortalUsers {
     fn relative_path(params: i64) -> Result<String> {
         Ok(format!(
             "portal/{}/users/",
-            params[0]
+            params
         ))
     }
 }
