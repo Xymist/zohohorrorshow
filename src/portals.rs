@@ -24,9 +24,9 @@ impl<'a> PortalFragment<'a> {
         }
     }
     // Execute the query against the Zoho API
-    pub fn call(self) -> Vec<Portal> {
-        let portal_list: ZohoPortals = self.client.get_url(&self.path).unwrap();
-        portal_list.portals
+    pub fn call(self) -> Result<Vec<Portal>> {
+        let portal_list: ZohoPortals = self.client.get_url(&self.path)?;
+        Ok(portal_list.portals)
     }
 }
 

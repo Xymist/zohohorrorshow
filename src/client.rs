@@ -158,8 +158,11 @@ pub fn create_client(auth_token: &str) -> Result<ZohoClient> {
     };
     // If the provided auth token is invalid, this lib is useless, so return
     // an error instead of a client.
-    new_client.portals().call();
-    Ok(new_client)
+    let check_portal = new_client.portals().call();
+    match check_portal {
+        Ok(_) => Ok(new_client),
+        Err(e) => Err(e),
+    }
 }
 
 #[cfg(test)]
