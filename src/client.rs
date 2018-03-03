@@ -42,11 +42,11 @@ impl ZohoClient {
         }
     }
 
-    fn make_uri(&self, relative_path: &str) -> Result<String> {
-        Ok(format!(
-                "https://projectsapi.zoho.com/restapi/{}{}",
-                relative_path, self.authtoken
-            ))
+    fn make_uri(&self, relative_path: &str) -> String {
+        format!(
+            "https://projectsapi.zoho.com/restapi/{}{}",
+            relative_path, self.authtoken
+        )
     }
 
     pub fn get_url<T>(&self, url: &str) -> Result<T>
@@ -65,7 +65,7 @@ impl ZohoClient {
     where
         T: serde::de::DeserializeOwned + RelativePath<U>,
     {
-        let url: String = self.make_uri(&T::relative_path(params)?)?;
+        let url: String = self.make_uri(&T::relative_path(params));
         self.get_url(&url)
     }
 
@@ -80,71 +80,61 @@ impl ZohoClient {
     }
 
     pub fn portal(&self) -> Result<Option<Portal>> {
-        let portal = self.portals().by_id(self.po_id()).call();
+        let portal = self.portals().by_id(self.po_id()).call()?;
         Ok(portal)
     }
 
     pub fn project(&self) -> Result<Option<Project>> {
-        let project = self.projects().by_id(self.pt_id()).call();
+        let project = self.projects().by_id(self.pt_id()).call()?;
         Ok(project)
     }
 
     pub fn portals(&self) -> PortalFragment {
         PortalFragment {
             client: &self,
-            path: self.make_uri(&ZohoPortals::relative_path(None).unwrap())
-                .unwrap(),
+            path: self.make_uri(&ZohoPortals::relative_path(None)),
         }
     }
 
     pub fn projects(&self) -> ProjectFragment {
         ProjectFragment {
             client: &self,
-            path: self.make_uri(&ZohoProjects::relative_path(self.po_id()).unwrap())
-                .unwrap(),
+            path: self.make_uri(&ZohoProjects::relative_path(self.po_id())),
         }
     }
 
-    pub fn project_identifiers(&self) -> Vec<(String, i64)> {
-        self.projects()
-            .call()
+    pub fn project_identifiers(&self) -> Result<Vec<(String, i64)>> {
+        let projects = self.projects().call()?;
+        Ok(projects
             .into_iter()
             .map(|p| (p.name, p.id))
-            .collect::<Vec<(String, i64)>>()
+            .collect::<Vec<(String, i64)>>())
     }
 
     pub fn bugs(&self) -> BugFragment {
         BugFragment {
             client: &self,
-            path: self.make_uri(
-                &ZohoBugs::relative_path([self.po_id(), self.pt_id()]).unwrap()
-            ).unwrap(),
+            path: self.make_uri(&ZohoBugs::relative_path([self.po_id(), self.pt_id()])),
         }
     }
 
     pub fn milestones(&self) -> MilestoneFragment {
         MilestoneFragment {
             client: &self,
-            path: self.make_uri(
-                &ZohoMilestones::relative_path([self.po_id(), self.pt_id()]).unwrap()
-            ).unwrap(),
+            path: self.make_uri(&ZohoMilestones::relative_path([self.po_id(), self.pt_id()])),
         }
     }
 
     pub fn tasklists(&self) -> TasklistFragment {
         TasklistFragment {
             client: &self,
-            path: self.make_uri(
-                &ZohoTasklists::relative_path([self.po_id(), self.pt_id()]).unwrap()
-            ).unwrap(),
+            path: self.make_uri(&ZohoTasklists::relative_path([self.po_id(), self.pt_id()])),
         }
     }
     pub fn tasks(&self) -> TaskFragment {
         TaskFragment {
             client: &self,
-            path: self.make_uri(
-                &ZohoTasks::relative_path([self.po_id(), self.pt_id()]).unwrap()
-            ).unwrap(),
+            path: self.make_uri(&ZohoTasks::relative_path([self.po_id(), self.pt_id()])),
         }
     }
 }

@@ -45,8 +45,8 @@ pub struct PortalFilter<'a> {
 
 impl<'a> PortalFilter<'a> {
     // Execute the query against the Zoho API
-    pub fn call(self) -> Option<Portal> {
-        let portal_list: ZohoPortals = self.client.get_url(&self.path).unwrap();
+    pub fn call(self) -> Result<Option<Portal>> {
+        let portal_list: ZohoPortals = self.client.get_url(&self.path)?;
         let portals = portal_list.portals;
         match self.filter {
             Filter::ID(id) => filter_by_id(portals, id),
@@ -55,25 +55,25 @@ impl<'a> PortalFilter<'a> {
     }
 }
 
-fn filter_by_id(portals: Vec<Portal>, id: i64) -> Option<Portal> {
+fn filter_by_id(portals: Vec<Portal>, id: i64) -> Result<Option<Portal>> {
     let mut filtered = portals
         .into_iter()
         .filter(|p| p.id == id)
         .collect::<Vec<Portal>>();
     match filtered.len() {
-        0 => None,
-        _ => Some(filtered.remove(0)),
+        0 => Ok(None),
+        _ => Ok(Some(filtered.remove(0))),
     }
 }
 
-fn filter_by_name(portals: Vec<Portal>, name: &str) -> Option<Portal> {
+fn filter_by_name(portals: Vec<Portal>, name: &str) -> Result<Option<Portal>> {
     let mut filtered = portals
         .into_iter()
         .filter(|p| p.name == name)
         .collect::<Vec<Portal>>();
     match filtered.len() {
-        0 => None,
-        _ => Some(filtered.remove(0)),
+        0 => Ok(None),
+        _ => Ok(Some(filtered.remove(0))),
     }
 }
 
@@ -152,7 +152,7 @@ pub struct Settings {
 }
 
 impl RelativePath<Option<i8>> for ZohoPortals {
-    fn relative_path(_params: Option<i8>) -> Result<String> {
-        Ok(String::from("portals/"))
+    fn relative_path(_params: Option<i8>) -> String {
+        String::from("portals/")
     }
 }

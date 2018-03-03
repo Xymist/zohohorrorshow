@@ -70,9 +70,9 @@ impl<'a> ProjectFragment<'a> {
         }
     }
     // Execute the query against the Zoho API
-    pub fn call(self) -> Vec<Project> {
-        let project_list: ZohoProjects = self.client.get_url(&self.path).unwrap();
-        project_list.projects
+    pub fn call(self) -> Result<Vec<Project>> {
+        let project_list: ZohoProjects = self.client.get_url(&self.path)?;
+        Ok(project_list.projects)
     }
 }
 
@@ -91,8 +91,8 @@ pub struct ProjectFilter<'a> {
 
 impl<'a> ProjectFilter<'a> {
     // Execute the query against the Zoho API
-    pub fn call(self) -> Option<Project> {
-        let project_list: ZohoProjects = self.client.get_url(&self.path).unwrap();
+    pub fn call(self) -> Result<Option<Project>> {
+        let project_list: ZohoProjects = self.client.get_url(&self.path)?;
         let projects = project_list.projects;
         match self.filter {
             Filter::ID(id) => filter_by_id(projects, id),
@@ -101,25 +101,25 @@ impl<'a> ProjectFilter<'a> {
     }
 }
 
-fn filter_by_id(projects: Vec<Project>, id: i64) -> Option<Project> {
+fn filter_by_id(projects: Vec<Project>, id: i64) -> Result<Option<Project>> {
     let mut filtered = projects
         .into_iter()
         .filter(|p| p.id == id)
         .collect::<Vec<Project>>();
     match filtered.len() {
-        0 => None,
-        _ => Some(filtered.remove(0)),
+        0 => Ok(None),
+        _ => Ok(Some(filtered.remove(0))),
     }
 }
 
-fn filter_by_name(projects: Vec<Project>, name: &str) -> Option<Project> {
+fn filter_by_name(projects: Vec<Project>, name: &str) -> Result<Option<Project>> {
     let mut filtered = projects
         .into_iter()
         .filter(|p| p.name == name)
         .collect::<Vec<Project>>();
     match filtered.len() {
-        0 => None,
-        _ => Some(filtered.remove(0)),
+        0 => Ok(None),
+        _ => Ok(Some(filtered.remove(0))),
     }
 }
 
@@ -209,7 +209,7 @@ pub struct Count {
 
 // Return all Projects for a Portal
 impl RelativePath<i64> for ZohoProjects {
-    fn relative_path(portal_id: i64) -> Result<String> {
-        Ok(format!("portal/{}/projects/", portal_id))
+    fn relative_path(portal_id: i64) -> String {
+        format!("portal/{}/projects/", portal_id)
     }
 }

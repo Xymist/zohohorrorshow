@@ -45,9 +45,9 @@ impl<'a> MilestoneFragment<'a> {
         }
     }
     // Execute the query against the Zoho API
-    pub fn call(self) -> Vec<Milestone> {
-        let milestone_list: ZohoMilestones = self.client.get_url(&self.path).unwrap();
-        milestone_list.milestones
+    pub fn call(self) -> Result<Vec<Milestone>> {
+        let milestone_list: ZohoMilestones = self.client.get_url(&self.path)?;
+        Ok(milestone_list.milestones)
     }
 }
 
@@ -115,10 +115,7 @@ pub struct SelfLink {
 }
 
 impl<'a> RelativePath<[i64; 2]> for ZohoMilestones {
-    fn relative_path(params: [i64; 2]) -> Result<String> {
-        Ok(format!(
-            "portal/{}/projects/{}/milestones/",
-            params[0], params[1]
-        ))
+    fn relative_path(params: [i64; 2]) -> String {
+        format!("portal/{}/projects/{}/milestones/", params[0], params[1])
     }
 }

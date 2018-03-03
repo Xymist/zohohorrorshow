@@ -24,9 +24,9 @@ impl<'a> ActivityFragment<'a> {
         }
     }
     // Execute the query against the Zoho API
-    pub fn call(self) -> Vec<Activity> {
-        let activity_list: ZohoActivities = self.client.get_url(&self.path).unwrap();
-        activity_list.activities
+    pub fn call(self) -> Result<Vec<Activity>> {
+        let activity_list: ZohoActivities = self.client.get_url(&self.path)?;
+        Ok(activity_list.activities)
     }
 }
 
@@ -57,10 +57,7 @@ pub struct Activity {
 }
 
 impl<'a> RelativePath<[i64; 2]> for ZohoActivities {
-    fn relative_path(params: [i64; 2]) -> Result<String> {
-        Ok(format!(
-            "portal/{}/projects/{}/activities/",
-            params[0], params[1]
-        ))
+    fn relative_path(params: [i64; 2]) -> String {
+        format!("portal/{}/projects/{}/activities/", params[0], params[1])
     }
 }

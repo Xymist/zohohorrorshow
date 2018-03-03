@@ -46,10 +46,7 @@ pub struct Participant {
 }
 
 impl<'a> RelativePath<[i64; 2]> for ZohoEvents {
-    fn relative_path(params: [i64; 2]) -> Result<String> {
-        Ok(format!(
-            "portal/{}/projects/{}/events/",
-            params[0], params[1]
-        ))
+    fn relative_path(params: [i64; 2]) -> String {
+        format!("portal/{}/projects/{}/events/", params[0], params[1])
     }
 }

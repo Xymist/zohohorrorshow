@@ -57,19 +57,13 @@ pub struct Category {
 }
 
 impl<'a> RelativePath<[i64; 2]> for ZohoForums {
-    fn relative_path(params: [i64; 2]) -> Result<String> {
-        Ok(format!(
-            "portal/{}/projects/{}/forums/",
-            params[0], params[1]
-        ))
+    fn relative_path(params: [i64; 2]) -> String {
+        format!("portal/{}/projects/{}/forums/", params[0], params[1])
     }
 }
 
 impl<'a> RelativePath<[i64; 2]> for ZohoCategories {
-    fn relative_path(params: [i64; 2]) -> Result<String> {
-        Ok(format!(
-            "portal/{}/projects/{}/categories/",
-            params[0], params[1]
-        ))
+    fn relative_path(params: [i64; 2]) -> String {
+        format!("portal/{}/projects/{}/categories/", params[0], params[1])
     }
 }

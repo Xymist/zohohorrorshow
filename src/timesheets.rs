@@ -90,10 +90,7 @@ pub struct Project {
 }
 
 impl<'a> RelativePath<[i64; 2]> for ZohoTimelogs {
-    fn relative_path(params: [i64; 2]) -> Result<String> {
-        Ok(format!(
-            "portal/{}/projects/{}/logs/",
-            params[0], params[1]
-        ))
+    fn relative_path(params: [i64; 2]) -> String {
+        format!("portal/{}/projects/{}/logs/", params[0], params[1])
     }
 }

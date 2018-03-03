@@ -45,12 +45,12 @@ impl<'a> TasklistFragment<'a> {
     }
 
     // Execute the query against the Zoho API
-    pub fn call(self) -> Vec<Tasklist> {
+    pub fn call(self) -> Result<Vec<Tasklist>> {
         if !self.path.contains("flag") {
-            panic!("The 'flag' parameter is mandatory. Please call '.flag()' with either 'internal' or 'external' before calling.")
+            bail!("The 'flag' parameter is mandatory. Please call '.flag()' with either 'internal' or 'external' before calling.")
         }
-        let tasklist_list: ZohoTasklists = self.client.get_url(&self.path).unwrap();
-        tasklist_list.tasklists
+        let tasklist_list: ZohoTasklists = self.client.get_url(&self.path)?;
+        Ok(tasklist_list.tasklists)
     }
 }
 
@@ -72,9 +72,12 @@ impl<'a> TasklistPath<'a> {
     }
 
     // Execute the query against the Zoho API
-    pub fn call(self) -> Tasklist {
-        let mut tasklist_list: ZohoTasklists = self.client.get_url(&self.path).unwrap();
-        tasklist_list.tasklists.remove(0)
+    pub fn call(self) -> Result<Option<Tasklist>> {
+        let mut tasklist_list: ZohoTasklists = self.client.get_url(&self.path)?;
+        match tasklist_list.tasklists.len() {
+            0 => Ok(None),
+            _ => Ok(Some(tasklist_list.tasklists.remove(0))),
+        }
     }
 }
 
@@ -86,9 +89,9 @@ pub struct TasklistTasksPath<'a> {
 
 impl<'a> TasklistTasksPath<'a> {
     // Execute the query against the Zoho API
-    pub fn call(self) -> Vec<Task> {
-        let task_list: ZohoTasks = self.client.get_url(&self.path).unwrap();
-        task_list.tasks
+    pub fn call(self) -> Result<Vec<Task>> {
+        let task_list: ZohoTasks = self.client.get_url(&self.path)?;
+        Ok(task_list.tasks)
     }
 }
 
@@ -172,10 +175,7 @@ pub struct MilestoneLink {
 
 // Requires a query of either &flag=internal or &flag=external
 impl<'a> RelativePath<[i64; 2]> for ZohoTasklists {
-    fn relative_path(params: [i64; 2]) -> Result<String> {
-        Ok(format!(
-            "portal/{}/projects/{}/tasklists/",
-            params[0], params[1]
-        ))
+    fn relative_path(params: [i64; 2]) -> String {
+        format!("portal/{}/projects/{}/tasklists/", params[0], params[1])
     }
 }

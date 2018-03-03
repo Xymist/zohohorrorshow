@@ -23,5 +23,5 @@ pub mod errors;
 use errors::*;
 
 pub trait RelativePath<U> {
-    fn relative_path(params: U) -> Result<String>;
+    fn relative_path(params: U) -> String;
 }

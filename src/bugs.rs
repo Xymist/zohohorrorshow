@@ -137,9 +137,9 @@ impl<'a> BugFragment<'a> {
         }
     }
     // Execute the query against the Zoho API
-    pub fn call(self) -> Vec<Bug> {
-        let bug_list: ZohoBugs = self.client.get_url(&self.path).unwrap();
-        bug_list.bugs
+    pub fn call(self) -> Result<Vec<Bug>> {
+        let bug_list: ZohoBugs = self.client.get_url(&self.path)?;
+        Ok(bug_list.bugs)
     }
 }
 
@@ -238,7 +238,7 @@ pub struct Module {
 }
 
 impl<'a> RelativePath<[i64; 2]> for ZohoBugs {
-    fn relative_path(params: [i64; 2]) -> Result<String> {
-        Ok(format!("portal/{}/projects/{}/bugs/", params[0], params[1]))
+    fn relative_path(params: [i64; 2]) -> String {
+        format!("portal/{}/projects/{}/bugs/", params[0], params[1])
     }
 }

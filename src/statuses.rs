@@ -24,9 +24,9 @@ impl<'a> StatusFragment<'a> {
         }
     }
     // Execute the query against the Zoho API
-    pub fn call(self) -> Vec<Status> {
-        let status_list: ZohoStatuses = self.client.get_url(&self.path).unwrap();
-        status_list.statuses
+    pub fn call(self) -> Result<Vec<Status>> {
+        let status_list: ZohoStatuses = self.client.get_url(&self.path)?;
+        Ok(status_list.statuses)
     }
 }
 
@@ -53,10 +53,7 @@ pub struct Status {
 }
 
 impl<'a> RelativePath<[i64; 2]> for ZohoStatuses {
-    fn relative_path(params: [i64; 2]) -> Result<String> {
-        Ok(format!(
-            "portal/{}/projects/{}/statuses/",
-            params[0], params[1]
-        ))
+    fn relative_path(params: [i64; 2]) -> String {
+        format!("portal/{}/projects/{}/statuses/", params[0], params[1])
     }
 }
