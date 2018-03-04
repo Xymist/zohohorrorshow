@@ -1,6 +1,7 @@
 use errors::*;
 use RelativePath;
 use client::ZohoClient;
+use std::fmt::Display;
 
 #[derive(Debug)]
 pub struct BugFragment<'a> {
@@ -8,49 +9,21 @@ pub struct BugFragment<'a> {
     pub path: String,
 }
 
+macro_rules! query_fragments {
+    ($x:ident; $($y:ident),* ) => (
+        $(
+            pub fn $y<T: Display>(self, param: T) -> $x<'a> {
+                $x {
+                    client: self.client,
+                    path: format!("{}&{}={}", self.path, stringify!($y), param),
+                }
+            }
+        )*
+    )
+}
+
 impl<'a> BugFragment<'a> {
-    // Start index
-    pub fn index(self, index: i64) -> BugFragment<'a> {
-        BugFragment {
-            client: self.client,
-            path: format!("{}&index={}", self.path, index),
-        }
-    }
-    // Number of records (bugs)
-    pub fn range(self, range: i64) -> BugFragment<'a> {
-        BugFragment {
-            client: self.client,
-            path: format!("{}&range={}", self.path, range),
-        }
-    }
-    // Accepted values: open/closed
-    pub fn status_type(self, status_type: &str) -> BugFragment<'a> {
-        BugFragment {
-            client: self.client,
-            path: format!("{}&statustype={}", self.path, status_type),
-        }
-    }
-    // Custom View ID
-    pub fn cview_id(self, cview_id: i64) -> BugFragment<'a> {
-        BugFragment {
-            client: self.client,
-            path: format!("{}&cview_id={}", self.path, cview_id),
-        }
-    }
-    // Accepted values: created_time/last_modified_time
-    pub fn sort_column(self, sort_column: &str) -> BugFragment<'a> {
-        BugFragment {
-            client: self.client,
-            path: format!("{}&sort_column={}", self.path, sort_column),
-        }
-    }
-    // Accepted values: ascending/descending
-    pub fn sort_order(self, sort_order: &str) -> BugFragment<'a> {
-        BugFragment {
-            client: self.client,
-            path: format!("{}&sort_order={}", self.path, sort_order),
-        }
-    }
+    query_fragments!(BugFragment; index, range, status_type, cview_id, sort_column, sort_order, flag);
     // Status IDs
     pub fn status(self, status: &[&str]) -> BugFragment<'a> {
         BugFragment {
@@ -88,13 +61,6 @@ impl<'a> BugFragment<'a> {
         BugFragment {
             client: self.client,
             path: format!("{}&milestone=[{}]", self.path, milestone.join(",")),
-        }
-    }
-    // Accepted values: Internal/External
-    pub fn flag(self, flag: &str) -> BugFragment<'a> {
-        BugFragment {
-            client: self.client,
-            path: format!("{}&flag={}", self.path, flag),
         }
     }
     // Assignee IDs
@@ -156,7 +122,7 @@ pub struct Bug {
     #[serde(rename = "created_time_long")]
     pub created_time_long: i64,
     #[serde(rename = "customfields")]
-    pub customfields: Vec<Customfield>,
+    pub customfields: Option<Vec<Customfield>>,
     #[serde(rename = "status")]
     pub status: StrClassification,
     #[serde(rename = "reproducible")]
