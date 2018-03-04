@@ -9,6 +9,15 @@ use milestones::{MilestoneFragment, ZohoMilestones};
 use tasklists::{TasklistFragment, ZohoTasklists};
 use tasks::{TaskFragment, ZohoTasks};
 
+#[cfg(test)]
+use mockito;
+
+#[cfg(not(test))]
+const BASE_URL: &'static str = "https://projectsapi.zoho.com/restapi";
+
+#[cfg(test)]
+const BASE_URL: &'static str = mockito::SERVER_URL;
+
 #[derive(Debug)]
 pub struct ZohoClient {
     authtoken: String,
@@ -44,8 +53,8 @@ impl ZohoClient {
 
     fn make_uri(&self, relative_path: &str) -> String {
         format!(
-            "https://projectsapi.zoho.com/restapi/{}{}",
-            relative_path, self.authtoken
+            "{}/{}?authtoken={}",
+            BASE_URL, relative_path, self.authtoken
         )
     }
 
@@ -141,7 +150,7 @@ impl ZohoClient {
 
 pub fn create_client(auth_token: &str) -> Result<ZohoClient> {
     let new_client = ZohoClient {
-        authtoken: format!("?authtoken={}", auth_token),
+        authtoken: auth_token.to_string(),
         client: reqwest::Client::new(),
         portal_id: None,
         project_id: None,

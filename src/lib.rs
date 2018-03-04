@@ -1,6 +1,7 @@
 extern crate chrono;
 #[macro_use]
 extern crate error_chain;
+extern crate mockito;
 extern crate reqwest;
 extern crate serde;
 #[macro_use]
@@ -20,6 +21,7 @@ pub mod tasks;
 pub mod timesheets;
 pub mod users;
 pub mod errors;
+
 use errors::*;
 
 pub trait RelativePath<U> {
