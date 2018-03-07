@@ -1,8 +1,7 @@
-use errors::*;
 use RelativePath;
 
-type ProjectUsers = ZohoUsers;
-type PortalUsers = ZohoUsers;
+pub type ProjectUsers = ZohoUsers;
+pub type PortalUsers = ZohoUsers;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ZohoUsers {

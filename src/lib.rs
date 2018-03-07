@@ -22,8 +22,6 @@ pub mod timesheets;
 pub mod users;
 pub mod errors;
 
-use errors::*;
-
 pub trait RelativePath<U> {
     fn relative_path(params: U) -> String;
 }

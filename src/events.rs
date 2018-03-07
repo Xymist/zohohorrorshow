@@ -1,4 +1,3 @@
-use errors::*;
 use RelativePath;
 
 #[derive(Debug, Serialize, Deserialize)]

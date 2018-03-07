@@ -13,10 +13,10 @@ use tasks::{TaskFragment, ZohoTasks};
 use mockito;
 
 #[cfg(not(test))]
-const BASE_URL: &'static str = "https://projectsapi.zoho.com/restapi";
+const BASE_URL: &str = "https://projectsapi.zoho.com/restapi";
 
 #[cfg(test)]
-const BASE_URL: &'static str = mockito::SERVER_URL;
+const BASE_URL: &str = mockito::SERVER_URL;
 
 #[derive(Debug)]
 pub struct ZohoClient {
@@ -184,10 +184,7 @@ pub fn create_populated_client(
             }
         }
     };
-    match portal {
-        Some(p) => client.set_portal(p.id)?,
-        None => (),
-    };
+    if let Some(p) = portal { client.set_portal(p.id)? };
     let project = match project_name {
         Some(name) => client.projects().by_name(name).call()?,
         None => {
@@ -198,10 +195,7 @@ pub fn create_populated_client(
             }
         }
     };
-    match project {
-        Some(p) => client.set_project(p.id)?,
-        None => (),
-    };
+    if let Some(p) = project { client.set_project(p.id)? };
     Ok(client)
 }
 
