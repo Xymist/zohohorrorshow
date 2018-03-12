@@ -138,7 +138,7 @@ impl<'a> BugFragment<'a> {
     }
     // Execute the query against the Zoho API
     pub fn call(self) -> Result<Vec<Bug>> {
-        let bug_list: ZohoBugs = self.client.get_url(&self.path)?;
+        let bug_list: ZohoBugs = self.client.get(&self.path)?;
         Ok(bug_list.bugs)
     }
 }

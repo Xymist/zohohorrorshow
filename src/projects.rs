@@ -71,7 +71,7 @@ impl<'a> ProjectFragment<'a> {
     }
     // Execute the query against the Zoho API
     pub fn call(self) -> Result<Vec<Project>> {
-        let project_list: ZohoProjects = self.client.get_url(&self.path)?;
+        let project_list: ZohoProjects = self.client.get(&self.path)?;
         Ok(project_list.projects)
     }
 }
@@ -92,7 +92,7 @@ pub struct ProjectFilter<'a> {
 impl<'a> ProjectFilter<'a> {
     // Execute the query against the Zoho API
     pub fn call(self) -> Result<Option<Project>> {
-        let project_list: ZohoProjects = self.client.get_url(&self.path)?;
+        let project_list: ZohoProjects = self.client.get(&self.path)?;
         let projects = project_list.projects;
         match self.filter {
             Filter::ID(id) => filter_by_id(projects, id),

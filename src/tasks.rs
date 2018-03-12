@@ -10,41 +10,62 @@ pub struct TaskFragment<'a> {
     pub path: String,
 }
 
+#[derive(Debug)]
+pub enum TaskStatus {
+    All,
+    Completed,
+    NotCompleted,
+}
+
+impl TaskStatus {
+    pub fn to_string(self) -> String {
+        match self {
+            TaskStatus::All => "all".to_string(),
+            TaskStatus::Completed => "completed".to_string(),
+            TaskStatus::NotCompleted => "notcompleted".to_string(),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum TaskTimePeriod {
+    All,
+    Overdue,
+    Today,
+    Tomorrow,
+}
+
+impl TaskTimePeriod {
+    pub fn to_string(self) -> String {
+        match self {
+            TaskTimePeriod::All => "all".to_string(),
+            TaskTimePeriod::Overdue => "overdue".to_string(),
+            TaskTimePeriod::Today => "Today".to_string(),
+            TaskTimePeriod::Tomorrow => "Tomorrow".to_string(),
+        }
+    }
+}
+
 impl<'a> TaskFragment<'a> {
     // Index number of the task.
-    pub fn index(self, index: i64) -> TaskFragment<'a> {
-        TaskFragment {
-            client: self.client,
-            path: format!("{}&index={}", self.path, index),
-        }
+    pub fn index(&mut self, index: i64) {
+        self.path = format!("{}&index={}", self.path, index.to_string());
     }
     // Range of the task.
-    pub fn range(self, range: i64) -> TaskFragment<'a> {
-        TaskFragment {
-            client: self.client,
-            path: format!("{}&range={}", self.path, range),
-        }
+    pub fn range(&mut self, range: i64) {
+        self.path = format!("{}&range={}", self.path, range.to_string());
     }
     // Owner of the task. Defaults to all.
-    pub fn owner(self, owner: i64) -> TaskFragment<'a> {
-        TaskFragment {
-            client: self.client,
-            path: format!("{}&owner={}", self.path, owner),
-        }
+    pub fn owner(&mut self, owner: i64) {
+        self.path = format!("{}&owner={}", self.path, owner.to_string());
     }
-    // Status of the task. Accepts 'all', 'completed' or 'notcompleted'
-    pub fn status(self, status: &str) -> TaskFragment<'a> {
-        TaskFragment {
-            client: self.client,
-            path: format!("{}&status={}", self.path, status),
-        }
+    // Status of the task. Defaults to All
+    pub fn status(&mut self, status: TaskStatus) {
+        self.path = format!("{}&status={}", self.path, status.to_string());
     }
-    // Time period of the task. Accepts 'all', 'overdue', 'today' or 'tomorrow'
-    pub fn time(self, time: &str) -> TaskFragment<'a> {
-        TaskFragment {
-            client: self.client,
-            path: format!("{}&time={}", self.path, time),
-        }
+    // Time period of the task. Defaults to All
+    pub fn time(&mut self, time: TaskTimePeriod) {
+        self.path = format!("{}&time={}", self.path, time.to_string());
     }
     // Priority of the task. Accepts 'all', 'none', 'low', 'medium', or 'high'.
     pub fn priority(self, priority: &str) -> TaskFragment<'a> {
@@ -80,7 +101,7 @@ impl<'a> TaskFragment<'a> {
     }
     // Execute the query against the Zoho API
     pub fn call(self) -> Result<Vec<Task>> {
-        let task_list: ZohoTasks = self.client.get_url(&self.path)?;
+        let task_list: ZohoTasks = self.client.get(&self.path)?;
         Ok(task_list.tasks)
     }
 }
