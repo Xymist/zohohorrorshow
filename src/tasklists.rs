@@ -1,5 +1,4 @@
 use errors::*;
-use RelativePath;
 use client::ZohoClient;
 use tasks::{Task, ZohoTasks};
 
@@ -171,11 +170,4 @@ pub struct MilestoneLink {
     pub link: Link,
     #[serde(rename = "status")]
     pub status: Link,
-}
-
-// Requires a query of either &flag=internal or &flag=external
-impl<'a> RelativePath<[i64; 2]> for ZohoTasklists {
-    fn relative_path(params: [i64; 2]) -> String {
-        format!("portal/{}/projects/{}/tasklists/", params[0], params[1])
-    }
 }

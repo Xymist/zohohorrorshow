@@ -1,5 +1,4 @@
 use errors::*;
-use RelativePath;
 use client::ZohoClient;
 
 #[derive(Debug)]
@@ -149,10 +148,4 @@ pub struct Settings {
     pub time_zone: String,
     #[serde(rename = "date_format")]
     pub date_format: String,
-}
-
-impl RelativePath<Option<i8>> for ZohoPortals {
-    fn relative_path(_params: Option<i8>) -> String {
-        String::from("portals/")
-    }
 }

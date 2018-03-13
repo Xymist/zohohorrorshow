@@ -1,5 +1,4 @@
 use errors::*;
-use RelativePath;
 use client::ZohoClient;
 use std::collections::HashMap;
 
@@ -205,11 +204,4 @@ pub struct Count {
     pub open: i64,
     #[serde(rename = "closed")]
     pub closed: i64,
-}
-
-// Return all Projects for a Portal
-impl RelativePath<i64> for ZohoProjects {
-    fn relative_path(portal_id: i64) -> String {
-        format!("portal/{}/projects/", portal_id)
-    }
 }

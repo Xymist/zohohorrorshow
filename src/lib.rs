@@ -11,6 +11,7 @@ extern crate serde_derive;
 extern crate serde_json;
 
 pub mod bugs;
+pub mod categories;
 pub mod client;
 pub mod statuses;
 pub mod activities;
@@ -24,7 +25,3 @@ pub mod tasks;
 pub mod timesheets;
 pub mod users;
 pub mod errors;
-
-pub trait RelativePath<U> {
-    fn relative_path(params: U) -> String;
-}

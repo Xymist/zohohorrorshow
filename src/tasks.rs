@@ -1,5 +1,4 @@
 use errors::*;
-use RelativePath;
 use client::ZohoClient;
 
 // A fragment of the path to call for the Zoho Tasks API. This carries
@@ -216,10 +215,4 @@ pub struct Tasklist {
     pub id: i64,
     #[serde(rename = "name")]
     pub name: String,
-}
-
-impl<'a> RelativePath<[i64; 2]> for ZohoTasks {
-    fn relative_path(params: [i64; 2]) -> String {
-        format!("portal/{}/projects/{}/tasks/", params[0], params[1])
-    }
 }

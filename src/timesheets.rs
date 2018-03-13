@@ -1,4 +1,13 @@
-use RelativePath;
+use errors::*;
+use client::ZohoClient;
+
+// A fragment of the path to call for the Zoho Timesheets API. This carries
+// with it a reference to the client which will be used to call it.
+#[derive(Debug)]
+pub struct TimesheetFragment<'a> {
+    pub client: &'a ZohoClient,
+    pub path: String,
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ZohoTimelogs {
@@ -86,10 +95,4 @@ pub struct Project {
     pub id: i64,
     #[serde(rename = "name")]
     pub name: String,
-}
-
-impl<'a> RelativePath<[i64; 2]> for ZohoTimelogs {
-    fn relative_path(params: [i64; 2]) -> String {
-        format!("portal/{}/projects/{}/logs/", params[0], params[1])
-    }
 }

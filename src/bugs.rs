@@ -1,5 +1,4 @@
 use errors::*;
-use RelativePath;
 use client::ZohoClient;
 
 #[derive(Debug)]
@@ -235,10 +234,4 @@ pub struct Module {
     pub id: i64,
     #[serde(rename = "name")]
     pub name: String,
-}
-
-impl<'a> RelativePath<[i64; 2]> for ZohoBugs {
-    fn relative_path(params: [i64; 2]) -> String {
-        format!("portal/{}/projects/{}/bugs/", params[0], params[1])
-    }
 }
