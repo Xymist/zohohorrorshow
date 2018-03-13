@@ -1,5 +1,4 @@
 use errors::*;
-use RelativePath;
 use client::ZohoClient;
 use std::collections::HashMap;
 
@@ -10,43 +9,9 @@ pub struct ProjectFragment<'a> {
 }
 
 impl<'a> ProjectFragment<'a> {
-    // Index number of the project.
-    pub fn index(self, index: i64) -> ProjectFragment<'a> {
-        ProjectFragment {
-            client: self.client,
-            path: format!("{}&index={}", self.path, index),
-        }
-    }
-    // Range of the project.
-    pub fn range(self, range: i64) -> ProjectFragment<'a> {
-        ProjectFragment {
-            client: self.client,
-            path: format!("{}&range={}", self.path, range),
-        }
-    }
-    // Status of the project - active, archive or template
-    pub fn status(self, status: &str) -> ProjectFragment<'a> {
-        ProjectFragment {
-            client: self.client,
-            path: format!("{}&status={}", self.path, status),
-        }
-    }
-    // Sort projects using the last modified time or time of creation.
-    // created_time or last_modified_time
-    pub fn sort_column(self, sort_column: &str) -> ProjectFragment<'a> {
-        ProjectFragment {
-            client: self.client,
-            path: format!("{}&sort_column={}", self.path, sort_column),
-        }
-    }
-    // Sort order - ascending or descending
-    pub fn sort_order(self, sort_order: &str) -> ProjectFragment<'a> {
-        ProjectFragment {
-            client: self.client,
-            path: format!("{}&sort_order={}", self.path, sort_order),
-        }
-    }
-    // Fetch a specific portal
+    query_strings!(ProjectFragment; index, range, status, sort_column, sort_order);
+
+    // Fetch a specific portal by id
     pub fn by_id(self, id: i64) -> ProjectFilter<'a> {
         if self.path.contains('&') {
             panic!("Cannot both filter and find by ID")
@@ -58,7 +23,7 @@ impl<'a> ProjectFragment<'a> {
             filter: Filter::ID(id),
         }
     }
-    // Fetch a specific portal
+    // Fetch a specific portal by name
     pub fn by_name(self, name: &'a str) -> ProjectFilter<'a> {
         if self.path.contains('&') {
             panic!("Cannot both filter and find by name")
@@ -71,7 +36,7 @@ impl<'a> ProjectFragment<'a> {
     }
     // Execute the query against the Zoho API
     pub fn call(self) -> Result<Vec<Project>> {
-        let project_list: ZohoProjects = self.client.get_url(&self.path)?;
+        let project_list: ZohoProjects = self.client.get(&self.path)?;
         Ok(project_list.projects)
     }
 }
@@ -92,7 +57,7 @@ pub struct ProjectFilter<'a> {
 impl<'a> ProjectFilter<'a> {
     // Execute the query against the Zoho API
     pub fn call(self) -> Result<Option<Project>> {
-        let project_list: ZohoProjects = self.client.get_url(&self.path)?;
+        let project_list: ZohoProjects = self.client.get(&self.path)?;
         let projects = project_list.projects;
         match self.filter {
             Filter::ID(id) => filter_by_id(projects, id),
@@ -205,11 +170,4 @@ pub struct Count {
     pub open: i64,
     #[serde(rename = "closed")]
     pub closed: i64,
-}
-
-// Return all Projects for a Portal
-impl RelativePath<i64> for ZohoProjects {
-    fn relative_path(portal_id: i64) -> String {
-        format!("portal/{}/projects/", portal_id)
-    }
 }

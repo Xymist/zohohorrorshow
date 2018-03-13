@@ -1,5 +1,4 @@
 use errors::*;
-use RelativePath;
 use client::ZohoClient;
 
 #[derive(Debug)]
@@ -9,23 +8,11 @@ pub struct StatusFragment<'a> {
 }
 
 impl<'a> StatusFragment<'a> {
-    // Index number of the status.
-    pub fn index(self, index: i64) -> StatusFragment<'a> {
-        StatusFragment {
-            client: self.client,
-            path: format!("{}&index={}", self.path, index),
-        }
-    }
-    // Range of the status.
-    pub fn range(self, range: i64) -> StatusFragment<'a> {
-        StatusFragment {
-            client: self.client,
-            path: format!("{}&range={}", self.path, range),
-        }
-    }
+    query_strings!(StatusFragment; index, range);
+
     // Execute the query against the Zoho API
     pub fn call(self) -> Result<Vec<Status>> {
-        let status_list: ZohoStatuses = self.client.get_url(&self.path)?;
+        let status_list: ZohoStatuses = self.client.get(&self.path)?;
         Ok(status_list.statuses)
     }
 }
@@ -50,10 +37,4 @@ pub struct Status {
     pub posted_time: String,
     #[serde(rename = "posted_time_long")]
     pub posted_time_long: i64,
-}
-
-impl<'a> RelativePath<[i64; 2]> for ZohoStatuses {
-    fn relative_path(params: [i64; 2]) -> String {
-        format!("portal/{}/projects/{}/statuses/", params[0], params[1])
-    }
 }

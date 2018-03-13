@@ -1,5 +1,11 @@
 use errors::*;
-use RelativePath;
+use client::ZohoClient;
+
+#[derive(Debug)]
+pub struct EventFragment<'a> {
+    pub client: &'a ZohoClient,
+    pub path: String,
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ZohoEvents {
@@ -43,10 +49,4 @@ pub struct Participant {
     pub participant_id: String,
     #[serde(rename = "participant_person")]
     pub participant_person: String,
-}
-
-impl<'a> RelativePath<[i64; 2]> for ZohoEvents {
-    fn relative_path(params: [i64; 2]) -> String {
-        format!("portal/{}/projects/{}/events/", params[0], params[1])
-    }
 }

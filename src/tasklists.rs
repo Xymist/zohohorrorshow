@@ -1,5 +1,4 @@
 use errors::*;
-use RelativePath;
 use client::ZohoClient;
 use tasks::{Task, ZohoTasks};
 
@@ -10,27 +9,8 @@ pub struct TasklistFragment<'a> {
 }
 
 impl<'a> TasklistFragment<'a> {
-    // Index number of the tasklist.
-    pub fn index(self, index: i64) -> TasklistFragment<'a> {
-        TasklistFragment {
-            client: self.client,
-            path: format!("{}&index={}", self.path, index),
-        }
-    }
-    // Range of the tasklist.
-    pub fn range(self, range: i64) -> TasklistFragment<'a> {
-        TasklistFragment {
-            client: self.client,
-            path: format!("{}&range={}", self.path, range),
-        }
-    }
-    // Accepted values: Internal/External
-    pub fn flag(self, flag: &str) -> TasklistFragment<'a> {
-        TasklistFragment {
-            client: self.client,
-            path: format!("{}&flag={}", self.path, flag),
-        }
-    }
+    query_strings!(TasklistFragment; index, range, flag);
+
     // Designate a specific tasklist. This cannot be used to fetch it,
     // but can be POSTed to in order to update or delete.
     pub fn by_id(self, id: i64) -> TasklistPath<'a> {
@@ -49,7 +29,7 @@ impl<'a> TasklistFragment<'a> {
         if !self.path.contains("flag") {
             bail!("The 'flag' parameter is mandatory. Please call '.flag()' with either 'internal' or 'external' before calling.")
         }
-        let tasklist_list: ZohoTasklists = self.client.get_url(&self.path)?;
+        let tasklist_list: ZohoTasklists = self.client.get(&self.path)?;
         Ok(tasklist_list.tasklists)
     }
 }
@@ -73,7 +53,7 @@ impl<'a> TasklistPath<'a> {
 
     // Execute the query against the Zoho API
     pub fn call(self) -> Result<Option<Tasklist>> {
-        let mut tasklist_list: ZohoTasklists = self.client.get_url(&self.path)?;
+        let mut tasklist_list: ZohoTasklists = self.client.get(&self.path)?;
         match tasklist_list.tasklists.len() {
             0 => Ok(None),
             _ => Ok(Some(tasklist_list.tasklists.remove(0))),
@@ -90,7 +70,7 @@ pub struct TasklistTasksPath<'a> {
 impl<'a> TasklistTasksPath<'a> {
     // Execute the query against the Zoho API
     pub fn call(self) -> Result<Vec<Task>> {
-        let task_list: ZohoTasks = self.client.get_url(&self.path)?;
+        let task_list: ZohoTasks = self.client.get(&self.path)?;
         Ok(task_list.tasks)
     }
 }
@@ -171,11 +151,4 @@ pub struct MilestoneLink {
     pub link: Link,
     #[serde(rename = "status")]
     pub status: Link,
-}
-
-// Requires a query of either &flag=internal or &flag=external
-impl<'a> RelativePath<[i64; 2]> for ZohoTasklists {
-    fn relative_path(params: [i64; 2]) -> String {
-        format!("portal/{}/projects/{}/tasklists/", params[0], params[1])
-    }
 }

@@ -1,5 +1,4 @@
 use errors::*;
-use RelativePath;
 use client::ZohoClient;
 
 #[derive(Debug)]
@@ -25,7 +24,7 @@ impl<'a> PortalFragment<'a> {
     }
     // Execute the query against the Zoho API
     pub fn call(self) -> Result<Vec<Portal>> {
-        let portal_list: ZohoPortals = self.client.get_url(&self.path)?;
+        let portal_list: ZohoPortals = self.client.get(&self.path)?;
         Ok(portal_list.portals)
     }
 }
@@ -46,7 +45,7 @@ pub struct PortalFilter<'a> {
 impl<'a> PortalFilter<'a> {
     // Execute the query against the Zoho API
     pub fn call(self) -> Result<Option<Portal>> {
-        let portal_list: ZohoPortals = self.client.get_url(&self.path)?;
+        let portal_list: ZohoPortals = self.client.get(&self.path)?;
         let portals = portal_list.portals;
         match self.filter {
             Filter::ID(id) => filter_by_id(portals, id),
@@ -149,10 +148,4 @@ pub struct Settings {
     pub time_zone: String,
     #[serde(rename = "date_format")]
     pub date_format: String,
-}
-
-impl RelativePath<Option<i8>> for ZohoPortals {
-    fn relative_path(_params: Option<i8>) -> String {
-        String::from("portals/")
-    }
 }

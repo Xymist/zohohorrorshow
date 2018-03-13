@@ -1,5 +1,4 @@
 use errors::*;
-use RelativePath;
 use client::ZohoClient;
 use std::fmt::Display;
 
@@ -9,88 +8,9 @@ pub struct BugFragment<'a> {
     pub path: String,
 }
 
-macro_rules! query_fragments {
-    ($x:ident; $($y:ident),* ) => (
-        $(
-            pub fn $y<T: Display>(self, param: T) -> $x<'a> {
-                $x {
-                    client: self.client,
-                    path: format!("{}&{}={}", self.path, stringify!($y), param),
-                }
-            }
-        )*
-    )
-}
-
 impl<'a> BugFragment<'a> {
-    query_fragments!(BugFragment; index, range, status_type, cview_id, sort_column, sort_order, flag);
-    // Status IDs
-    pub fn status(self, status: &[&str]) -> BugFragment<'a> {
-        BugFragment {
-            client: self.client,
-            path: format!("{}&status=[{}]", self.path, status.join(",")),
-        }
-    }
-    // Severity IDs
-    pub fn severity(self, severity: &[&str]) -> BugFragment<'a> {
-        BugFragment {
-            client: self.client,
-            path: format!("{}&severity=[{}]", self.path, severity.join(",")),
-        }
-    }
-    // Classification IDs
-    pub fn classification(self, classification: &[&str]) -> BugFragment<'a> {
-        BugFragment {
-            client: self.client,
-            path: format!(
-                "{}&classification=[{}]",
-                self.path,
-                classification.join(",")
-            ),
-        }
-    }
-    // Module IDs
-    pub fn module(self, module: &[&str]) -> BugFragment<'a> {
-        BugFragment {
-            client: self.client,
-            path: format!("{}&module=[{}]", self.path, module.join(",")),
-        }
-    }
-    // Milestone IDs
-    pub fn milestone(self, milestone: &[&str]) -> BugFragment<'a> {
-        BugFragment {
-            client: self.client,
-            path: format!("{}&milestone=[{}]", self.path, milestone.join(",")),
-        }
-    }
-    // Assignee IDs
-    pub fn assignee(self, assignee: &[&str]) -> BugFragment<'a> {
-        BugFragment {
-            client: self.client,
-            path: format!("{}&assignee=[{}]", self.path, assignee.join(",")),
-        }
-    }
-    // Escalation IDs
-    pub fn escalation(self, escalation: &[&str]) -> BugFragment<'a> {
-        BugFragment {
-            client: self.client,
-            path: format!("{}&escalation=[{}]", self.path, escalation.join(",")),
-        }
-    }
-    // Reporter IDs
-    pub fn reporter(self, reporter: &[&str]) -> BugFragment<'a> {
-        BugFragment {
-            client: self.client,
-            path: format!("{}&reporter=[{}]", self.path, reporter.join(",")),
-        }
-    }
-    // Affected milestone IDs
-    pub fn affected(self, affected: &[&str]) -> BugFragment<'a> {
-        BugFragment {
-            client: self.client,
-            path: format!("{}&affected=[{}]", self.path, affected.join(",")),
-        }
-    }
+    query_strings!(BugFragment; index, range, status_type, cview_id, sort_column, sort_order, flag);
+    query_groups!(BugFragment; status, severity, classification, module, milestone, assignee, escalation, reporter, affected);
     // Fetch a specific bug
     pub fn by_id(self, id: i64) -> BugFragment<'a> {
         if self.path.contains('&') {
@@ -104,7 +24,7 @@ impl<'a> BugFragment<'a> {
     }
     // Execute the query against the Zoho API
     pub fn call(self) -> Result<Vec<Bug>> {
-        let bug_list: ZohoBugs = self.client.get_url(&self.path)?;
+        let bug_list: ZohoBugs = self.client.get(&self.path)?;
         Ok(bug_list.bugs)
     }
 }
@@ -201,10 +121,4 @@ pub struct Module {
     pub id: i64,
     #[serde(rename = "name")]
     pub name: String,
-}
-
-impl<'a> RelativePath<[i64; 2]> for ZohoBugs {
-    fn relative_path(params: [i64; 2]) -> String {
-        format!("portal/{}/projects/{}/bugs/", params[0], params[1])
-    }
 }

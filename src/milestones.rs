@@ -1,5 +1,4 @@
 use errors::*;
-use RelativePath;
 use client::ZohoClient;
 
 #[derive(Debug)]
@@ -9,44 +8,11 @@ pub struct MilestoneFragment<'a> {
 }
 
 impl<'a> MilestoneFragment<'a> {
-    // Index number of the milestone.
-    pub fn index(self, index: i64) -> MilestoneFragment<'a> {
-        MilestoneFragment {
-            client: self.client,
-            path: format!("{}&index={}", self.path, index),
-        }
-    }
-    // Range of the milestones.
-    pub fn range(self, range: i64) -> MilestoneFragment<'a> {
-        MilestoneFragment {
-            client: self.client,
-            path: format!("{}&range={}", self.path, range),
-        }
-    }
-    // Status of the milestone. Accepts 'completed' or 'notcompleted'.
-    pub fn status(self, status: &str) -> MilestoneFragment<'a> {
-        MilestoneFragment {
-            client: self.client,
-            path: format!("{}&status={}", self.path, status),
-        }
-    }
-    // Milestone type. Accepts 'upcoming' or 'delayed'.
-    pub fn display_type(self, display_type: &str) -> MilestoneFragment<'a> {
-        MilestoneFragment {
-            client: self.client,
-            path: format!("{}&display_type={}", self.path, display_type),
-        }
-    }
-    // Milestone flag. Accepts 'internal' or 'external'.
-    pub fn flag(self, flag: &str) -> MilestoneFragment<'a> {
-        MilestoneFragment {
-            client: self.client,
-            path: format!("{}&flag={}", self.path, flag),
-        }
-    }
+    query_strings!(MilestoneFragment; index, range, status, display_type, flag);
+
     // Execute the query against the Zoho API
     pub fn call(self) -> Result<Vec<Milestone>> {
-        let milestone_list: ZohoMilestones = self.client.get_url(&self.path)?;
+        let milestone_list: ZohoMilestones = self.client.get(&self.path)?;
         Ok(milestone_list.milestones)
     }
 }
@@ -87,19 +53,6 @@ pub struct Milestone {
     pub completed_date_long: Option<i64>,
 }
 
-impl Milestone {
-    pub fn completed(&self) -> bool {
-        match self.completed_date {
-            Some(_) => true,
-            None => false,
-        }
-    }
-    pub fn overdue(&self) -> bool {
-        //  End date < current date?
-        unimplemented!();
-    }
-}
-
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Link {
     #[serde(rename = "self")]
@@ -112,10 +65,4 @@ pub struct Link {
 pub struct SelfLink {
     #[serde(rename = "url")]
     pub url: String,
-}
-
-impl<'a> RelativePath<[i64; 2]> for ZohoMilestones {
-    fn relative_path(params: [i64; 2]) -> String {
-        format!("portal/{}/projects/{}/milestones/", params[0], params[1])
-    }
 }

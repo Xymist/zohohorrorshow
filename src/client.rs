@@ -1,68 +1,97 @@
 use errors::*;
 use reqwest;
+use reqwest::Method::{self, Delete, Get, Post, Put};
 use serde;
-use RelativePath;
-use projects::{Project, ProjectFragment, ZohoProjects};
-use portals::{Portal, PortalFragment, ZohoPortals};
-use bugs::{BugFragment, ZohoBugs};
-use milestones::{MilestoneFragment, ZohoMilestones};
-use tasklists::{TasklistFragment, ZohoTasklists};
-use tasks::{TaskFragment, ZohoTasks};
+use activities::ActivityFragment;
+use bugs::BugFragment;
+use categories::CategoryFragment;
+use events::EventFragment;
+use forums::ForumFragment;
+use milestones::MilestoneFragment;
+use projects::ProjectFragment;
+use portals::PortalFragment;
+use tasklists::TasklistFragment;
+use tasks::TaskFragment;
+use timesheets::TimesheetFragment;
+use statuses::StatusFragment;
+use users::UserFragment;
 
 #[cfg(test)]
 use mockito;
 
 #[cfg(not(test))]
-const BASE_URL: &'static str = "https://projectsapi.zoho.com/restapi";
+const BASE_URL: &str = "https://projectsapi.zoho.com/restapi";
 
 #[cfg(test)]
-const BASE_URL: &'static str = mockito::SERVER_URL;
+const BASE_URL: &str = mockito::SERVER_URL;
+
+lazy_static! {
+    pub static ref CLIENT: reqwest::Client = reqwest::Client::new();
+}
 
 #[derive(Debug)]
 pub struct ZohoClient {
-    authtoken: String,
-    client: reqwest::Client,
-    portal_id: Option<i64>,
-    project_id: Option<i64>,
+    auth_token: String,
+    portal_id: i64,
+    project_id: i64,
 }
 
 impl ZohoClient {
-    // Ensure we have a portal ID set before we do anything else. This has to be set after initialization because
-    // we need a client to get the valid portal IDs.
-    fn po_id(&self) -> i64 {
-        match self.portal_id {
-            Some(id) => id,
-            None => panic!(
-                "Please call client.set_portal with a valid portal ID before using this function
-                You can use client.portals to find the available portal IDs for your auth token"
-            ),
-        }
-    }
-
-    // Ensure we have a portal ID set before we do anything else. This has to be set after initialization because
-    // we need a client to get the valid portal IDs.
-    fn pt_id(&self) -> i64 {
-        match self.project_id {
-            Some(id) => id,
-            None => panic!(
-                "Please call client.set_project with a valid portal ID before using this function
-                You can use client.projects to find the available portal IDs for your auth token"
-            ),
-        }
+    // Generates a client from an auth_token, a portal name and a project name, searching for the latter two in that order.
+    // The portal and project names are optional; if either is missing then it will be populated with the first in the
+    // list from Zoho, which is often the only one (in the case of a portal) or the oldest one chronologically (in the case
+    // of a project)
+    pub fn new(
+        auth_token: &str,
+        portal_name: Option<&str>,
+        project_name: Option<&str>,
+    ) -> Result<ZohoClient> {
+        let mut client = ZohoClient {
+            auth_token: auth_token.to_string(),
+            portal_id: 0,
+            project_id: 0,
+        };
+        let portal = match portal_name {
+            Some(name) => client.portals().by_name(name).call()?,
+            None => {
+                let mut ptls = client.portals().call()?;
+                match ptls.len() {
+                    0 => None,
+                    _ => Some(ptls.remove(0)),
+                }
+            }
+        };
+        if let Some(p) = portal {
+            client.portal_id = p.id
+        };
+        let project = match project_name {
+            Some(name) => client.projects().by_name(name).call()?,
+            None => {
+                let mut pjts = client.projects().call()?;
+                match pjts.len() {
+                    0 => None,
+                    _ => Some(pjts.remove(0)),
+                }
+            }
+        };
+        if let Some(p) = project {
+            client.project_id = p.id
+        };
+        Ok(client)
     }
 
     fn make_uri(&self, relative_path: &str) -> String {
         format!(
             "{}/{}?authtoken={}",
-            BASE_URL, relative_path, self.authtoken
+            BASE_URL, relative_path, self.auth_token
         )
     }
 
-    pub fn get_url<T>(&self, url: &str) -> Result<T>
+    pub fn call_api<T>(&self, method: Method, url: &str, data: &str) -> Result<T>
     where
         T: serde::de::DeserializeOwned,
     {
-        let mut response = self.client.get(url).send()?;
+        let mut response = CLIENT.request(method, url).json(&data).send()?;
         if !response.status().is_success() {
             bail!("Server error: {:?}", response.status());
         };
@@ -70,107 +99,298 @@ impl ZohoClient {
         Ok(res_obj)
     }
 
-    pub fn get<T, U>(&self, params: U) -> Result<T>
+    pub fn get<T>(&self, url: &str) -> Result<T>
     where
-        T: serde::de::DeserializeOwned + RelativePath<U>,
+        T: serde::de::DeserializeOwned,
     {
-        let url: String = self.make_uri(&T::relative_path(params));
-        self.get_url(&url)
+        self.call_api(Get, url, "")
     }
 
-    pub fn set_portal(&mut self, portal_id: i64) -> Result<()> {
-        self.portal_id = Some(portal_id);
-        Ok(())
+    pub fn post<T>(&self, url: &str, data: &str) -> Result<T>
+    where
+        T: serde::de::DeserializeOwned,
+    {
+        self.call_api(Post, url, data)
     }
 
-    pub fn set_project(&mut self, project_id: i64) -> Result<()> {
-        self.project_id = Some(project_id);
-        Ok(())
+    pub fn put<T>(&self, url: &str, data: &str) -> Result<T>
+    where
+        T: serde::de::DeserializeOwned,
+    {
+        self.call_api(Put, url, data)
     }
 
-    pub fn portal(&self) -> Result<Option<Portal>> {
-        let portal = self.portals().by_id(self.po_id()).call()?;
-        Ok(portal)
-    }
-
-    pub fn project(&self) -> Result<Option<Project>> {
-        let project = self.projects().by_id(self.pt_id()).call()?;
-        Ok(project)
+    pub fn delete<T>(&self, url: &str) -> Result<T>
+    where
+        T: serde::de::DeserializeOwned,
+    {
+        self.call_api(Delete, url, "")
     }
 
     pub fn portals(&self) -> PortalFragment {
         PortalFragment {
             client: &self,
-            path: self.make_uri(&ZohoPortals::relative_path(None)),
+            path: self.make_uri("portals/"),
         }
     }
 
     pub fn projects(&self) -> ProjectFragment {
         ProjectFragment {
             client: &self,
-            path: self.make_uri(&ZohoProjects::relative_path(self.po_id())),
+            path: self.make_uri(&format!("portal/{}/projects/", self.portal_id)),
         }
     }
 
-    pub fn project_identifiers(&self) -> Result<Vec<(String, i64)>> {
-        let projects = self.projects().call()?;
-        Ok(projects
-            .into_iter()
-            .map(|p| (p.name, p.id))
-            .collect::<Vec<(String, i64)>>())
+    pub fn portal_users(&self) -> UserFragment {
+        UserFragment {
+            client: &self,
+            path: self.make_uri(&format!("portal/{}/users/", self.portal_id))
+        }
+    }
+
+    pub fn project_users(&self) -> UserFragment {
+        UserFragment {
+            client: &self,
+            path: self.make_uri(&format!("portal/{}/projects/{}/users/", self.portal_id, self.project_id))
+        }
     }
 
     pub fn bugs(&self) -> BugFragment {
         BugFragment {
             client: &self,
-            path: self.make_uri(&ZohoBugs::relative_path([self.po_id(), self.pt_id()])),
+            path: self.make_uri(&format!("portal/{}/projects/{}/bugs/", self.portal_id, self.project_id)),
         }
     }
 
     pub fn milestones(&self) -> MilestoneFragment {
         MilestoneFragment {
             client: &self,
-            path: self.make_uri(&ZohoMilestones::relative_path([self.po_id(), self.pt_id()])),
+            path: self.make_uri(&format!("portal/{}/projects/{}/milestones/", self.portal_id, self.project_id)),
         }
     }
 
     pub fn tasklists(&self) -> TasklistFragment {
         TasklistFragment {
             client: &self,
-            path: self.make_uri(&ZohoTasklists::relative_path([self.po_id(), self.pt_id()])),
+            path: self.make_uri(&format!("portal/{}/projects/{}/tasklists/", self.portal_id, self.project_id)),
         }
     }
     pub fn tasks(&self) -> TaskFragment {
         TaskFragment {
             client: &self,
-            path: self.make_uri(&ZohoTasks::relative_path([self.po_id(), self.pt_id()])),
+            path: self.make_uri(&format!("portal/{}/projects/{}/tasks/", self.portal_id, self.project_id)),
         }
     }
-}
 
-pub fn create_client(auth_token: &str) -> Result<ZohoClient> {
-    let new_client = ZohoClient {
-        authtoken: auth_token.to_string(),
-        client: reqwest::Client::new(),
-        portal_id: None,
-        project_id: None,
-    };
-    // If the provided auth token is invalid, this lib is useless, so return
-    // an error instead of a client.
-    let check_portal = new_client.portals().call();
-    match check_portal {
-        Ok(_) => Ok(new_client),
-        Err(e) => Err(e),
+    pub fn activities(&self) -> ActivityFragment {
+        ActivityFragment {
+            client: &self,
+            path: self.make_uri(&format!("portal/{}/projects/{}/activities/", self.portal_id, self.project_id))
+        }
+    }
+
+    pub fn statuses(&self) -> StatusFragment {
+        StatusFragment {
+            client: &self,
+            path: self.make_uri(&format!("portal/{}/projects/{}/statuses/", self.portal_id, self.project_id))
+        }
+    }
+
+    pub fn timesheets(&self) -> TimesheetFragment {
+        TimesheetFragment {
+            client: &self,
+            path: self.make_uri(&format!("portal/{}/projects/{}/logs/", self.portal_id, self.project_id))
+        }
+    }
+
+    pub fn forums(&self) -> ForumFragment {
+        ForumFragment {
+            client: &self,
+            path: self.make_uri(&format!("portal/{}/projects/{}/forums/", self.portal_id, self.project_id))
+        }
+    }
+
+    pub fn categories(&self) -> CategoryFragment {
+        CategoryFragment {
+            client: &self,
+            path: self.make_uri(&format!("portal/{}/projects/{}/categories/", self.portal_id, self.project_id))
+        }
+    }
+
+    pub fn events(&self) -> EventFragment {
+        EventFragment {
+            client: &self,
+            path: self.make_uri(&format!("portal/{}/projects/{}/events/", self.portal_id, self.project_id))
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use mockito::mock;
+
+    const PORTAL: &'static str = "{
+        \"login_id\": \"2060758\",
+        \"portals\": [{
+            \"id\": 2063927,
+            \"name\": \"zillum\",
+            \"default\": true,
+            \"gmt_time_zone\": \"(GMT 5:30) India Standard Time\",
+            \"role\": \"admin\",
+            \"project_count\":{
+            \"template\":3,
+            \"archived\":1,
+            \"active\":30
+            },
+            \"settings\": {
+                \"company_name\": \"Zillum Inc.\",
+                \"website_url\": \"www.zillum.com\",
+                \"time_zone\": \"Asia/Calcutta\",
+                \"date_format\": \"MM-dd-yyyy hh:mm aaa\"
+            },
+            \"locale\": {
+                \"code\": \"en_US\",
+                \"language\": \"English\",
+                \"country\": \"United States\"
+            },
+            \"link\": {
+                \"project\": {
+                    \"url\": \"https://projectsapi.zoho.com/restapi/portal/2063927/projects\"
+                }
+            }
+        }]
+    }";
+
+    const PROJECT: &'static str = "{
+        \"projects\": [{
+            \"custom_fields\": [{
+                \"Template design\": \"Rightnav_temp\"
+            }, {
+                \"Promos per second\": \"2\"
+            }, {
+                \"Blog announcement\": \"02-25-2016\"
+            }, {
+                \"Promo publish date\": \"02-17-2016\"
+            }, {
+                \"Content approval\": \"Amritha Agrawal\"
+            }],
+            \"created_date\": \"02-16-2016\",
+            \"IS_BUG_ENABLED\": true,
+            \"owner_name\": \"Patricia Boyle\",
+            \"task_count\": {
+                \"open\": 0,
+                \"closed\": 0
+            },
+            \"start_date_long\": -32401001,
+            \"status\": \"active\",
+            \"link\": {
+                \"folder\": {
+                    \"url\": \"https://projectsapi.zoho.com/restapi/portal/zillum/projects/170876000003152069/folders/\"
+                },
+                \"milestone\": {
+                    \"url\": \"https://projectsapi.zoho.com/restapi/portal/zillum/projects/170876000003152069/milestones/\"
+                },
+                \"forum\": {
+                    \"url\": \"https://projectsapi.zoho.com/restapi/portal/zillum/projects/170876000003152069/forums/\"
+                },
+                \"document\": {
+                    \"url\": \"https://projectsapi.zoho.com/restapi/portal/zillum/projects/170876000003152069/documents/\"
+                },
+                \"status\": {
+                    \"url\": \"https://projectsapi.zoho.com/restapi/portal/zillum/projects/170876000003152069/statuses/\"
+                },
+                \"event\": {
+                    \"url\": \"https://projectsapi.zoho.com/restapi/portal/zillum/projects/170876000003152069/events/\"
+                },
+                \"task\": {
+                    \"url\": \"https://projectsapi.zoho.com/restapi/portal/zillum/projects/170876000003152069/tasks/\"
+                },
+                \"bug\": {
+                    \"url\": \"https://projectsapi.zoho.com/restapi/portal/zillum/projects/170876000003152069/bugs/\"
+                },
+                \"self\": {
+                    \"url\": \"https://projectsapi.zoho.com/restapi/portal/zillum/projects/170876000003152069/\"
+                },
+                \"timesheet\": {
+                    \"url\": \"https://projectsapi.zoho.com/restapi/portal/zillum/projects/170876000003152069/logs/\"
+                },
+                \"user\": {
+                    \"url\": \"https://projectsapi.zoho.com/restapi/portal/zillum/projects/170876000003152069/users/\"
+                },
+                \"tasklist\": {
+                    \"url\": \"https://projectsapi.zoho.com/restapi/portal/zillum/projects/170876000003152069/tasklists/\"
+                },
+                \"activity\": {
+                    \"url\": \"https://projectsapi.zoho.com/restapi/portal/zillum/projects/170876000003152069/activities/\"
+                }
+            },
+            \"created_date_format\": \"02-16-2016 03:20:43 AM\",
+            \"workspace_id\": \"2ea4657bfe29202df4eda90dabc651e61b1d6\",
+            \"milestone_count\": {
+                \"open\": 0,
+                \"closed\": 0
+            },
+            \"created_date_long\": 1455621643662,
+            \"end_date_format\": \"12-31-1969 06:59:59 AM\",
+            \"id\": 170876000003152069,
+            \"end_date\": \"12-31-1969\",
+            \"id_string\": \"170876000003152069\",
+            \"description\": \"fdb df b\",
+            \"name\": \"Promotional banner for women's day\",
+            \"owner_id\": \"2060758\",
+            \"end_date_long\": -32401001,
+            \"role\": \"admin\",
+            \"start_date_format\": \"12-31-1969 06:59:59 AM\",
+            \"start_date\": \"12-31-1969\"
+        }]
+    }";
 
     #[test]
     fn create_invalid_client() {
-        let client = create_client("bad-auth-token");
+        let client = ZohoClient::new("bad-auth-token", None, None);
         assert!(client.is_err());
+    }
+
+    #[test]
+    fn force_populate_client() {
+        let _portals = mock("GET", "/portals/?authtoken=abc123")
+            .with_status(201)
+            .with_body(PORTAL)
+            .create();
+
+        let _projects = mock("GET", "/portal/2063927/projects/?authtoken=abc123")
+            .with_status(201)
+            .with_body(PROJECT)
+            .create();
+
+        let client = ZohoClient::new(
+            "abc123",
+            Some("zillum"),
+            Some("Promotional banner for women's day"),
+        ).unwrap();
+
+        assert_eq!(client.auth_token, "abc123");
+        assert_eq!(client.portal_id, 2063927);
+        assert_eq!(client.project_id, 170876000003152069);
+    }
+
+    #[test]
+    fn autopopulate_client() {
+        let _portals = mock("GET", "/portals/?authtoken=abc123")
+            .with_status(201)
+            .with_body(PORTAL)
+            .create();
+
+        let _projects = mock("GET", "/portal/2063927/projects/?authtoken=abc123")
+            .with_status(201)
+            .with_body(PROJECT)
+            .create();
+
+        let client = ZohoClient::new("abc123", None, None).unwrap();
+
+        assert_eq!(client.auth_token, "abc123");
+        assert_eq!(client.portal_id, 2063927);
+        assert_eq!(client.project_id, 170876000003152069);
     }
 }
