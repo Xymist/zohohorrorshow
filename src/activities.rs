@@ -1,5 +1,4 @@
 use errors::*;
-use RelativePath;
 use client::ZohoClient;
 
 #[derive(Debug)]
@@ -25,7 +24,7 @@ impl<'a> ActivityFragment<'a> {
     }
     // Execute the query against the Zoho API
     pub fn call(self) -> Result<Vec<Activity>> {
-        let activity_list: ZohoActivities = self.client.get_url(&self.path)?;
+        let activity_list: ZohoActivities = self.client.get(&self.path)?;
         Ok(activity_list.activities)
     }
 }
@@ -54,10 +53,4 @@ pub struct Activity {
     pub display_time: String,
     #[serde(rename = "time")]
     pub time: String,
-}
-
-impl<'a> RelativePath<[i64; 2]> for ZohoActivities {
-    fn relative_path(params: [i64; 2]) -> String {
-        format!("portal/{}/projects/{}/activities/", params[0], params[1])
-    }
 }

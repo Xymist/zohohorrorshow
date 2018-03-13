@@ -1,5 +1,4 @@
 use errors::*;
-use RelativePath;
 use client::ZohoClient;
 
 #[derive(Debug)]
@@ -46,7 +45,7 @@ impl<'a> MilestoneFragment<'a> {
     }
     // Execute the query against the Zoho API
     pub fn call(self) -> Result<Vec<Milestone>> {
-        let milestone_list: ZohoMilestones = self.client.get_url(&self.path)?;
+        let milestone_list: ZohoMilestones = self.client.get(&self.path)?;
         Ok(milestone_list.milestones)
     }
 }
@@ -112,10 +111,4 @@ pub struct Link {
 pub struct SelfLink {
     #[serde(rename = "url")]
     pub url: String,
-}
-
-impl<'a> RelativePath<[i64; 2]> for ZohoMilestones {
-    fn relative_path(params: [i64; 2]) -> String {
-        format!("portal/{}/projects/{}/milestones/", params[0], params[1])
-    }
 }
