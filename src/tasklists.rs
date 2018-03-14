@@ -27,7 +27,10 @@ impl<'a> TasklistFragment<'a> {
     // Execute the query against the Zoho API
     pub fn call(self) -> Result<Vec<Tasklist>> {
         if !self.path.contains("flag") {
-            bail!("The 'flag' parameter is mandatory. Please call '.flag()' with either 'internal' or 'external' before calling.")
+            bail!(
+                "The 'flag' parameter is mandatory. Please call '.flag()'
+                with either 'internal' or 'external' before calling."
+            )
         }
         let tasklist_list: ZohoTasklists = self.client.get(&self.path)?;
         Ok(tasklist_list.tasklists)

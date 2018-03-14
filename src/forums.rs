@@ -7,6 +7,85 @@ pub struct ForumFragment<'a> {
     pub path: String,
 }
 
+impl<'a> ForumFragment<'a> {
+    // Execute the query against the Zoho API
+    pub fn call(self) -> Result<Vec<Forum>> {
+        let forum_list: ZohoForums = self.client.get(&self.path)?;
+        Ok(forum_list.forums)
+    }
+    // Fetch a specific forum by id
+    pub fn by_id(self, id: i64) -> ForumFilter<'a> {
+        if self.path.contains('&') {
+            panic!("Cannot both filter and find by ID")
+        }
+        let path_frags = self.path.split('?').collect::<Vec<&str>>();
+        ForumFilter {
+            client: self.client,
+            path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
+            filter: Filter::ID(id),
+        }
+    }
+    // Fetch a specific forum by id
+    pub fn by_name(self, name: &'a str) -> ForumFilter<'a> {
+        if self.path.contains('&') {
+            panic!("Cannot both filter and find by Name")
+        }
+        let path_frags = self.path.split('?').collect::<Vec<&str>>();
+        ForumFilter {
+            client: self.client,
+            path: format!("{}{}/?{}", path_frags[0], name, path_frags[1]),
+            filter: Filter::Name(name),
+        }
+    }
+}
+
+#[derive(Debug)]
+enum Filter<'a> {
+    ID(i64),
+    Name(&'a str),
+}
+
+#[derive(Debug)]
+pub struct ForumFilter<'a> {
+    client: &'a ZohoClient,
+    path: String,
+    filter: Filter<'a>,
+}
+
+impl<'a> ForumFilter<'a> {
+    // Execute the query against the Zoho API
+    pub fn call(self) -> Result<Option<Forum>> {
+        let forum_list: ZohoForums = self.client.get(&self.path)?;
+        let forums = forum_list.forums;
+        match self.filter {
+            Filter::ID(id) => filter_by_id(forums, id),
+            Filter::Name(name) => filter_by_name(forums, name),
+        }
+    }
+}
+
+fn filter_by_id(forums: Vec<Forum>, id: i64) -> Result<Option<Forum>> {
+    let mut filtered = forums
+        .into_iter()
+        .filter(|f| f.id == id)
+        .collect::<Vec<Forum>>();
+    match filtered.len() {
+        0 => Ok(None),
+        _ => Ok(Some(filtered.remove(0))),
+    }
+}
+
+fn filter_by_name(forums: Vec<Forum>, name: &str) -> Result<Option<Forum>> {
+    let mut filtered = forums
+        .into_iter()
+        .filter(|f| f.name == name)
+        .collect::<Vec<Forum>>();
+    match filtered.len() {
+        0 => Ok(None),
+        _ => Ok(Some(filtered.remove(0))),
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ZohoForums {
     #[serde(rename = "forums")]

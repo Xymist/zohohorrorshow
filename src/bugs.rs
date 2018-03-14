@@ -9,8 +9,28 @@ pub struct BugFragment<'a> {
 }
 
 impl<'a> BugFragment<'a> {
-    query_strings!(BugFragment; index, range, status_type, cview_id, sort_column, sort_order, flag);
-    query_groups!(BugFragment; status, severity, classification, module, milestone, assignee, escalation, reporter, affected);
+    query_strings!(
+        BugFragment;
+        index,
+        range,
+        status_type,
+        cview_id,
+        sort_column,
+        sort_order,
+        flag
+    );
+    query_groups!(
+        BugFragment;
+        status,
+        severity,
+        classification,
+        module,
+        milestone,
+        assignee,
+        escalation,
+        reporter,
+        affected
+    );
     // Fetch a specific bug
     pub fn by_id(self, id: i64) -> BugFragment<'a> {
         if self.path.contains('&') {

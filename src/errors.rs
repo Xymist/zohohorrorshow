@@ -1,6 +1,7 @@
 use reqwest;
 use chrono::ParseError;
 use std::env::VarError;
+use std::num::ParseIntError;
 use serde_json;
 
 error_chain!{
@@ -9,5 +10,6 @@ error_chain!{
         Chrono(ParseError);
         EnvVar(VarError);
         Json(serde_json::Error);
+        ParseInt(ParseIntError);
     }
 }
