@@ -446,8 +446,8 @@ mod tests {
         ).unwrap();
 
         assert_eq!(client.auth_token, "abc123");
-        assert_eq!(client.portal_id, 2063927);
-        assert_eq!(client.project_id, 170876000003152069);
+        assert_eq!(client.portal_id(), 2063927);
+        assert_eq!(client.project_id(), 170876000003152069);
     }
 
     #[test]
@@ -465,7 +465,7 @@ mod tests {
         let client = ZohoClient::new("abc123", None, None).unwrap();
 
         assert_eq!(client.auth_token, "abc123");
-        assert_eq!(client.portal_id, 2063927);
-        assert_eq!(client.project_id, 170876000003152069);
+        assert_eq!(client.portal_id(), 2063927);
+        assert_eq!(client.project_id(), 170876000003152069);
     }
 }
