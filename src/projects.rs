@@ -98,7 +98,7 @@ pub struct ZohoProjects {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Project {
     #[serde(rename = "custom_fields")]
-    pub custom_fields: Option<Vec<CustomField>>,
+    pub custom_fields: Option<Vec<HashMap<String, String>>>,
     #[serde(rename = "created_date")]
     pub created_date: String,
     #[serde(rename = "IS_BUG_ENABLED")]
@@ -143,20 +143,6 @@ pub struct Project {
     pub start_date_format: Option<String>,
     #[serde(rename = "start_date")]
     pub start_date: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct CustomField {
-    #[serde(rename = "Template design")]
-    pub template_design: Option<String>,
-    #[serde(rename = "Promos per second")]
-    pub promos_per_second: Option<String>,
-    #[serde(rename = "Blog announcement")]
-    pub blog_announcement: Option<String>,
-    #[serde(rename = "Promo publish date")]
-    pub promo_publish_date: Option<String>,
-    #[serde(rename = "Content approval")]
-    pub content_approval: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
