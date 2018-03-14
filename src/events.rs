@@ -1,5 +1,6 @@
 use errors::*;
 use client::ZohoClient;
+use utils::from_str;
 
 #[derive(Debug)]
 pub struct EventFragment<'a> {
@@ -45,8 +46,8 @@ pub struct Event {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Participant {
-    #[serde(rename = "participant_id")]
-    pub participant_id: String,
+    #[serde(rename = "participant_id", deserialize_with = "from_str")]
+    pub participant_id: i64,
     #[serde(rename = "participant_person")]
     pub participant_person: String,
 }

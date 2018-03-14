@@ -1,5 +1,6 @@
 use errors::*;
 use client::ZohoClient;
+use utils::from_str;
 
 #[derive(Debug)]
 pub struct CategoryFragment<'a> {
@@ -41,8 +42,8 @@ pub struct ZohoCategories {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Category {
-    #[serde(rename = "id")]
-    pub id: String,
+    #[serde(rename = "id", deserialize_with = "from_str")]
+    pub id: i64,
     #[serde(rename = "name")]
     pub name: String,
 }

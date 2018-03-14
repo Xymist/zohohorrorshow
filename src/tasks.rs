@@ -1,5 +1,6 @@
 use errors::*;
 use client::ZohoClient;
+use utils::from_str;
 
 // A fragment of the path to call for the Zoho Tasks API. This carries
 // with it a reference to the client which will be used to call it.
@@ -149,8 +150,8 @@ pub struct Details {
 pub struct Owner {
     #[serde(rename = "name")]
     pub name: String,
-    #[serde(rename = "id")]
-    pub id: String,
+    #[serde(rename = "id", deserialize_with = "from_str")]
+    pub id: i64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -171,8 +172,8 @@ pub struct SelfLink {
 pub struct Status {
     #[serde(rename = "name")]
     pub name: String,
-    #[serde(rename = "id")]
-    pub id: String,
+    #[serde(rename = "id", deserialize_with = "from_str")]
+    pub id: i64,
     #[serde(rename = "type")]
     pub status_type: String,
     #[serde(rename = "color_code")]

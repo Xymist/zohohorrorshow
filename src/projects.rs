@@ -1,6 +1,7 @@
 use errors::*;
 use client::ZohoClient;
 use std::collections::HashMap;
+use utils::from_str;
 
 #[derive(Debug)]
 pub struct ProjectFragment<'a> {
@@ -132,8 +133,8 @@ pub struct Project {
     pub description: Option<String>,
     #[serde(rename = "name")]
     pub name: String,
-    #[serde(rename = "owner_id")]
-    pub owner_id: String,
+    #[serde(rename = "owner_id", deserialize_with = "from_str")]
+    pub owner_id: i64,
     #[serde(rename = "end_date_long")]
     pub end_date_long: Option<i64>,
     #[serde(rename = "role")]

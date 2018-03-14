@@ -12,6 +12,7 @@ extern crate serde_json;
 
 #[macro_use]
 mod macros;
+mod utils;
 
 pub mod bugs;
 pub mod categories;

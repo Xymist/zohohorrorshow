@@ -1,6 +1,6 @@
 use errors::*;
 use client::ZohoClient;
-use std::fmt::Display;
+use utils::from_str;
 
 #[derive(Debug)]
 pub struct BugFragment<'a> {
@@ -81,8 +81,8 @@ pub struct Bug {
     pub flag: String,
     #[serde(rename = "assignee_name")]
     pub assignee_name: String,
-    #[serde(rename = "reporter_id")]
-    pub reporter_id: String,
+    #[serde(rename = "reporter_id", deserialize_with = "from_str")]
+    pub reporter_id: i64,
     #[serde(rename = "classification")]
     pub classification: IntClassification,
     #[serde(rename = "created_time_format")]
@@ -105,8 +105,8 @@ pub struct IntClassification {
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct StrClassification {
-    #[serde(rename = "id")]
-    pub id: String,
+    #[serde(rename = "id", deserialize_with = "from_str")]
+    pub id: i64,
     #[serde(rename = "type")]
     pub classification_type: String,
 }

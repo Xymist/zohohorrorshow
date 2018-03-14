@@ -1,5 +1,6 @@
 use errors::*;
 use client::ZohoClient;
+use utils::from_str;
 
 #[derive(Debug)]
 pub struct MilestoneFragment<'a> {
@@ -33,8 +34,8 @@ pub struct Milestone {
     pub name: String,
     #[serde(rename = "owner_name")]
     pub owner_name: String,
-    #[serde(rename = "owner_id")]
-    pub owner_id: String,
+    #[serde(rename = "owner_id", deserialize_with = "from_str")]
+    pub owner_id: i64,
     #[serde(rename = "flag")]
     pub flag: String,
     #[serde(rename = "start_date")]

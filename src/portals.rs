@@ -1,5 +1,6 @@
 use errors::*;
 use client::ZohoClient;
+use utils::from_str;
 
 #[derive(Debug)]
 pub struct PortalFragment<'a> {
@@ -78,8 +79,8 @@ fn filter_by_name(portals: Vec<Portal>, name: &str) -> Result<Option<Portal>> {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ZohoPortals {
-    #[serde(rename = "login_id")]
-    pub login_id: String,
+    #[serde(rename = "login_id", deserialize_with = "from_str")]
+    pub login_id: i64,
     #[serde(rename = "portals")]
     pub portals: Vec<Portal>,
 }

@@ -24,7 +24,7 @@ fn run() -> Result<i32> {
     let new_category = client.categories().create("Test Category")?;
     println!("New category: {:?}", new_category.categories[0]);
 
-    let nc_id: i64 = new_category.categories[0].id.parse()?;
+    let nc_id = new_category.categories[0].id;
     let destroyed_category = client.categories().delete(nc_id)?;
     println!("Delete response: {:?}", destroyed_category);
 
