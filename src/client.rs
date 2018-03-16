@@ -5,6 +5,7 @@ use serde;
 use activities::ActivityFragment;
 use bugs::BugFragment;
 use categories::CategoryFragment;
+use comments::CommentFragment;
 use events::EventFragment;
 use forums::ForumFragment;
 use milestones::MilestoneFragment;
@@ -92,21 +93,21 @@ impl ZohoClient {
     fn portal_id(&self) -> i64 {
         self.context.portal_id.expect(
             "Portal context called without portal id set.
-            Hint: call Client::portal() with the ID of a valid portal to set the context.",
+            Hint: call ZohoClient::portal() with the ID of a valid portal to set the context.",
         )
     }
 
     fn project_id(&self) -> i64 {
         self.context.project_id.expect(
             "Project context called without project id set.
-            Hint: call Client::project() with the ID of a valid project to set the context.",
+            Hint: call ZohoClient::project() with the ID of a valid project to set the context.",
         )
     }
 
     fn forum_id(&self) -> i64 {
         self.context.project_id.expect(
             "Forum context called without forum id set.
-            Hint: call Client::forum() with the ID of a valid forum to set the context.",
+            Hint: call ZohoClient::forum() with the ID of a valid forum to set the context.",
         )
     }
 
@@ -296,6 +297,16 @@ impl ZohoClient {
                 "portal/{}/projects/{}/events/",
                 self.portal_id(), self.project_id()
             )),
+        }
+    }
+
+    pub fn comments(&self) -> CommentFragment {
+        CommentFragment {
+            client: &self,
+            path: self.make_uri(&format!(
+                "portal/{}/projects/{}/forums/{}/comments",
+                self.portal_id(), self.project_id(), self.forum_id()
+            ))
         }
     }
 }

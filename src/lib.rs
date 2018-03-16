@@ -17,6 +17,7 @@ mod utils;
 pub mod bugs;
 pub mod categories;
 pub mod client;
+pub mod comments;
 pub mod statuses;
 pub mod activities;
 pub mod events;
