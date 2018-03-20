@@ -10,15 +10,34 @@ pub struct CommentFragment<'a> {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ZohoComments {
-  comments: Vec<Comment>,
+    comments: Vec<Comment>,
 }
 
 impl<'a> CommentFragment<'a> {
+    query_strings!(CommentFragment; index, range);
+
     // Execute the query against the Zoho API
-    pub fn call(self) -> Result<Vec<Comment>> {
+    pub fn fetch(self) -> Result<Vec<Comment>> {
         let comment_list: ZohoComments = self.client.get(&self.path)?;
         Ok(comment_list.comments)
     }
+    pub fn create(self, content: &str) -> Result<Comment> {
+        let mut response: ZohoComments = self.client
+            .post(&format!("{}&content={}", self.path, content), "")?;
+        Ok(response.comments.remove(0))
+    }
+    // Delete a comment by ID
+    pub fn delete(self, id: i64) -> Result<String> {
+        let path_frags = self.path.split('?').collect::<Vec<&str>>();
+        let response: Response = self.client
+            .delete(&format!("{}{}/?{}", path_frags[0], id, path_frags[1]))?;
+        Ok(response.response)
+    }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Response {
+    response: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

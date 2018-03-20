@@ -26,7 +26,7 @@ impl<'a> TasklistFragment<'a> {
     }
 
     // Execute the query against the Zoho API
-    pub fn call(self) -> Result<Vec<Tasklist>> {
+    pub fn fetch(self) -> Result<Vec<Tasklist>> {
         if !self.path.contains("flag") {
             bail!(
                 "The 'flag' parameter is mandatory. Please call '.flag()'
@@ -56,7 +56,7 @@ impl<'a> TasklistPath<'a> {
     }
 
     // Execute the query against the Zoho API
-    pub fn call(self) -> Result<Option<Tasklist>> {
+    pub fn fetch(self) -> Result<Option<Tasklist>> {
         let mut tasklist_list: ZohoTasklists = self.client.get(&self.path)?;
         match tasklist_list.tasklists.len() {
             0 => Ok(None),
@@ -73,7 +73,7 @@ pub struct TasklistTasksPath<'a> {
 
 impl<'a> TasklistTasksPath<'a> {
     // Execute the query against the Zoho API
-    pub fn call(self) -> Result<Vec<Task>> {
+    pub fn fetch(self) -> Result<Vec<Task>> {
         let task_list: ZohoTasks = self.client.get(&self.path)?;
         Ok(task_list.tasks)
     }

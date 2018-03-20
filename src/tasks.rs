@@ -70,7 +70,7 @@ impl<'a> TaskFragment<'a> {
         }
     }
     // Execute the query against the Zoho API
-    pub fn call(self) -> Result<Vec<Task>> {
+    pub fn fetch(self) -> Result<Vec<Task>> {
         let task_list: ZohoTasks = self.client.get(&self.path)?;
         Ok(task_list.tasks)
     }

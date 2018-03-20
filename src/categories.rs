@@ -10,7 +10,7 @@ pub struct CategoryFragment<'a> {
 
 impl<'a> CategoryFragment<'a> {
     // Execute the query against the Zoho API
-    pub fn call(self) -> Result<Vec<Category>> {
+    pub fn fetch(self) -> Result<Vec<Category>> {
         let category_list: ZohoCategories = self.client.get(&self.path)?;
         Ok(category_list.categories)
     }
@@ -22,10 +22,10 @@ impl<'a> CategoryFragment<'a> {
         Ok(response.response)
     }
     // Create a category by name
-    pub fn create(self, name: &str) -> Result<ZohoCategories> {
-        let response: ZohoCategories = self.client
+    pub fn create(self, name: &str) -> Result<Category> {
+        let mut response: ZohoCategories = self.client
             .post(&format!("{}&name={}", self.path, name), "")?;
-        Ok(response)
+        Ok(response.categories.remove(0))
     }
 }
 

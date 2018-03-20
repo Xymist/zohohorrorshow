@@ -12,7 +12,7 @@ impl<'a> MilestoneFragment<'a> {
     query_strings!(MilestoneFragment; index, range, status, display_type, flag);
 
     // Execute the query against the Zoho API
-    pub fn call(self) -> Result<Vec<Milestone>> {
+    pub fn fetch(self) -> Result<Vec<Milestone>> {
         let milestone_list: ZohoMilestones = self.client.get(&self.path)?;
         Ok(milestone_list.milestones)
     }

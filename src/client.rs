@@ -62,9 +62,9 @@ impl ZohoClient {
             },
         };
         let portal = match portal_name {
-            Some(name) => client.portals().by_name(name).call()?,
+            Some(name) => client.portals().by_name(name).fetch()?,
             None => {
-                let mut ptls = client.portals().call()?;
+                let mut ptls = client.portals().fetch()?;
                 match ptls.len() {
                     0 => None,
                     _ => Some(ptls.remove(0)),
@@ -75,9 +75,9 @@ impl ZohoClient {
             client.context.portal_id = Some(p.id)
         };
         let project = match project_name {
-            Some(name) => client.projects().by_name(name).call()?,
+            Some(name) => client.projects().by_name(name).fetch()?,
             None => {
-                let mut pjts = client.projects().call()?;
+                let mut pjts = client.projects().fetch()?;
                 match pjts.len() {
                     0 => None,
                     _ => Some(pjts.remove(0)),
@@ -196,7 +196,8 @@ impl ZohoClient {
             client: &self,
             path: self.make_uri(&format!(
                 "portal/{}/projects/{}/users/",
-                self.portal_id(), self.project_id()
+                self.portal_id(),
+                self.project_id()
             )),
         }
     }
@@ -206,7 +207,8 @@ impl ZohoClient {
             client: &self,
             path: self.make_uri(&format!(
                 "portal/{}/projects/{}/bugs/",
-                self.portal_id(), self.project_id()
+                self.portal_id(),
+                self.project_id()
             )),
         }
     }
@@ -216,7 +218,8 @@ impl ZohoClient {
             client: &self,
             path: self.make_uri(&format!(
                 "portal/{}/projects/{}/milestones/",
-                self.portal_id(), self.project_id()
+                self.portal_id(),
+                self.project_id()
             )),
         }
     }
@@ -226,7 +229,8 @@ impl ZohoClient {
             client: &self,
             path: self.make_uri(&format!(
                 "portal/{}/projects/{}/tasklists/",
-                self.portal_id(), self.project_id()
+                self.portal_id(),
+                self.project_id()
             )),
         }
     }
@@ -235,7 +239,8 @@ impl ZohoClient {
             client: &self,
             path: self.make_uri(&format!(
                 "portal/{}/projects/{}/tasks/",
-                self.portal_id(), self.project_id()
+                self.portal_id(),
+                self.project_id()
             )),
         }
     }
@@ -245,7 +250,8 @@ impl ZohoClient {
             client: &self,
             path: self.make_uri(&format!(
                 "portal/{}/projects/{}/activities/",
-                self.portal_id(), self.project_id()
+                self.portal_id(),
+                self.project_id()
             )),
         }
     }
@@ -255,7 +261,8 @@ impl ZohoClient {
             client: &self,
             path: self.make_uri(&format!(
                 "portal/{}/projects/{}/statuses/",
-                self.portal_id(), self.project_id()
+                self.portal_id(),
+                self.project_id()
             )),
         }
     }
@@ -265,7 +272,8 @@ impl ZohoClient {
             client: &self,
             path: self.make_uri(&format!(
                 "portal/{}/projects/{}/logs/",
-                self.portal_id(), self.project_id()
+                self.portal_id(),
+                self.project_id()
             )),
         }
     }
@@ -275,7 +283,8 @@ impl ZohoClient {
             client: &self,
             path: self.make_uri(&format!(
                 "portal/{}/projects/{}/forums/",
-                self.portal_id(), self.project_id()
+                self.portal_id(),
+                self.project_id()
             )),
         }
     }
@@ -285,7 +294,8 @@ impl ZohoClient {
             client: &self,
             path: self.make_uri(&format!(
                 "portal/{}/projects/{}/categories/",
-                self.portal_id(), self.project_id()
+                self.portal_id(),
+                self.project_id()
             )),
         }
     }
@@ -295,7 +305,8 @@ impl ZohoClient {
             client: &self,
             path: self.make_uri(&format!(
                 "portal/{}/projects/{}/events/",
-                self.portal_id(), self.project_id()
+                self.portal_id(),
+                self.project_id()
             )),
         }
     }
@@ -305,8 +316,10 @@ impl ZohoClient {
             client: &self,
             path: self.make_uri(&format!(
                 "portal/{}/projects/{}/forums/{}/comments",
-                self.portal_id(), self.project_id(), self.forum_id()
-            ))
+                self.portal_id(),
+                self.project_id(),
+                self.forum_id()
+            )),
         }
     }
 }

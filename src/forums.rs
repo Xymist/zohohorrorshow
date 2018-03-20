@@ -9,7 +9,7 @@ pub struct ForumFragment<'a> {
 
 impl<'a> ForumFragment<'a> {
     // Execute the query against the Zoho API
-    pub fn call(self) -> Result<Vec<Forum>> {
+    pub fn fetch(self) -> Result<Vec<Forum>> {
         let forum_list: ZohoForums = self.client.get(&self.path)?;
         Ok(forum_list.forums)
     }
@@ -54,7 +54,7 @@ pub struct ForumFilter<'a> {
 
 impl<'a> ForumFilter<'a> {
     // Execute the query against the Zoho API
-    pub fn call(self) -> Result<Option<Forum>> {
+    pub fn fetch(self) -> Result<Option<Forum>> {
         let forum_list: ZohoForums = self.client.get(&self.path)?;
         let forums = forum_list.forums;
         match self.filter {

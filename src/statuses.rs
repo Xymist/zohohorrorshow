@@ -11,7 +11,7 @@ impl<'a> StatusFragment<'a> {
     query_strings!(StatusFragment; index, range);
 
     // Execute the query against the Zoho API
-    pub fn call(self) -> Result<Vec<Status>> {
+    pub fn fetch(self) -> Result<Vec<Status>> {
         let status_list: ZohoStatuses = self.client.get(&self.path)?;
         Ok(status_list.statuses)
     }

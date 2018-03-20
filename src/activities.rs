@@ -11,7 +11,7 @@ impl<'a> ActivityFragment<'a> {
     query_strings!(ActivityFragment; index, range);
 
     // Execute the query against the Zoho API
-    pub fn call(self) -> Result<Vec<Activity>> {
+    pub fn fetch(self) -> Result<Vec<Activity>> {
         let activity_list: ZohoActivities = self.client.get(&self.path)?;
         Ok(activity_list.activities)
     }
