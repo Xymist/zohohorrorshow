@@ -1,5 +1,5 @@
-use errors::*;
 use client::ZohoClient;
+use errors::*;
 use tasks::{Task, ZohoTasks};
 use utils::from_str;
 

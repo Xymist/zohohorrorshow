@@ -1,6 +1,6 @@
+use serde::de::{self, Deserialize, Deserializer};
 use std::fmt::Display;
 use std::str::FromStr;
-use serde::de::{self, Deserialize, Deserializer};
 
 pub fn from_str<'de, T, D>(deserializer: D) -> Result<T, D::Error>
 where

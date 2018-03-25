@@ -1,5 +1,5 @@
-use errors::*;
 use client::ZohoClient;
+use errors::*;
 use utils::from_str;
 
 #[derive(Debug)]

@@ -1,20 +1,20 @@
-use errors::*;
-use reqwest;
-use reqwest::Method::{self, Delete, Get, Post, Put};
-use serde;
 use activities::ActivityFragment;
 use bugs::BugFragment;
 use categories::CategoryFragment;
 use comments::CommentFragment;
+use errors::*;
 use events::EventFragment;
 use forums::ForumFragment;
 use milestones::MilestoneFragment;
-use projects::ProjectFragment;
 use portals::PortalFragment;
+use projects::ProjectFragment;
+use reqwest;
+use reqwest::Method::{self, Delete, Get, Post, Put};
+use serde;
+use statuses::StatusFragment;
 use tasklists::TasklistFragment;
 use tasks::TaskFragment;
 use timesheets::TimesheetFragment;
-use statuses::StatusFragment;
 use users::UserFragment;
 
 #[cfg(test)]

@@ -3,11 +3,11 @@ extern crate dotenv;
 extern crate error_chain;
 extern crate zohohorrorshow;
 
-use zohohorrorshow::errors::*;
-use zohohorrorshow::client::ZohoClient;
-use zohohorrorshow::events::{AmPm, NewEvent};
 use dotenv::dotenv;
 use std::env;
+use zohohorrorshow::client::ZohoClient;
+use zohohorrorshow::errors::*;
+use zohohorrorshow::events::{AmPm, NewEvent};
 
 fn run() -> Result<i32> {
     dotenv().ok();

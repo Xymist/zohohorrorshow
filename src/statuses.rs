@@ -1,5 +1,5 @@
-use errors::*;
 use client::ZohoClient;
+use errors::*;
 
 #[derive(Debug)]
 pub struct StatusFragment<'a> {

@@ -1,5 +1,5 @@
-use errors::*;
 use client::ZohoClient;
+use errors::*;
 use utils::from_str;
 
 // A fragment of the path to call for the Zoho Tasks API. This carries

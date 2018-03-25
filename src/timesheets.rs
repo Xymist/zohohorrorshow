@@ -1,5 +1,5 @@
-use errors::*;
 use client::ZohoClient;
+use errors::*;
 
 // A fragment of the path to call for the Zoho Timesheets API. This carries
 // with it a reference to the client which will be used to call it.

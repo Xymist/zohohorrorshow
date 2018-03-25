@@ -1,8 +1,8 @@
-use reqwest;
 use chrono::ParseError;
+use reqwest;
+use serde_json;
 use std::env::VarError;
 use std::num::ParseIntError;
-use serde_json;
 
 error_chain!{
     foreign_links {
