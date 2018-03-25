@@ -9,6 +9,107 @@ pub struct TimesheetFragment<'a> {
     pub path: String,
 }
 
+impl<'a> TimesheetFragment<'a> {
+    query_strings!(TimesheetFragment; index, range, date);
+
+    pub fn users_list(mut self, ids: Option<Vec<i64>>) -> TimesheetFragment<'a> {
+        let users = match ids {
+            Some(u) => u.into_iter()
+                .map(|p| p.to_string())
+                .collect::<Vec<String>>()
+                .join(","),
+            None => "all".to_string(),
+        };
+        self.path = format!("{}&users_list={}", self.path, users);
+        self
+    }
+
+    pub fn view_type(mut self, view_type: ViewType) -> TimesheetFragment<'a> {
+        self.path = format!("{}&view_type={}", self.path, view_type.to_string());
+        self
+    }
+
+    pub fn component_type(mut self, component_type: ComponentType) -> TimesheetFragment<'a> {
+        self.path = format!(
+            "{}&component_type={}",
+            self.path,
+            component_type.to_string()
+        );
+        self
+    }
+
+    pub fn bill_status(mut self, bill_status: BillStatus) -> TimesheetFragment<'a> {
+        self.path = format!("{}&bill_status={}", self.path, bill_status.to_string());
+        self
+    }
+
+    // Execute the query against the Zoho API
+    pub fn fetch(self) -> Result<Timelogs> {
+        if !self.path.contains("component_type") || !self.path.contains("bill_status")
+            || !self.path.contains("users_list") || !self.path.contains("view_type")
+            || !self.path.contains("date")
+        {
+            bail!(
+                "More information needed; please specify at least date, view type,
+                component type, billable status and users scope before searching time logs."
+            )
+        }
+        let timelog_list: ZohoTimelogs = self.client.get(&self.path)?;
+        Ok(timelog_list.timelogs)
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum ViewType {
+    Day,
+    Week,
+    Month,
+}
+
+impl ViewType {
+    pub fn to_string(self) -> String {
+        match self {
+            ViewType::Day => "day".to_string(),
+            ViewType::Month => "month".to_string(),
+            ViewType::Week => "week".to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum BillStatus {
+    All,
+    Billable,
+    NonBillable,
+}
+
+impl BillStatus {
+    pub fn to_string(self) -> String {
+        match self {
+            BillStatus::All => "all".to_string(),
+            BillStatus::Billable => "billable".to_string(),
+            BillStatus::NonBillable => "non_billable".to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum ComponentType {
+    Task,
+    Bug,
+    General,
+}
+
+impl ComponentType {
+    pub fn to_string(self) -> String {
+        match self {
+            ComponentType::Task => "task".to_string(),
+            ComponentType::Bug => "bug".to_string(),
+            ComponentType::General => "general".to_string(),
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ZohoTimelogs {
     #[serde(rename = "timelogs")]
