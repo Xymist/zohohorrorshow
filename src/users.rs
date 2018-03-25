@@ -77,8 +77,13 @@ impl<'a> UserFragment<'a> {
             return self.client.portal_users().activate(id);
         };
         let path_frags = self.path.split('?').collect::<Vec<&str>>();
-        let response: Response = self.client
-            .post(&format!("{}activate/?{}&activate={}", path_frags[0], path_frags[1], id), "")?;
+        let response: Response = self.client.post(
+            &format!(
+                "{}activate/?{}&activate={}",
+                path_frags[0], path_frags[1], id
+            ),
+            "",
+        )?;
         Ok(response.response)
     }
 
@@ -87,8 +92,13 @@ impl<'a> UserFragment<'a> {
             return self.client.portal_users().deactivate(id);
         };
         let path_frags = self.path.split('?').collect::<Vec<&str>>();
-        let response: Response = self.client
-            .post(&format!("{}activate/?{}&deactivate={}", path_frags[0], path_frags[1], id), "")?;
+        let response: Response = self.client.post(
+            &format!(
+                "{}activate/?{}&deactivate={}",
+                path_frags[0], path_frags[1], id
+            ),
+            "",
+        )?;
         Ok(response.response)
     }
 }

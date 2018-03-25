@@ -12,12 +12,28 @@ pub struct ProjectFragment<'a> {
 impl<'a> ProjectFragment<'a> {
     query_strings!(ProjectFragment; index, range, status, sort_column, sort_order);
 
+    // Fetch available custom fields (can be applied when creating projects)
+    pub fn customfields(self) -> Result<Option<Vec<CustomField>>> {
+        let mut path_frags = self.path.split('?').collect::<Vec<&str>>();
+        if path_frags[1].contains('&') {
+            let autht = path_frags.remove(1).split('&').collect::<Vec<&str>>()[0];
+            path_frags.push(autht)
+        }
+        println!("{:?}", self);
+        let fields: CustomFields = self.client.get(&format!(
+            "{}{}/?{}",
+            path_frags[0], "customfields", path_frags[1]
+        ))?;
+        Ok(Some(fields.fields))
+    }
+
     // Fetch a specific portal by id
     pub fn by_id(self, id: i64) -> ProjectFilter<'a> {
-        if self.path.contains('&') {
-            panic!("Cannot both filter and find by ID")
+        let mut path_frags = self.path.split('?').collect::<Vec<&str>>();
+        if path_frags[1].contains('&') {
+            let autht = path_frags.remove(1).split('&').collect::<Vec<&str>>()[0];
+            path_frags.push(autht)
         }
-        let path_frags = self.path.split('?').collect::<Vec<&str>>();
         ProjectFilter {
             client: self.client,
             path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
@@ -157,4 +173,24 @@ pub struct Count {
     pub open: i64,
     #[serde(rename = "closed")]
     pub closed: i64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CustomFields {
+    #[serde(rename = "project_custom_fields")]
+    pub fields: Vec<CustomField>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CustomField {
+    #[serde(rename = "is_visible")]
+    pub is_visible: bool,
+    #[serde(rename = "field_name")]
+    pub field_name: String,
+    #[serde(rename = "field_type")]
+    pub field_type: String,
+    #[serde(rename = "default_value")]
+    pub default_value: Option<String>,
+    #[serde(rename = "field_id")]
+    pub field_id: String,
 }

@@ -18,16 +18,11 @@ fn run() -> Result<i32> {
         Some(&env::var("ZOHO_PROJECT_NAME")?),
     ).chain_err(|| "Could not initialize; exiting")?;
 
-    let new_category = client.categories().create("Test Category")?;
-    println!("New category: {:?}", new_category);
+    let projects = client.projects().fetch()?;
+    println!("Existing projects: {:?}", projects);
 
-    let categories = client.categories().fetch()?;
-    println!("Existing categories: {:?}", categories);
-
-    let nc_id = new_category.id;
-
-    let destroyed_category = client.categories().delete(nc_id)?;
-    println!("Delete response: {:?}", destroyed_category);
+    let custom_fields = client.projects().customfields()?;
+    println!("Existing custom fields: {:?}", custom_fields);
 
     Ok(0)
 }
