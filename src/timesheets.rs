@@ -24,12 +24,12 @@ impl<'a> TimesheetFragment<'a> {
         self
     }
 
-    pub fn view_type(mut self, view_type: ViewType) -> TimesheetFragment<'a> {
+    pub fn view_type(mut self, view_type: &ViewType) -> TimesheetFragment<'a> {
         self.path = format!("{}&view_type={}", self.path, view_type.to_string());
         self
     }
 
-    pub fn component_type(mut self, component_type: ComponentType) -> TimesheetFragment<'a> {
+    pub fn component_type(mut self, component_type: &ComponentType) -> TimesheetFragment<'a> {
         self.path = format!(
             "{}&component_type={}",
             self.path,
@@ -38,7 +38,7 @@ impl<'a> TimesheetFragment<'a> {
         self
     }
 
-    pub fn bill_status(mut self, bill_status: BillStatus) -> TimesheetFragment<'a> {
+    pub fn bill_status(mut self, bill_status: &BillStatus) -> TimesheetFragment<'a> {
         self.path = format!("{}&bill_status={}", self.path, bill_status.to_string());
         self
     }
@@ -67,8 +67,8 @@ pub enum ViewType {
 }
 
 impl ViewType {
-    pub fn to_string(self) -> String {
-        match self {
+    pub fn to_string(&self) -> String {
+        match *self {
             ViewType::Day => "day".to_string(),
             ViewType::Month => "month".to_string(),
             ViewType::Week => "week".to_string(),
@@ -84,8 +84,8 @@ pub enum BillStatus {
 }
 
 impl BillStatus {
-    pub fn to_string(self) -> String {
-        match self {
+    pub fn to_string(&self) -> String {
+        match *self {
             BillStatus::All => "all".to_string(),
             BillStatus::Billable => "billable".to_string(),
             BillStatus::NonBillable => "non_billable".to_string(),
@@ -101,8 +101,8 @@ pub enum ComponentType {
 }
 
 impl ComponentType {
-    pub fn to_string(self) -> String {
-        match self {
+    pub fn to_string(&self) -> String {
+        match *self {
             ComponentType::Task => "task".to_string(),
             ComponentType::Bug => "bug".to_string(),
             ComponentType::General => "general".to_string(),

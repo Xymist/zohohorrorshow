@@ -137,8 +137,8 @@ pub enum AmPm {
 }
 
 impl AmPm {
-    pub fn to_string(self) -> String {
-        match self {
+    pub fn to_string(&self) -> String {
+        match *self {
             AmPm::Am => "am".to_string(),
             AmPm::Pm => "pm".to_string(),
         }
@@ -155,8 +155,8 @@ pub enum Repeat {
 }
 
 impl Repeat {
-    pub fn to_string(self) -> String {
-        match self {
+    pub fn to_string(&self) -> String {
+        match *self {
             Repeat::Once => "once".to_string(),
             Repeat::EveryDay => "everyday".to_string(),
             Repeat::EveryWeek => "everyweek".to_string(),
@@ -179,8 +179,8 @@ pub enum RemindBefore {
 }
 
 impl RemindBefore {
-    pub fn to_string(self) -> String {
-        match self {
+    pub fn to_string(&self) -> String {
+        match *self {
             RemindBefore::OnTime => "ontime".to_string(),
             RemindBefore::FifteenMins => "15mins".to_string(),
             RemindBefore::ThirtyMins => "30mins".to_string(),
@@ -207,8 +207,8 @@ pub enum NumRepeat {
 }
 
 impl NumRepeat {
-    pub fn to_i(self) -> i64 {
-        match self {
+    pub fn to_i(&self) -> i64 {
+        match *self {
             NumRepeat::Two => 2,
             NumRepeat::Three => 3,
             NumRepeat::Four => 4,

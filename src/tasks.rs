@@ -18,8 +18,8 @@ pub enum TaskStatus {
 }
 
 impl TaskStatus {
-    pub fn to_string(self) -> String {
-        match self {
+    pub fn to_string(&self) -> String {
+        match *self {
             TaskStatus::All => "all".to_string(),
             TaskStatus::Completed => "completed".to_string(),
             TaskStatus::NotCompleted => "notcompleted".to_string(),
@@ -36,8 +36,8 @@ pub enum TaskTimePeriod {
 }
 
 impl TaskTimePeriod {
-    pub fn to_string(self) -> String {
-        match self {
+    pub fn to_string(&self) -> String {
+        match *self {
             TaskTimePeriod::All => "all".to_string(),
             TaskTimePeriod::Overdue => "overdue".to_string(),
             TaskTimePeriod::Today => "Today".to_string(),
@@ -50,11 +50,11 @@ impl<'a> TaskFragment<'a> {
     query_strings!(TaskFragment; index, range, owner, priority, tasklist_id, custom_status);
 
     // Status of the task. Defaults to All
-    pub fn status(&mut self, status: TaskStatus) {
+    pub fn status(&mut self, status: &TaskStatus) {
         self.path = format!("{}&status={}", self.path, status.to_string());
     }
     // Time period of the task. Defaults to All
-    pub fn time(&mut self, time: TaskTimePeriod) {
+    pub fn time(&mut self, time: &TaskTimePeriod) {
         self.path = format!("{}&time={}", self.path, time.to_string());
     }
 
