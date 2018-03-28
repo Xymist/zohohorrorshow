@@ -6,12 +6,13 @@ use errors::*;
 use events::EventFragment;
 use forums::ForumFragment;
 use milestones::MilestoneFragment;
-use portals::PortalFragment;
-use projects::ProjectFragment;
+use portals::portals;
+use projects::projects;
 use reqwest;
 use reqwest::Method::{self, Delete, Get, Post, Put};
 use serde;
 use statuses::StatusFragment;
+use std::rc::Rc;
 use tasklists::TasklistFragment;
 use tasks::TaskFragment;
 use timesheets::TimesheetFragment;
@@ -52,7 +53,7 @@ impl ZohoClient {
         auth_token: &str,
         portal_name: Option<&str>,
         project_name: Option<&str>,
-    ) -> Result<ZohoClient> {
+    ) -> Result<Rc<ZohoClient>> {
         let mut client = ZohoClient {
             auth_token: auth_token.to_string(),
             context: Context {
@@ -61,10 +62,11 @@ impl ZohoClient {
                 forum_id: None,
             },
         };
+        let ref_client = Rc::new(client);
         let portal = match portal_name {
-            Some(name) => client.portals().by_name(name).fetch()?,
+            Some(name) => portals(Rc::clone(&ref_client)).by_name(name).fetch()?,
             None => {
-                let mut ptls = client.portals().fetch()?;
+                let mut ptls = portals(Rc::clone(&ref_client)).fetch()?;
                 match ptls.len() {
                     0 => None,
                     _ => Some(ptls.remove(0)),
@@ -75,9 +77,9 @@ impl ZohoClient {
             client.context.portal_id = Some(p.id)
         };
         let project = match project_name {
-            Some(name) => client.projects().by_name(name).fetch()?,
+            Some(name) => projects(Rc::clone(&ref_client)).by_name(name).fetch()?,
             None => {
-                let mut pjts = client.projects().fetch()?;
+                let mut pjts = projects(Rc::clone(&ref_client)).fetch()?;
                 match pjts.len() {
                     0 => None,
                     _ => Some(pjts.remove(0)),
@@ -87,24 +89,24 @@ impl ZohoClient {
         if let Some(p) = project {
             client.context.project_id = Some(p.id)
         };
-        Ok(client)
+        Ok(ref_client)
     }
 
-    fn portal_id(&self) -> i64 {
+    pub(crate) fn portal_id(&self) -> i64 {
         self.context.portal_id.expect(
             "Portal context called without portal id set.
             Hint: call ZohoClient::portal() with the ID of a valid portal to set the context.",
         )
     }
 
-    fn project_id(&self) -> i64 {
+    pub(crate) fn project_id(&self) -> i64 {
         self.context.project_id.expect(
             "Project context called without project id set.
             Hint: call ZohoClient::project() with the ID of a valid project to set the context.",
         )
     }
 
-    fn forum_id(&self) -> i64 {
+    pub(crate) fn forum_id(&self) -> i64 {
         self.context.project_id.expect(
             "Forum context called without forum id set.
             Hint: call ZohoClient::forum() with the ID of a valid forum to set the context.",
@@ -123,7 +125,7 @@ impl ZohoClient {
         self.context.forum_id = Some(id)
     }
 
-    fn make_uri(&self, relative_path: &str) -> String {
+    pub fn make_uri(&self, relative_path: &str) -> String {
         format!(
             "{}/{}?authtoken={}",
             BASE_URL, relative_path, self.auth_token
@@ -168,20 +170,6 @@ impl ZohoClient {
         T: serde::de::DeserializeOwned,
     {
         self.call_api(Delete, url, "")
-    }
-
-    pub fn portals(&self) -> PortalFragment {
-        PortalFragment {
-            client: &self,
-            path: self.make_uri("portals/"),
-        }
-    }
-
-    pub fn projects(&self) -> ProjectFragment {
-        ProjectFragment {
-            client: &self,
-            path: self.make_uri(&format!("portal/{}/projects/", self.portal_id())),
-        }
     }
 
     pub fn portal_users(&self) -> UserFragment {

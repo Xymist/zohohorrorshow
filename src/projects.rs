@@ -1,15 +1,24 @@
 use client::ZohoClient;
 use errors::*;
 use std::collections::HashMap;
+use std::rc::Rc;
 use utils::from_str;
 
+pub fn projects(client: Rc<ZohoClient>) -> ProjectFragment {
+    let path = client.make_uri(&format!("portal/{}/projects/", client.portal_id()));
+    ProjectFragment {
+        client: Rc::clone(&client),
+        path: path,
+    }
+}
+
 #[derive(Debug)]
-pub struct ProjectFragment<'a> {
-    pub client: &'a ZohoClient,
+pub struct ProjectFragment {
+    pub client: Rc<ZohoClient>,
     pub path: String,
 }
 
-impl<'a> ProjectFragment<'a> {
+impl ProjectFragment {
     query_strings!(ProjectFragment; index, range, status, sort_column, sort_order);
 
     // Fetch available custom fields (can be applied when creating projects)
@@ -28,27 +37,27 @@ impl<'a> ProjectFragment<'a> {
     }
 
     // Fetch a specific portal by id
-    pub fn by_id(self, id: i64) -> ProjectFilter<'a> {
+    pub fn by_id(self, id: i64) -> ProjectFilter {
         let mut path_frags = self.path.split('?').collect::<Vec<&str>>();
         if path_frags[1].contains('&') {
             let autht = path_frags.remove(1).split('&').collect::<Vec<&str>>()[0];
             path_frags.push(autht)
         }
         ProjectFilter {
-            client: self.client,
+            client: Rc::clone(&self.client),
             path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
             filter: Filter::ID(id),
         }
     }
     // Fetch a specific portal by name
-    pub fn by_name(self, name: &'a str) -> ProjectFilter<'a> {
+    pub fn by_name(self, name: &str) -> ProjectFilter {
         if self.path.contains('&') {
             panic!("Cannot both filter and find by name")
         }
         ProjectFilter {
-            client: self.client,
+            client: Rc::clone(self.client),
             path: self.path,
-            filter: Filter::Name(name),
+            filter: Filter::Name(name.to_string()),
         }
     }
     // Execute the query against the Zoho API
@@ -59,26 +68,26 @@ impl<'a> ProjectFragment<'a> {
 }
 
 #[derive(Debug)]
-enum Filter<'a> {
+enum Filter {
     ID(i64),
-    Name(&'a str),
+    Name(String),
 }
 
 #[derive(Debug)]
-pub struct ProjectFilter<'a> {
-    client: &'a ZohoClient,
+pub struct ProjectFilter {
+    client: Rc<ZohoClient>,
     path: String,
-    filter: Filter<'a>,
+    filter: Filter,
 }
 
-impl<'a> ProjectFilter<'a> {
+impl ProjectFilter {
     // Execute the query against the Zoho API
     pub fn fetch(self) -> Result<Option<Project>> {
         let project_list: ZohoProjects = self.client.get(&self.path)?;
         let projects = project_list.projects;
         match self.filter {
             Filter::ID(id) => filter_by_id(projects, id),
-            Filter::Name(name) => filter_by_name(projects, name),
+            Filter::Name(name) => filter_by_name(projects, &name),
         }
     }
 }
