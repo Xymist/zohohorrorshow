@@ -1,14 +1,26 @@
 use client::ZohoClient;
 use errors::*;
+use std::rc::Rc;
 use utils::from_str;
 
+pub fn bugs(client: Rc<ZohoClient>) -> BugFragment {
+    BugFragment {
+        client: Rc::clone(&client),
+        path: client.make_uri(&format!(
+            "portal/{}/projects/{}/bugs/",
+            client.portal_id(),
+            client.project_id()
+        )),
+    }
+}
+
 #[derive(Debug)]
-pub struct BugFragment<'a> {
-    pub client: &'a ZohoClient,
+pub struct BugFragment {
+    pub client: Rc<ZohoClient>,
     pub path: String,
 }
 
-impl<'a> BugFragment<'a> {
+impl BugFragment {
     query_strings!(
         BugFragment;
         index,
@@ -32,13 +44,13 @@ impl<'a> BugFragment<'a> {
         affected
     );
     // Fetch a specific bug
-    pub fn by_id(self, id: i64) -> BugFragment<'a> {
+    pub fn by_id(self, id: i64) -> BugFragment {
         if self.path.contains('&') {
             panic!("Cannot both filter and find by ID")
         }
         let path_frags = self.path.split('?').collect::<Vec<&str>>();
         BugFragment {
-            client: self.client,
+            client: Rc::clone(&self.client),
             path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
         }
     }

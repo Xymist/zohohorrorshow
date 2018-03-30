@@ -1,13 +1,25 @@
 use client::ZohoClient;
 use errors::*;
+use std::rc::Rc;
+
+pub fn activities(client: Rc<ZohoClient>) -> ActivityFragment {
+    ActivityFragment {
+        client: Rc::clone(&client),
+        path: client.make_uri(&format!(
+            "portal/{}/projects/{}/activities/",
+            client.portal_id(),
+            client.project_id()
+        )),
+    }
+}
 
 #[derive(Debug)]
-pub struct ActivityFragment<'a> {
-    pub client: &'a ZohoClient,
+pub struct ActivityFragment {
+    pub client: Rc<ZohoClient>,
     pub path: String,
 }
 
-impl<'a> ActivityFragment<'a> {
+impl ActivityFragment {
     query_strings!(ActivityFragment; index, range);
 
     // Execute the query against the Zoho API

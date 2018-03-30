@@ -55,9 +55,9 @@ impl ProjectFragment {
             panic!("Cannot both filter and find by name")
         }
         ProjectFilter {
-            client: Rc::clone(self.client),
+            client: Rc::clone(&self.client),
             path: self.path,
-            filter: Filter::Name(name.to_string()),
+            filter: Filter::Name(name.to_owned()),
         }
     }
     // Execute the query against the Zoho API

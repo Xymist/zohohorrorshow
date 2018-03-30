@@ -1,14 +1,26 @@
 use client::ZohoClient;
 use errors::*;
+use std::rc::Rc;
 use utils::from_str;
 
+pub fn milestones(client: Rc<ZohoClient>) -> MilestoneFragment {
+    MilestoneFragment {
+        client: Rc::clone(&client),
+        path: client.make_uri(&format!(
+            "portal/{}/projects/{}/milestones/",
+            client.portal_id(),
+            client.project_id()
+        )),
+    }
+}
+
 #[derive(Debug)]
-pub struct MilestoneFragment<'a> {
-    pub client: &'a ZohoClient,
+pub struct MilestoneFragment {
+    pub client: Rc<ZohoClient>,
     pub path: String,
 }
 
-impl<'a> MilestoneFragment<'a> {
+impl MilestoneFragment {
     query_strings!(MilestoneFragment; index, range, status, display_type, flag);
 
     // Execute the query against the Zoho API

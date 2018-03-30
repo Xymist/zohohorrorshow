@@ -1,16 +1,35 @@
 use client::ZohoClient;
 use errors::*;
+use std::rc::Rc;
 use utils::from_str;
+
+pub fn portal_users(client: Rc<ZohoClient>) -> UserFragment {
+    UserFragment {
+        client: Rc::clone(&client),
+        path: client.make_uri(&format!("portal/{}/users/", client.portal_id())),
+    }
+}
+
+pub fn project_users(client: Rc<ZohoClient>) -> UserFragment {
+    UserFragment {
+        client: Rc::clone(&client),
+        path: client.make_uri(&format!(
+            "portal/{}/projects/{}/users/",
+            client.portal_id(),
+            client.project_id()
+        )),
+    }
+}
 
 // A fragment of the path to call for the Zoho Users API. This carries
 // with it a reference to the client which will be used to call it.
 #[derive(Debug)]
-pub struct UserFragment<'a> {
-    pub client: &'a ZohoClient,
+pub struct UserFragment {
+    pub client: Rc<ZohoClient>,
     pub path: String,
 }
 
-impl<'a> UserFragment<'a> {
+impl UserFragment {
     query_strings!(UserFragment; usertype);
 
     // Execute the query against the Zoho API
@@ -47,7 +66,7 @@ impl<'a> UserFragment<'a> {
     // Update a user's role
     pub fn update(self, role: &str) -> Result<User> {
         if !self.path.contains("project") {
-            return self.client.project_users().update(role);
+            return project_users(self.client).update(role);
         };
         let mut response: ZohoUsers = self.client
             .post(&format!("{}&role={}", self.path, role), "")?;
@@ -64,7 +83,7 @@ impl<'a> UserFragment<'a> {
 
     pub fn available(self) -> Result<String> {
         if self.path.contains("project") {
-            return self.client.portal_users().available();
+            return portal_users(self.client).available();
         };
         let path_frags = self.path.split('?').collect::<Vec<&str>>();
         let avail_response: AvailCount = self.client
@@ -74,7 +93,7 @@ impl<'a> UserFragment<'a> {
 
     pub fn activate(self, id: &str) -> Result<String> {
         if self.path.contains("project") {
-            return self.client.portal_users().activate(id);
+            return portal_users(self.client).activate(id);
         };
         let path_frags = self.path.split('?').collect::<Vec<&str>>();
         let response: Response = self.client.post(
@@ -89,7 +108,7 @@ impl<'a> UserFragment<'a> {
 
     pub fn deactivate(self, id: &str) -> Result<String> {
         if self.path.contains("project") {
-            return self.client.portal_users().deactivate(id);
+            return portal_users(self.client).deactivate(id);
         };
         let path_frags = self.path.split('?').collect::<Vec<&str>>();
         let response: Response = self.client.post(

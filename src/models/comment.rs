@@ -1,10 +1,23 @@
 use client::ZohoClient;
 use errors::*;
+use std::rc::Rc;
 use utils::from_str;
 
+pub fn comments(client: Rc<ZohoClient>) -> CommentFragment {
+    CommentFragment {
+        client: Rc::clone(&client),
+        path: client.make_uri(&format!(
+            "portal/{}/projects/{}/forums/{}/comments",
+            client.portal_id(),
+            client.project_id(),
+            client.forum_id()
+        )),
+    }
+}
+
 #[derive(Debug)]
-pub struct CommentFragment<'a> {
-    pub client: &'a ZohoClient,
+pub struct CommentFragment {
+    pub client: Rc<ZohoClient>,
     pub path: String,
 }
 
@@ -13,7 +26,7 @@ pub struct ZohoComments {
     comments: Vec<Comment>,
 }
 
-impl<'a> CommentFragment<'a> {
+impl CommentFragment {
     query_strings!(CommentFragment; index, range);
 
     // Execute the query against the Zoho API

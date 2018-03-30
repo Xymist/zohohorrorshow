@@ -1,14 +1,26 @@
 use client::ZohoClient;
 use errors::*;
+use std::rc::Rc;
 use utils::from_str;
 
+pub fn categories(client: Rc<ZohoClient>) -> CategoryFragment {
+    CategoryFragment {
+        client: Rc::clone(&client),
+        path: client.make_uri(&format!(
+            "portal/{}/projects/{}/categories/",
+            client.portal_id(),
+            client.project_id()
+        )),
+    }
+}
+
 #[derive(Debug)]
-pub struct CategoryFragment<'a> {
-    pub client: &'a ZohoClient,
+pub struct CategoryFragment {
+    pub client: Rc<ZohoClient>,
     pub path: String,
 }
 
-impl<'a> CategoryFragment<'a> {
+impl CategoryFragment {
     // Execute the query against the Zoho API
     pub fn fetch(self) -> Result<Vec<Category>> {
         let category_list: ZohoCategories = self.client.get(&self.path)?;

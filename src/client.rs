@@ -1,22 +1,9 @@
-use activities::ActivityFragment;
-use bugs::BugFragment;
-use categories::CategoryFragment;
-use comments::CommentFragment;
 use errors::*;
-use events::EventFragment;
-use forums::ForumFragment;
-use milestones::MilestoneFragment;
-use portals::portals;
-use projects::projects;
+use models::{portals, projects};
 use reqwest;
 use reqwest::Method::{self, Delete, Get, Post, Put};
 use serde;
-use statuses::StatusFragment;
 use std::rc::Rc;
-use tasklists::TasklistFragment;
-use tasks::TaskFragment;
-use timesheets::TimesheetFragment;
-use users::UserFragment;
 
 #[cfg(test)]
 use mockito;
@@ -55,7 +42,7 @@ impl ZohoClient {
         project_name: Option<&str>,
     ) -> Result<Rc<ZohoClient>> {
         let mut client = ZohoClient {
-            auth_token: auth_token.to_string(),
+            auth_token: auth_token.to_owned(),
             context: Context {
                 portal_id: None,
                 project_id: None,
@@ -170,145 +157,6 @@ impl ZohoClient {
         T: serde::de::DeserializeOwned,
     {
         self.call_api(Delete, url, "")
-    }
-
-    pub fn portal_users(&self) -> UserFragment {
-        UserFragment {
-            client: &self,
-            path: self.make_uri(&format!("portal/{}/users/", self.portal_id())),
-        }
-    }
-
-    pub fn project_users(&self) -> UserFragment {
-        UserFragment {
-            client: &self,
-            path: self.make_uri(&format!(
-                "portal/{}/projects/{}/users/",
-                self.portal_id(),
-                self.project_id()
-            )),
-        }
-    }
-
-    pub fn bugs(&self) -> BugFragment {
-        BugFragment {
-            client: &self,
-            path: self.make_uri(&format!(
-                "portal/{}/projects/{}/bugs/",
-                self.portal_id(),
-                self.project_id()
-            )),
-        }
-    }
-
-    pub fn milestones(&self) -> MilestoneFragment {
-        MilestoneFragment {
-            client: &self,
-            path: self.make_uri(&format!(
-                "portal/{}/projects/{}/milestones/",
-                self.portal_id(),
-                self.project_id()
-            )),
-        }
-    }
-
-    pub fn tasklists(&self) -> TasklistFragment {
-        TasklistFragment {
-            client: &self,
-            path: self.make_uri(&format!(
-                "portal/{}/projects/{}/tasklists/",
-                self.portal_id(),
-                self.project_id()
-            )),
-        }
-    }
-    pub fn tasks(&self) -> TaskFragment {
-        TaskFragment {
-            client: &self,
-            path: self.make_uri(&format!(
-                "portal/{}/projects/{}/tasks/",
-                self.portal_id(),
-                self.project_id()
-            )),
-        }
-    }
-
-    pub fn activities(&self) -> ActivityFragment {
-        ActivityFragment {
-            client: &self,
-            path: self.make_uri(&format!(
-                "portal/{}/projects/{}/activities/",
-                self.portal_id(),
-                self.project_id()
-            )),
-        }
-    }
-
-    pub fn statuses(&self) -> StatusFragment {
-        StatusFragment {
-            client: &self,
-            path: self.make_uri(&format!(
-                "portal/{}/projects/{}/statuses/",
-                self.portal_id(),
-                self.project_id()
-            )),
-        }
-    }
-
-    pub fn timesheets(&self) -> TimesheetFragment {
-        TimesheetFragment {
-            client: &self,
-            path: self.make_uri(&format!(
-                "portal/{}/projects/{}/logs/",
-                self.portal_id(),
-                self.project_id()
-            )),
-        }
-    }
-
-    pub fn forums(&self) -> ForumFragment {
-        ForumFragment {
-            client: &self,
-            path: self.make_uri(&format!(
-                "portal/{}/projects/{}/forums/",
-                self.portal_id(),
-                self.project_id()
-            )),
-        }
-    }
-
-    pub fn categories(&self) -> CategoryFragment {
-        CategoryFragment {
-            client: &self,
-            path: self.make_uri(&format!(
-                "portal/{}/projects/{}/categories/",
-                self.portal_id(),
-                self.project_id()
-            )),
-        }
-    }
-
-    pub fn events(&self) -> EventFragment {
-        EventFragment {
-            client: &self,
-            path: self.make_uri(&format!(
-                "portal/{}/projects/{}/events/",
-                self.portal_id(),
-                self.project_id()
-            )),
-        }
-    }
-
-    pub fn comments(&self) -> CommentFragment {
-        CommentFragment {
-            client: &self,
-            path: self.make_uri(&format!(
-                "portal/{}/projects/{}/forums/{}/comments",
-                self.portal_id(),
-                self.project_id(),
-                self.forum_id()
-            )),
-        }
     }
 }
 

@@ -1,32 +1,44 @@
 use client::ZohoClient;
 use errors::*;
+use std::rc::Rc;
+
+pub fn forums(client: Rc<ZohoClient>) -> ForumFragment {
+    ForumFragment {
+        client: Rc::clone(&client),
+        path: client.make_uri(&format!(
+            "portal/{}/projects/{}/forums/",
+            client.portal_id(),
+            client.project_id()
+        )),
+    }
+}
 
 #[derive(Debug)]
-pub struct ForumFragment<'a> {
-    pub client: &'a ZohoClient,
+pub struct ForumFragment {
+    pub client: Rc<ZohoClient>,
     pub path: String,
 }
 
-impl<'a> ForumFragment<'a> {
+impl ForumFragment {
     // Execute the query against the Zoho API
     pub fn fetch(self) -> Result<Vec<Forum>> {
         let forum_list: ZohoForums = self.client.get(&self.path)?;
         Ok(forum_list.forums)
     }
     // Fetch a specific forum by id
-    pub fn by_id(self, id: i64) -> ForumFilter<'a> {
+    pub fn by_id(self, id: i64) -> ForumFilter {
         if self.path.contains('&') {
             panic!("Cannot both filter and find by ID")
         }
         let path_frags = self.path.split('?').collect::<Vec<&str>>();
         ForumFilter {
-            client: self.client,
+            client: Rc::clone(&self.client),
             path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
             filter: Filter::ID(id),
         }
     }
     // Fetch a specific forum by id
-    pub fn by_name(self, name: &'a str) -> ForumFilter<'a> {
+    pub fn by_name(self, name: &str) -> ForumFilter {
         if self.path.contains('&') {
             panic!("Cannot both filter and find by Name")
         }
@@ -34,32 +46,32 @@ impl<'a> ForumFragment<'a> {
         ForumFilter {
             client: self.client,
             path: format!("{}{}/?{}", path_frags[0], name, path_frags[1]),
-            filter: Filter::Name(name),
+            filter: Filter::Name(name.to_owned()),
         }
     }
 }
 
 #[derive(Debug)]
-enum Filter<'a> {
+enum Filter {
     ID(i64),
-    Name(&'a str),
+    Name(String),
 }
 
 #[derive(Debug)]
-pub struct ForumFilter<'a> {
-    client: &'a ZohoClient,
+pub struct ForumFilter {
+    client: Rc<ZohoClient>,
     path: String,
-    filter: Filter<'a>,
+    filter: Filter,
 }
 
-impl<'a> ForumFilter<'a> {
+impl ForumFilter {
     // Execute the query against the Zoho API
     pub fn fetch(self) -> Result<Option<Forum>> {
         let forum_list: ZohoForums = self.client.get(&self.path)?;
         let forums = forum_list.forums;
         match self.filter {
             Filter::ID(id) => filter_by_id(forums, id),
-            Filter::Name(name) => filter_by_name(forums, name),
+            Filter::Name(name) => filter_by_name(forums, &name),
         }
     }
 }

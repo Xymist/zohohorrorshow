@@ -29,7 +29,7 @@ impl PortalFragment {
         PortalFilter {
             client: Rc::clone(&self.client),
             path: self.path,
-            filter: Filter::Name(name.to_string()),
+            filter: Filter::Name(name.to_owned()),
         }
     }
     // Execute the query against the Zoho API
