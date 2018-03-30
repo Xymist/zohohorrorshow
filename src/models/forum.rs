@@ -4,12 +4,12 @@ use std::rc::Rc;
 
 pub fn forums(client: Rc<ZohoClient>) -> ForumFragment {
     ForumFragment {
-        client: Rc::clone(&client),
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/forums/",
             client.portal_id(),
             client.project_id()
         )),
+        client,
     }
 }
 

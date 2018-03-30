@@ -5,13 +5,13 @@ use utils::from_str;
 
 pub fn comments(client: Rc<ZohoClient>) -> CommentFragment {
     CommentFragment {
-        client: Rc::clone(&client),
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/forums/{}/comments",
             client.portal_id(),
             client.project_id(),
             client.forum_id()
         )),
+        client,
     }
 }
 

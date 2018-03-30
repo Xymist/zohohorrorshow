@@ -5,12 +5,12 @@ use utils::from_str;
 
 pub fn milestones(client: Rc<ZohoClient>) -> MilestoneFragment {
     MilestoneFragment {
-        client: Rc::clone(&client),
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/milestones/",
             client.portal_id(),
             client.project_id()
         )),
+        client,
     }
 }
 

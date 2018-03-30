@@ -6,12 +6,12 @@ use utils::from_str;
 
 pub fn tasklists(client: Rc<ZohoClient>) -> TasklistFragment {
     TasklistFragment {
-        client: Rc::clone(&client),
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/tasklists/",
             client.portal_id(),
             client.project_id()
         )),
+        client,
     }
 }
 

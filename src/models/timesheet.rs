@@ -4,12 +4,12 @@ use std::rc::Rc;
 
 pub fn timesheets(client: Rc<ZohoClient>) -> TimesheetFragment {
     TimesheetFragment {
-        client: Rc::clone(&client),
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/logs/",
             client.portal_id(),
             client.project_id()
         )),
+        client,
     }
 }
 

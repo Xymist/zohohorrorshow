@@ -97,9 +97,9 @@ impl ZohoClient {
         Rc::new(ZohoClient {
             auth_token: auth_token.to_owned(),
             context: Context {
-                portal_id: portal_id,
-                project_id: project_id,
-                forum_id: forum_id,
+                portal_id,
+                project_id,
+                forum_id,
             },
         })
     }

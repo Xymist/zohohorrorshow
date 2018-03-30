@@ -5,12 +5,12 @@ use utils::from_str;
 
 pub fn events(client: Rc<ZohoClient>) -> EventFragment {
     EventFragment {
-        client: Rc::clone(&client),
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/events/",
             client.portal_id(),
             client.project_id()
         )),
+        client,
     }
 }
 

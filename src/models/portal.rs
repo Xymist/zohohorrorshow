@@ -4,10 +4,9 @@ use std::rc::Rc;
 use utils::from_str;
 
 pub fn portals(client: Rc<ZohoClient>) -> PortalFragment {
-    let path = client.make_uri("portals/");
     PortalFragment {
-        client: Rc::clone(&client),
-        path: path,
+        path: client.make_uri("portals/"),
+        client,
     }
 }
 

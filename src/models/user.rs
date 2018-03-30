@@ -5,19 +5,19 @@ use utils::from_str;
 
 pub fn portal_users(client: Rc<ZohoClient>) -> UserFragment {
     UserFragment {
-        client: Rc::clone(&client),
         path: client.make_uri(&format!("portal/{}/users/", client.portal_id())),
+        client,
     }
 }
 
 pub fn project_users(client: Rc<ZohoClient>) -> UserFragment {
     UserFragment {
-        client: Rc::clone(&client),
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/users/",
             client.portal_id(),
             client.project_id()
         )),
+        client,
     }
 }
 

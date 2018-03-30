@@ -5,12 +5,12 @@ use utils::from_str;
 
 pub fn bugs(client: Rc<ZohoClient>) -> BugFragment {
     BugFragment {
-        client: Rc::clone(&client),
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/bugs/",
             client.portal_id(),
             client.project_id()
         )),
+        client,
     }
 }
 

@@ -4,12 +4,12 @@ use std::rc::Rc;
 
 pub fn activities(client: Rc<ZohoClient>) -> ActivityFragment {
     ActivityFragment {
-        client: Rc::clone(&client),
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/activities/",
             client.portal_id(),
             client.project_id()
         )),
+        client,
     }
 }
 

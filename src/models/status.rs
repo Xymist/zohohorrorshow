@@ -4,12 +4,12 @@ use std::rc::Rc;
 
 pub fn statuses(client: Rc<ZohoClient>) -> StatusFragment {
     StatusFragment {
-        client: Rc::clone(&client),
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/statuses/",
             client.portal_id(),
             client.project_id()
         )),
+        client,
     }
 }
 
