@@ -41,7 +41,7 @@ impl ZohoClient {
         portal_name: Option<&str>,
         project_name: Option<&str>,
     ) -> Result<Rc<ZohoClient>> {
-        let mut client = ZohoClient {
+        let client = ZohoClient {
             auth_token: auth_token.to_owned(),
             context: Context {
                 portal_id: None,
@@ -49,7 +49,7 @@ impl ZohoClient {
                 forum_id: None,
             },
         };
-        let ref_client = Rc::new(client);
+        let mut ref_client = Rc::new(client);
         let portal = match portal_name {
             Some(name) => portals(Rc::clone(&ref_client)).by_name(name).fetch()?,
             None => {
@@ -61,7 +61,10 @@ impl ZohoClient {
             }
         };
         if let Some(p) = portal {
-            client.context.portal_id = Some(p.id)
+            Rc::get_mut(&mut ref_client)
+                .expect("Failed to get mutable Rc on client.")
+                .context
+                .portal_id = Some(p.id)
         };
         let project = match project_name {
             Some(name) => projects(Rc::clone(&ref_client)).by_name(name).fetch()?,
@@ -74,7 +77,10 @@ impl ZohoClient {
             }
         };
         if let Some(p) = project {
-            client.context.project_id = Some(p.id)
+            Rc::get_mut(&mut ref_client)
+                .expect("Failed to get mutable Rc on client.")
+                .context
+                .project_id = Some(p.id)
         };
         Ok(ref_client)
     }
