@@ -85,6 +85,25 @@ impl ZohoClient {
         Ok(ref_client)
     }
 
+    // If a client is needed with some or all of its pieces missing, or if all the data
+    // are already known, or not making API calls to set up the client is desired,
+    // client::strict_new() just trusts the users and sets up a client as requested.
+    pub fn strict_new(
+        auth_token: &str,
+        portal_id: Option<i64>,
+        project_id: Option<i64>,
+        forum_id: Option<i64>
+    ) -> Rc<ZohoClient> {
+        Rc::new(ZohoClient {
+            auth_token: auth_token.to_owned(),
+            context: Context {
+                portal_id: portal_id,
+                project_id: project_id,
+                forum_id: forum_id,
+            },
+        })
+    }
+
     pub(crate) fn portal_id(&self) -> i64 {
         self.context.portal_id.expect(
             "Portal context called without portal id set.
