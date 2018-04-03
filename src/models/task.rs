@@ -1,12 +1,25 @@
 use client::ZohoClient;
 use errors::*;
+use std::rc::Rc;
 use utils::from_str;
+
+pub fn tasks(cl: &Rc<ZohoClient>) -> TaskFragment {
+    let client = Rc::clone(cl);
+    TaskFragment {
+        path: client.make_uri(&format!(
+            "portal/{}/projects/{}/tasks/",
+            client.portal_id(),
+            client.project_id()
+        )),
+        client,
+    }
+}
 
 // A fragment of the path to call for the Zoho Tasks API. This carries
 // with it a reference to the client which will be used to call it.
 #[derive(Debug)]
-pub struct TaskFragment<'a> {
-    pub client: &'a ZohoClient,
+pub struct TaskFragment {
+    pub client: Rc<ZohoClient>,
     pub path: String,
 }
 
@@ -20,9 +33,9 @@ pub enum TaskStatus {
 impl TaskStatus {
     pub fn to_string(&self) -> String {
         match *self {
-            TaskStatus::All => "all".to_string(),
-            TaskStatus::Completed => "completed".to_string(),
-            TaskStatus::NotCompleted => "notcompleted".to_string(),
+            TaskStatus::All => "all".to_owned(),
+            TaskStatus::Completed => "completed".to_owned(),
+            TaskStatus::NotCompleted => "notcompleted".to_owned(),
         }
     }
 }
@@ -38,15 +51,15 @@ pub enum TaskTimePeriod {
 impl TaskTimePeriod {
     pub fn to_string(&self) -> String {
         match *self {
-            TaskTimePeriod::All => "all".to_string(),
-            TaskTimePeriod::Overdue => "overdue".to_string(),
-            TaskTimePeriod::Today => "Today".to_string(),
-            TaskTimePeriod::Tomorrow => "Tomorrow".to_string(),
+            TaskTimePeriod::All => "all".to_owned(),
+            TaskTimePeriod::Overdue => "overdue".to_owned(),
+            TaskTimePeriod::Today => "Today".to_owned(),
+            TaskTimePeriod::Tomorrow => "Tomorrow".to_owned(),
         }
     }
 }
 
-impl<'a> TaskFragment<'a> {
+impl TaskFragment {
     query_strings!(TaskFragment; index, range, owner, priority, tasklist_id, custom_status);
 
     // Status of the task. Defaults to All
@@ -59,13 +72,13 @@ impl<'a> TaskFragment<'a> {
     }
 
     // Fetch a specific task
-    pub fn by_id(self, id: i64) -> TaskFragment<'a> {
+    pub fn by_id(self, id: i64) -> TaskFragment {
         if self.path.contains('&') {
             panic!("Cannot both filter and find by ID")
         }
         let path_frags = self.path.split('?').collect::<Vec<&str>>();
         TaskFragment {
-            client: self.client,
+            client: Rc::clone(&self.client),
             path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
         }
     }

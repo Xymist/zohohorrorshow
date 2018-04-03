@@ -1,35 +1,48 @@
 use client::ZohoClient;
 use errors::*;
+use std::rc::Rc;
+
+pub fn timesheets(cl: &Rc<ZohoClient>) -> TimesheetFragment {
+    let client = Rc::clone(cl);
+    TimesheetFragment {
+        path: client.make_uri(&format!(
+            "portal/{}/projects/{}/logs/",
+            client.portal_id(),
+            client.project_id()
+        )),
+        client,
+    }
+}
 
 // A fragment of the path to call for the Zoho Timesheets API. This carries
 // with it a reference to the client which will be used to call it.
 #[derive(Debug)]
-pub struct TimesheetFragment<'a> {
-    pub client: &'a ZohoClient,
+pub struct TimesheetFragment {
+    pub client: Rc<ZohoClient>,
     pub path: String,
 }
 
-impl<'a> TimesheetFragment<'a> {
+impl TimesheetFragment {
     query_strings!(TimesheetFragment; index, range, date);
 
-    pub fn users_list(mut self, ids: Option<Vec<i64>>) -> TimesheetFragment<'a> {
+    pub fn users_list(mut self, ids: Option<Vec<i64>>) -> TimesheetFragment {
         let users = match ids {
             Some(u) => u.into_iter()
                 .map(|p| p.to_string())
                 .collect::<Vec<String>>()
                 .join(","),
-            None => "all".to_string(),
+            None => "all".to_owned(),
         };
         self.path = format!("{}&users_list={}", self.path, users);
         self
     }
 
-    pub fn view_type(mut self, view_type: &ViewType) -> TimesheetFragment<'a> {
+    pub fn view_type(mut self, view_type: &ViewType) -> TimesheetFragment {
         self.path = format!("{}&view_type={}", self.path, view_type.to_string());
         self
     }
 
-    pub fn component_type(mut self, component_type: &ComponentType) -> TimesheetFragment<'a> {
+    pub fn component_type(mut self, component_type: &ComponentType) -> TimesheetFragment {
         self.path = format!(
             "{}&component_type={}",
             self.path,
@@ -38,7 +51,7 @@ impl<'a> TimesheetFragment<'a> {
         self
     }
 
-    pub fn bill_status(mut self, bill_status: &BillStatus) -> TimesheetFragment<'a> {
+    pub fn bill_status(mut self, bill_status: &BillStatus) -> TimesheetFragment {
         self.path = format!("{}&bill_status={}", self.path, bill_status.to_string());
         self
     }
@@ -69,9 +82,9 @@ pub enum ViewType {
 impl ViewType {
     pub fn to_string(&self) -> String {
         match *self {
-            ViewType::Day => "day".to_string(),
-            ViewType::Month => "month".to_string(),
-            ViewType::Week => "week".to_string(),
+            ViewType::Day => "day".to_owned(),
+            ViewType::Month => "month".to_owned(),
+            ViewType::Week => "week".to_owned(),
         }
     }
 }
@@ -86,9 +99,9 @@ pub enum BillStatus {
 impl BillStatus {
     pub fn to_string(&self) -> String {
         match *self {
-            BillStatus::All => "all".to_string(),
-            BillStatus::Billable => "billable".to_string(),
-            BillStatus::NonBillable => "non_billable".to_string(),
+            BillStatus::All => "all".to_owned(),
+            BillStatus::Billable => "billable".to_owned(),
+            BillStatus::NonBillable => "non_billable".to_owned(),
         }
     }
 }
@@ -103,9 +116,9 @@ pub enum ComponentType {
 impl ComponentType {
     pub fn to_string(&self) -> String {
         match *self {
-            ComponentType::Task => "task".to_string(),
-            ComponentType::Bug => "bug".to_string(),
-            ComponentType::General => "general".to_string(),
+            ComponentType::Task => "task".to_owned(),
+            ComponentType::Bug => "bug".to_owned(),
+            ComponentType::General => "general".to_owned(),
         }
     }
 }

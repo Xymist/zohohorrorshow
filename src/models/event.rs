@@ -1,14 +1,27 @@
 use client::ZohoClient;
 use errors::*;
+use std::rc::Rc;
 use utils::from_str;
 
+pub fn events(cl: &Rc<ZohoClient>) -> EventFragment {
+    let client = Rc::clone(cl);
+    EventFragment {
+        path: client.make_uri(&format!(
+            "portal/{}/projects/{}/events/",
+            client.portal_id(),
+            client.project_id()
+        )),
+        client,
+    }
+}
+
 #[derive(Debug)]
-pub struct EventFragment<'a> {
-    pub client: &'a ZohoClient,
+pub struct EventFragment {
+    pub client: Rc<ZohoClient>,
     pub path: String,
 }
 
-impl<'a> EventFragment<'a> {
+impl EventFragment {
     query_strings!(EventFragment; index, range, status);
 
     // Delete an event by ID
@@ -139,8 +152,8 @@ pub enum AmPm {
 impl AmPm {
     pub fn to_string(&self) -> String {
         match *self {
-            AmPm::Am => "am".to_string(),
-            AmPm::Pm => "pm".to_string(),
+            AmPm::Am => "am".to_owned(),
+            AmPm::Pm => "pm".to_owned(),
         }
     }
 }
@@ -157,11 +170,11 @@ pub enum Repeat {
 impl Repeat {
     pub fn to_string(&self) -> String {
         match *self {
-            Repeat::Once => "once".to_string(),
-            Repeat::EveryDay => "everyday".to_string(),
-            Repeat::EveryWeek => "everyweek".to_string(),
-            Repeat::EveryMonth => "everymonth".to_string(),
-            Repeat::EveryYear => "everyyear".to_string(),
+            Repeat::Once => "once".to_owned(),
+            Repeat::EveryDay => "everyday".to_owned(),
+            Repeat::EveryWeek => "everyweek".to_owned(),
+            Repeat::EveryMonth => "everymonth".to_owned(),
+            Repeat::EveryYear => "everyyear".to_owned(),
         }
     }
 }
@@ -181,14 +194,14 @@ pub enum RemindBefore {
 impl RemindBefore {
     pub fn to_string(&self) -> String {
         match *self {
-            RemindBefore::OnTime => "ontime".to_string(),
-            RemindBefore::FifteenMins => "15mins".to_string(),
-            RemindBefore::ThirtyMins => "30mins".to_string(),
-            RemindBefore::OneHour => "1hour".to_string(),
-            RemindBefore::TwoHours => "2hours".to_string(),
-            RemindBefore::SixHours => "6hours".to_string(),
-            RemindBefore::TwelveHours => "12hours".to_string(),
-            RemindBefore::OneDay => "1day".to_string(),
+            RemindBefore::OnTime => "ontime".to_owned(),
+            RemindBefore::FifteenMins => "15mins".to_owned(),
+            RemindBefore::ThirtyMins => "30mins".to_owned(),
+            RemindBefore::OneHour => "1hour".to_owned(),
+            RemindBefore::TwoHours => "2hours".to_owned(),
+            RemindBefore::SixHours => "6hours".to_owned(),
+            RemindBefore::TwelveHours => "12hours".to_owned(),
+            RemindBefore::OneDay => "1day".to_owned(),
         }
     }
 }

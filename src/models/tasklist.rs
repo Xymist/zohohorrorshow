@@ -1,26 +1,39 @@
 use client::ZohoClient;
 use errors::*;
-use tasks::{Task, ZohoTasks};
+use models::task::{Task, ZohoTasks};
+use std::rc::Rc;
 use utils::from_str;
 
+pub fn tasklists(cl: &Rc<ZohoClient>) -> TasklistFragment {
+    let client = Rc::clone(cl);
+    TasklistFragment {
+        path: client.make_uri(&format!(
+            "portal/{}/projects/{}/tasklists/",
+            client.portal_id(),
+            client.project_id()
+        )),
+        client,
+    }
+}
+
 #[derive(Debug)]
-pub struct TasklistFragment<'a> {
-    pub client: &'a ZohoClient,
+pub struct TasklistFragment {
+    pub client: Rc<ZohoClient>,
     pub path: String,
 }
 
-impl<'a> TasklistFragment<'a> {
+impl TasklistFragment {
     query_strings!(TasklistFragment; index, range, flag);
 
     // Designate a specific tasklist. This cannot be used to fetch it,
     // but can be POSTed to in order to update or delete.
-    pub fn by_id(self, id: i64) -> TasklistPath<'a> {
+    pub fn by_id(self, id: i64) -> TasklistPath {
         if self.path.contains('&') {
             panic!("Cannot both filter and find by ID")
         }
         let path_frags = self.path.split('?').collect::<Vec<&str>>();
         TasklistPath {
-            client: self.client,
+            client: Rc::clone(&self.client),
             path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
         }
     }
@@ -39,18 +52,18 @@ impl<'a> TasklistFragment<'a> {
 }
 
 #[derive(Debug)]
-pub struct TasklistPath<'a> {
-    pub client: &'a ZohoClient,
+pub struct TasklistPath {
+    pub client: Rc<ZohoClient>,
     pub path: String,
 }
 
-impl<'a> TasklistPath<'a> {
+impl TasklistPath {
     // Designate a specific tasklist. This cannot be used to fetch it,
     // but can be POSTed to in order to update or delete.
-    pub fn tasks(self) -> TasklistTasksPath<'a> {
+    pub fn tasks(self) -> TasklistTasksPath {
         let path_frags = self.path.split('?').collect::<Vec<&str>>();
         TasklistTasksPath {
-            client: self.client,
+            client: Rc::clone(&self.client),
             path: format!("{}{}/?{}", path_frags[0], "tasks", path_frags[1]),
         }
     }
@@ -66,12 +79,12 @@ impl<'a> TasklistPath<'a> {
 }
 
 #[derive(Debug)]
-pub struct TasklistTasksPath<'a> {
-    pub client: &'a ZohoClient,
+pub struct TasklistTasksPath {
+    pub client: Rc<ZohoClient>,
     pub path: String,
 }
 
-impl<'a> TasklistTasksPath<'a> {
+impl TasklistTasksPath {
     // Execute the query against the Zoho API
     pub fn fetch(self) -> Result<Vec<Task>> {
         let task_list: ZohoTasks = self.client.get(&self.path)?;

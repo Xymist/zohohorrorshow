@@ -1,26 +1,35 @@
 use client::ZohoClient;
 use errors::*;
+use std::rc::Rc;
 use utils::from_str;
 
+pub fn portals(cl: &Rc<ZohoClient>) -> PortalFragment {
+    let client = Rc::clone(cl);
+    PortalFragment {
+        path: client.make_uri("portals/"),
+        client,
+    }
+}
+
 #[derive(Debug)]
-pub struct PortalFragment<'a> {
-    pub client: &'a ZohoClient,
+pub struct PortalFragment {
+    pub client: Rc<ZohoClient>,
     pub path: String,
 }
 
-impl<'a> PortalFragment<'a> {
-    pub fn by_id(self, id: i64) -> PortalFilter<'a> {
+impl PortalFragment {
+    pub fn by_id(self, id: i64) -> PortalFilter {
         PortalFilter {
-            client: self.client,
+            client: Rc::clone(&self.client),
             path: self.path,
             filter: Filter::ID(id),
         }
     }
-    pub fn by_name(self, name: &'a str) -> PortalFilter<'a> {
+    pub fn by_name(self, name: &str) -> PortalFilter {
         PortalFilter {
-            client: self.client,
+            client: Rc::clone(&self.client),
             path: self.path,
-            filter: Filter::Name(name),
+            filter: Filter::Name(name.to_owned()),
         }
     }
     // Execute the query against the Zoho API
@@ -31,26 +40,26 @@ impl<'a> PortalFragment<'a> {
 }
 
 #[derive(Debug)]
-enum Filter<'a> {
+enum Filter {
     ID(i64),
-    Name(&'a str),
+    Name(String),
 }
 
 #[derive(Debug)]
-pub struct PortalFilter<'a> {
-    client: &'a ZohoClient,
+pub struct PortalFilter {
+    client: Rc<ZohoClient>,
     path: String,
-    filter: Filter<'a>,
+    filter: Filter,
 }
 
-impl<'a> PortalFilter<'a> {
+impl PortalFilter {
     // Execute the query against the Zoho API
     pub fn fetch(self) -> Result<Option<Portal>> {
         let portal_list: ZohoPortals = self.client.get(&self.path)?;
         let portals = portal_list.portals;
         match self.filter {
             Filter::ID(id) => filter_by_id(portals, id),
-            Filter::Name(name) => filter_by_name(portals, name),
+            Filter::Name(name) => filter_by_name(portals, &name),
         }
     }
 }

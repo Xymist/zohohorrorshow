@@ -1,21 +1,9 @@
-use activities::ActivityFragment;
-use bugs::BugFragment;
-use categories::CategoryFragment;
-use comments::CommentFragment;
 use errors::*;
-use events::EventFragment;
-use forums::ForumFragment;
-use milestones::MilestoneFragment;
-use portals::PortalFragment;
-use projects::ProjectFragment;
+use models::{portals, projects};
 use reqwest;
 use reqwest::Method::{self, Delete, Get, Post, Put};
 use serde;
-use statuses::StatusFragment;
-use tasklists::TasklistFragment;
-use tasks::TaskFragment;
-use timesheets::TimesheetFragment;
-use users::UserFragment;
+use std::rc::Rc;
 
 #[cfg(test)]
 use mockito;
@@ -52,59 +40,89 @@ impl ZohoClient {
         auth_token: &str,
         portal_name: Option<&str>,
         project_name: Option<&str>,
-    ) -> Result<ZohoClient> {
-        let mut client = ZohoClient {
-            auth_token: auth_token.to_string(),
+    ) -> Result<Rc<ZohoClient>> {
+        let client = ZohoClient {
+            auth_token: auth_token.to_owned(),
             context: Context {
                 portal_id: None,
                 project_id: None,
                 forum_id: None,
             },
         };
+
+        let mut ref_client = Rc::new(client);
+
         let portal = match portal_name {
-            Some(name) => client.portals().by_name(name).fetch()?,
+            Some(name) => portals(&ref_client).by_name(name).fetch()?,
             None => {
-                let mut ptls = client.portals().fetch()?;
+                let mut ptls = portals(&ref_client).fetch()?;
                 match ptls.len() {
                     0 => None,
                     _ => Some(ptls.remove(0)),
                 }
             }
         };
-        if let Some(p) = portal {
-            client.context.portal_id = Some(p.id)
+
+        if let (Some(p), Some(cl)) = (portal, Rc::get_mut(&mut ref_client)) {
+            cl.context.portal_id = Some(p.id)
+        } else {
+            return Err("Could not set portal on initializing client".into());
         };
+
         let project = match project_name {
-            Some(name) => client.projects().by_name(name).fetch()?,
+            Some(name) => projects(&ref_client).by_name(name).fetch()?,
             None => {
-                let mut pjts = client.projects().fetch()?;
+                let mut pjts = projects(&ref_client).fetch()?;
                 match pjts.len() {
                     0 => None,
                     _ => Some(pjts.remove(0)),
                 }
             }
         };
-        if let Some(p) = project {
-            client.context.project_id = Some(p.id)
+
+        if let (Some(p), Some(cl)) = (project, Rc::get_mut(&mut ref_client)) {
+            cl.context.project_id = Some(p.id)
+        } else {
+            return Err("Could not set portal on initializing client".into());
         };
-        Ok(client)
+
+        Ok(ref_client)
     }
 
-    fn portal_id(&self) -> i64 {
+    // If a client is needed with some or all of its pieces missing, or if all the data
+    // are already known, or not making API calls to set up the client is desired,
+    // client::strict_new() just trusts the users and sets up a client as requested.
+    pub fn strict_new(
+        auth_token: &str,
+        portal_id: Option<i64>,
+        project_id: Option<i64>,
+        forum_id: Option<i64>,
+    ) -> Rc<ZohoClient> {
+        Rc::new(ZohoClient {
+            auth_token: auth_token.to_owned(),
+            context: Context {
+                portal_id,
+                project_id,
+                forum_id,
+            },
+        })
+    }
+
+    pub(crate) fn portal_id(&self) -> i64 {
         self.context.portal_id.expect(
             "Portal context called without portal id set.
             Hint: call ZohoClient::portal() with the ID of a valid portal to set the context.",
         )
     }
 
-    fn project_id(&self) -> i64 {
+    pub(crate) fn project_id(&self) -> i64 {
         self.context.project_id.expect(
             "Project context called without project id set.
             Hint: call ZohoClient::project() with the ID of a valid project to set the context.",
         )
     }
 
-    fn forum_id(&self) -> i64 {
+    pub(crate) fn forum_id(&self) -> i64 {
         self.context.project_id.expect(
             "Forum context called without forum id set.
             Hint: call ZohoClient::forum() with the ID of a valid forum to set the context.",
@@ -123,7 +141,7 @@ impl ZohoClient {
         self.context.forum_id = Some(id)
     }
 
-    fn make_uri(&self, relative_path: &str) -> String {
+    pub fn make_uri(&self, relative_path: &str) -> String {
         format!(
             "{}/{}?authtoken={}",
             BASE_URL, relative_path, self.auth_token
@@ -168,159 +186,6 @@ impl ZohoClient {
         T: serde::de::DeserializeOwned,
     {
         self.call_api(Delete, url, "")
-    }
-
-    pub fn portals(&self) -> PortalFragment {
-        PortalFragment {
-            client: &self,
-            path: self.make_uri("portals/"),
-        }
-    }
-
-    pub fn projects(&self) -> ProjectFragment {
-        ProjectFragment {
-            client: &self,
-            path: self.make_uri(&format!("portal/{}/projects/", self.portal_id())),
-        }
-    }
-
-    pub fn portal_users(&self) -> UserFragment {
-        UserFragment {
-            client: &self,
-            path: self.make_uri(&format!("portal/{}/users/", self.portal_id())),
-        }
-    }
-
-    pub fn project_users(&self) -> UserFragment {
-        UserFragment {
-            client: &self,
-            path: self.make_uri(&format!(
-                "portal/{}/projects/{}/users/",
-                self.portal_id(),
-                self.project_id()
-            )),
-        }
-    }
-
-    pub fn bugs(&self) -> BugFragment {
-        BugFragment {
-            client: &self,
-            path: self.make_uri(&format!(
-                "portal/{}/projects/{}/bugs/",
-                self.portal_id(),
-                self.project_id()
-            )),
-        }
-    }
-
-    pub fn milestones(&self) -> MilestoneFragment {
-        MilestoneFragment {
-            client: &self,
-            path: self.make_uri(&format!(
-                "portal/{}/projects/{}/milestones/",
-                self.portal_id(),
-                self.project_id()
-            )),
-        }
-    }
-
-    pub fn tasklists(&self) -> TasklistFragment {
-        TasklistFragment {
-            client: &self,
-            path: self.make_uri(&format!(
-                "portal/{}/projects/{}/tasklists/",
-                self.portal_id(),
-                self.project_id()
-            )),
-        }
-    }
-    pub fn tasks(&self) -> TaskFragment {
-        TaskFragment {
-            client: &self,
-            path: self.make_uri(&format!(
-                "portal/{}/projects/{}/tasks/",
-                self.portal_id(),
-                self.project_id()
-            )),
-        }
-    }
-
-    pub fn activities(&self) -> ActivityFragment {
-        ActivityFragment {
-            client: &self,
-            path: self.make_uri(&format!(
-                "portal/{}/projects/{}/activities/",
-                self.portal_id(),
-                self.project_id()
-            )),
-        }
-    }
-
-    pub fn statuses(&self) -> StatusFragment {
-        StatusFragment {
-            client: &self,
-            path: self.make_uri(&format!(
-                "portal/{}/projects/{}/statuses/",
-                self.portal_id(),
-                self.project_id()
-            )),
-        }
-    }
-
-    pub fn timesheets(&self) -> TimesheetFragment {
-        TimesheetFragment {
-            client: &self,
-            path: self.make_uri(&format!(
-                "portal/{}/projects/{}/logs/",
-                self.portal_id(),
-                self.project_id()
-            )),
-        }
-    }
-
-    pub fn forums(&self) -> ForumFragment {
-        ForumFragment {
-            client: &self,
-            path: self.make_uri(&format!(
-                "portal/{}/projects/{}/forums/",
-                self.portal_id(),
-                self.project_id()
-            )),
-        }
-    }
-
-    pub fn categories(&self) -> CategoryFragment {
-        CategoryFragment {
-            client: &self,
-            path: self.make_uri(&format!(
-                "portal/{}/projects/{}/categories/",
-                self.portal_id(),
-                self.project_id()
-            )),
-        }
-    }
-
-    pub fn events(&self) -> EventFragment {
-        EventFragment {
-            client: &self,
-            path: self.make_uri(&format!(
-                "portal/{}/projects/{}/events/",
-                self.portal_id(),
-                self.project_id()
-            )),
-        }
-    }
-
-    pub fn comments(&self) -> CommentFragment {
-        CommentFragment {
-            client: &self,
-            path: self.make_uri(&format!(
-                "portal/{}/projects/{}/forums/{}/comments",
-                self.portal_id(),
-                self.project_id(),
-                self.forum_id()
-            )),
-        }
     }
 }
 

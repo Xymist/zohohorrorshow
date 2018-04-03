@@ -5,9 +5,8 @@ extern crate zohohorrorshow;
 
 use dotenv::dotenv;
 use std::env;
-use zohohorrorshow::client::ZohoClient;
-use zohohorrorshow::errors::*;
-use zohohorrorshow::events::{AmPm, NewEvent};
+use zohohorrorshow::{client::ZohoClient, errors::*,
+                     models::{events, project_users, event::{AmPm, NewEvent}}};
 
 fn run() -> Result<i32> {
     dotenv().ok();
@@ -19,7 +18,7 @@ fn run() -> Result<i32> {
         Some(&env::var("ZOHO_PROJECT_NAME")?),
     ).chain_err(|| "Could not initialize; exiting")?;
 
-    let users = client.project_users().fetch()?;
+    let users = project_users(&client).fetch()?;
 
     let mut event = NewEvent {
         title: "TestEvent".to_string(),
@@ -36,21 +35,21 @@ fn run() -> Result<i32> {
         location: None,
     };
 
-    let new_event = client.events().create(event.clone())?;
+    let new_event = events(&client).create(event.clone())?;
     println!("New event: {:?}", new_event);
 
-    let events = client.events().fetch()?;
-    println!("Existing events: {:?}", events);
+    let evts = events(&client).fetch()?;
+    println!("Existing events: {:?}", evts);
 
     let ne_id = new_event.id;
 
     event.title = "TestEvent - Updated".to_string();
-    client.events().update(ne_id, event)?;
+    events(&client).update(ne_id, event)?;
 
-    let updated_events = client.events().fetch()?;
+    let updated_events = events(&client).fetch()?;
     println!("Updated events: {:?}", updated_events);
 
-    let destroyed_event = client.events().delete(ne_id)?;
+    let destroyed_event = events(&client).delete(ne_id)?;
     println!("Delete response: {:?}", destroyed_event);
 
     Ok(0)
