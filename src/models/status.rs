@@ -2,7 +2,8 @@ use client::ZohoClient;
 use errors::*;
 use std::rc::Rc;
 
-pub fn statuses(client: Rc<ZohoClient>) -> StatusFragment {
+pub fn statuses(cl: &Rc<ZohoClient>) -> StatusFragment {
+    let client = Rc::clone(cl);
     StatusFragment {
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/statuses/",

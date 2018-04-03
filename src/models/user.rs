@@ -3,14 +3,16 @@ use errors::*;
 use std::rc::Rc;
 use utils::from_str;
 
-pub fn portal_users(client: Rc<ZohoClient>) -> UserFragment {
+pub fn portal_users(cl: &Rc<ZohoClient>) -> UserFragment {
+    let client = Rc::clone(cl);
     UserFragment {
         path: client.make_uri(&format!("portal/{}/users/", client.portal_id())),
         client,
     }
 }
 
-pub fn project_users(client: Rc<ZohoClient>) -> UserFragment {
+pub fn project_users(cl: &Rc<ZohoClient>) -> UserFragment {
+    let client = Rc::clone(cl);
     UserFragment {
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/users/",
@@ -66,7 +68,7 @@ impl UserFragment {
     // Update a user's role
     pub fn update(self, role: &str) -> Result<User> {
         if !self.path.contains("project") {
-            return project_users(self.client).update(role);
+            return project_users(&self.client).update(role);
         };
         let mut response: ZohoUsers = self.client
             .post(&format!("{}&role={}", self.path, role), "")?;
@@ -83,7 +85,7 @@ impl UserFragment {
 
     pub fn available(self) -> Result<String> {
         if self.path.contains("project") {
-            return portal_users(self.client).available();
+            return portal_users(&self.client).available();
         };
         let path_frags = self.path.split('?').collect::<Vec<&str>>();
         let avail_response: AvailCount = self.client
@@ -93,7 +95,7 @@ impl UserFragment {
 
     pub fn activate(self, id: &str) -> Result<String> {
         if self.path.contains("project") {
-            return portal_users(self.client).activate(id);
+            return portal_users(&self.client).activate(id);
         };
         let path_frags = self.path.split('?').collect::<Vec<&str>>();
         let response: Response = self.client.post(
@@ -108,7 +110,7 @@ impl UserFragment {
 
     pub fn deactivate(self, id: &str) -> Result<String> {
         if self.path.contains("project") {
-            return portal_users(self.client).deactivate(id);
+            return portal_users(&self.client).deactivate(id);
         };
         let path_frags = self.path.split('?').collect::<Vec<&str>>();
         let response: Response = self.client.post(

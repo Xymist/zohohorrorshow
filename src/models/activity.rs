@@ -2,7 +2,8 @@ use client::ZohoClient;
 use errors::*;
 use std::rc::Rc;
 
-pub fn activities(client: Rc<ZohoClient>) -> ActivityFragment {
+pub fn activities(cl: &Rc<ZohoClient>) -> ActivityFragment {
+    let client = Rc::clone(cl);
     ActivityFragment {
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/activities/",

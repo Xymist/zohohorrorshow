@@ -3,7 +3,8 @@ use errors::*;
 use std::rc::Rc;
 use utils::from_str;
 
-pub fn tasks(client: Rc<ZohoClient>) -> TaskFragment {
+pub fn tasks(cl: &Rc<ZohoClient>) -> TaskFragment {
+    let client = Rc::clone(cl);
     TaskFragment {
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/tasks/",

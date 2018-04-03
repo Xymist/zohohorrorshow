@@ -3,7 +3,8 @@ use errors::*;
 use std::rc::Rc;
 use utils::from_str;
 
-pub fn portals(client: Rc<ZohoClient>) -> PortalFragment {
+pub fn portals(cl: &Rc<ZohoClient>) -> PortalFragment {
+    let client = Rc::clone(cl);
     PortalFragment {
         path: client.make_uri("portals/"),
         client,

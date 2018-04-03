@@ -2,7 +2,8 @@ use client::ZohoClient;
 use errors::*;
 use std::rc::Rc;
 
-pub fn forums(client: Rc<ZohoClient>) -> ForumFragment {
+pub fn forums(cl: &Rc<ZohoClient>) -> ForumFragment {
+    let client = Rc::clone(cl);
     ForumFragment {
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/forums/",

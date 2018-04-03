@@ -4,7 +4,8 @@ use models::task::{Task, ZohoTasks};
 use std::rc::Rc;
 use utils::from_str;
 
-pub fn tasklists(client: Rc<ZohoClient>) -> TasklistFragment {
+pub fn tasklists(cl: &Rc<ZohoClient>) -> TasklistFragment {
+    let client = Rc::clone(cl);
     TasklistFragment {
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/tasklists/",

@@ -2,7 +2,8 @@ use client::ZohoClient;
 use errors::*;
 use std::rc::Rc;
 
-pub fn timesheets(client: Rc<ZohoClient>) -> TimesheetFragment {
+pub fn timesheets(cl: &Rc<ZohoClient>) -> TimesheetFragment {
+    let client = Rc::clone(cl);
     TimesheetFragment {
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/logs/",

@@ -49,39 +49,43 @@ impl ZohoClient {
                 forum_id: None,
             },
         };
+
         let mut ref_client = Rc::new(client);
+
         let portal = match portal_name {
-            Some(name) => portals(Rc::clone(&ref_client)).by_name(name).fetch()?,
+            Some(name) => portals(&ref_client).by_name(name).fetch()?,
             None => {
-                let mut ptls = portals(Rc::clone(&ref_client)).fetch()?;
+                let mut ptls = portals(&ref_client).fetch()?;
                 match ptls.len() {
                     0 => None,
                     _ => Some(ptls.remove(0)),
                 }
             }
         };
-        if let Some(p) = portal {
-            Rc::get_mut(&mut ref_client)
-                .expect("Failed to get mutable Rc on client.")
-                .context
-                .portal_id = Some(p.id)
+
+        if let (Some(p), Some(cl)) = (portal, Rc::get_mut(&mut ref_client)) {
+            cl.context.portal_id = Some(p.id)
+        } else {
+            return Err("Could not set portal on initializing client".into());
         };
+
         let project = match project_name {
-            Some(name) => projects(Rc::clone(&ref_client)).by_name(name).fetch()?,
+            Some(name) => projects(&ref_client).by_name(name).fetch()?,
             None => {
-                let mut pjts = projects(Rc::clone(&ref_client)).fetch()?;
+                let mut pjts = projects(&ref_client).fetch()?;
                 match pjts.len() {
                     0 => None,
                     _ => Some(pjts.remove(0)),
                 }
             }
         };
-        if let Some(p) = project {
-            Rc::get_mut(&mut ref_client)
-                .expect("Failed to get mutable Rc on client.")
-                .context
-                .project_id = Some(p.id)
+
+        if let (Some(p), Some(cl)) = (project, Rc::get_mut(&mut ref_client)) {
+            cl.context.project_id = Some(p.id)
+        } else {
+            return Err("Could not set portal on initializing client".into());
         };
+
         Ok(ref_client)
     }
 
@@ -92,7 +96,7 @@ impl ZohoClient {
         auth_token: &str,
         portal_id: Option<i64>,
         project_id: Option<i64>,
-        forum_id: Option<i64>
+        forum_id: Option<i64>,
     ) -> Rc<ZohoClient> {
         Rc::new(ZohoClient {
             auth_token: auth_token.to_owned(),

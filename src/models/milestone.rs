@@ -3,7 +3,8 @@ use errors::*;
 use std::rc::Rc;
 use utils::from_str;
 
-pub fn milestones(client: Rc<ZohoClient>) -> MilestoneFragment {
+pub fn milestones(cl: &Rc<ZohoClient>) -> MilestoneFragment {
+    let client = Rc::clone(cl);
     MilestoneFragment {
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/milestones/",

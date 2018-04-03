@@ -3,7 +3,8 @@ use errors::*;
 use std::rc::Rc;
 use utils::from_str;
 
-pub fn comments(client: Rc<ZohoClient>) -> CommentFragment {
+pub fn comments(cl: &Rc<ZohoClient>) -> CommentFragment {
+    let client = Rc::clone(cl);
     CommentFragment {
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/forums/{}/comments",

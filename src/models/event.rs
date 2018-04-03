@@ -3,7 +3,8 @@ use errors::*;
 use std::rc::Rc;
 use utils::from_str;
 
-pub fn events(client: Rc<ZohoClient>) -> EventFragment {
+pub fn events(cl: &Rc<ZohoClient>) -> EventFragment {
+    let client = Rc::clone(cl);
     EventFragment {
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/events/",

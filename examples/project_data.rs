@@ -5,7 +5,6 @@ extern crate zohohorrorshow;
 
 use dotenv::dotenv;
 use std::env;
-use std::rc::Rc;
 use zohohorrorshow::errors::*;
 use zohohorrorshow::{client::ZohoClient, models::projects};
 
@@ -19,10 +18,10 @@ fn run() -> Result<i32> {
         Some(&env::var("ZOHO_PROJECT_NAME")?),
     ).chain_err(|| "Could not initialize; exiting")?;
 
-    let pjts = projects(Rc::clone(&client)).fetch()?;
+    let pjts = projects(&client).fetch()?;
     println!("Existing projects: {:?}", pjts);
 
-    let custom_fields = projects(Rc::clone(&client)).customfields()?;
+    let custom_fields = projects(&client).customfields()?;
     println!("Existing custom fields: {:?}", custom_fields);
 
     Ok(0)

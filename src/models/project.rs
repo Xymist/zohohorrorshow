@@ -4,7 +4,8 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use utils::from_str;
 
-pub fn projects(client: Rc<ZohoClient>) -> ProjectFragment {
+pub fn projects(cl: &Rc<ZohoClient>) -> ProjectFragment {
+    let client = Rc::clone(cl);
     ProjectFragment {
         path: client.make_uri(&format!("portal/{}/projects/", client.portal_id())),
         client,
