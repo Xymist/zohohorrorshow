@@ -124,7 +124,7 @@ pub struct StrClassification {
     pub classification_type: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Customfield {
     #[serde(rename = "label_name")]
     pub label_name: String,
