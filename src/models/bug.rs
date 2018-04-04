@@ -62,13 +62,13 @@ impl BugFragment {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ZohoBugs {
     #[serde(rename = "bugs")]
     pub bugs: Vec<Bug>,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Bug {
     #[serde(rename = "module")]
     pub module: Module,
@@ -108,7 +108,7 @@ pub struct Bug {
     pub key: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct IntClassification {
     #[serde(rename = "id")]
     pub id: i64,
@@ -116,7 +116,7 @@ pub struct IntClassification {
     pub classification_type: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct StrClassification {
     #[serde(rename = "id", deserialize_with = "from_str")]
     pub id: i64,
@@ -134,7 +134,7 @@ pub struct Customfield {
     pub column_name: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Link {
     #[serde(rename = "self")]
     pub self_link: SelfLink,
@@ -142,13 +142,13 @@ pub struct Link {
     pub timesheet: SelfLink,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct SelfLink {
     #[serde(rename = "url")]
     pub url: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Module {
     #[serde(rename = "id")]
     pub id: i64,
