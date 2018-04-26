@@ -95,7 +95,7 @@ pub struct ZohoTasks {
     pub tasks: Vec<Task>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Task {
     #[serde(rename = "id")]
     pub id: i64,
@@ -135,7 +135,7 @@ pub struct Task {
     pub status: Status,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CustomField {
     #[serde(rename = "column_name")]
     pub column_name: String,
@@ -145,7 +145,7 @@ pub struct CustomField {
     pub value: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Dependency {
     #[serde(rename = "successor")]
     pub successor: Vec<String>,
@@ -153,13 +153,13 @@ pub struct Dependency {
     pub predecessor: Vec<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Details {
     #[serde(rename = "owners")]
     pub owners: Vec<Owner>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Owner {
     #[serde(rename = "name")]
     pub name: String,
@@ -167,7 +167,7 @@ pub struct Owner {
     pub id: i64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Link {
     #[serde(rename = "self")]
     pub self_link: SelfLink,
@@ -175,13 +175,13 @@ pub struct Link {
     pub timesheet: SelfLink,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SelfLink {
     #[serde(rename = "url")]
     pub url: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Status {
     #[serde(rename = "name")]
     pub name: String,
@@ -193,7 +193,7 @@ pub struct Status {
     pub color_code: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Tasklist {
     #[serde(rename = "id")]
     pub id: i64,

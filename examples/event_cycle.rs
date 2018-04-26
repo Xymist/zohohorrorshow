@@ -5,8 +5,11 @@ extern crate zohohorrorshow;
 
 use dotenv::dotenv;
 use std::env;
-use zohohorrorshow::{client::ZohoClient, errors::*,
-                     models::{events, project_users, event::{AmPm, NewEvent}}};
+use zohohorrorshow::{client::ZohoClient,
+                     errors::*,
+                     models::{event::{AmPm, NewEvent},
+                              events,
+                              project_users}};
 
 fn run() -> Result<i32> {
     dotenv().ok();

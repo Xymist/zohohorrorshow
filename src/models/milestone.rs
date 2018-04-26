@@ -24,7 +24,6 @@ pub struct MilestoneFragment {
 impl MilestoneFragment {
     query_strings!(MilestoneFragment; index, range, status, display_type, flag);
 
-
     // Fetch a specific portal by id
     pub fn by_id(self, id: i64) -> MilestoneFilter {
         let mut path_frags = self.path.split('?').collect::<Vec<&str>>();
