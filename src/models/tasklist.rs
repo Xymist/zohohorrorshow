@@ -58,8 +58,7 @@ pub struct TasklistPath {
 }
 
 impl TasklistPath {
-    // Designate a specific tasklist. This cannot be used to fetch it,
-    // but can be POSTed to in order to update or delete.
+    // Obtain the path for all tasks for a given tasklist
     pub fn tasks(self) -> TasklistTasksPath {
         let path_frags = self.path.split('?').collect::<Vec<&str>>();
         TasklistTasksPath {

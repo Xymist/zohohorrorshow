@@ -159,12 +159,22 @@ pub struct Details {
     pub owners: Vec<Owner>,
 }
 
+// Defaults are available here because in the event that a task has no owner, an owner object will be passed but with
+// an absent ID and meaningless name.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Owner {
-    #[serde(rename = "name")]
+    #[serde(default = "owner_default_name", rename = "name")]
     pub name: String,
-    #[serde(rename = "id", deserialize_with = "from_str")]
+    #[serde(default = "owner_default_id", rename = "id", deserialize_with = "from_str")]
     pub id: i64,
+}
+
+fn owner_default_name() -> String {
+    "Unassigned".to_owned()
+}
+
+fn owner_default_id() -> i64 {
+    0
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
