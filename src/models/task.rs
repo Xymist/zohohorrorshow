@@ -99,6 +99,8 @@ pub struct ZohoTasks {
 pub struct Task {
     #[serde(rename = "id")]
     pub id: i64,
+    #[serde(rename = "key")]
+    pub key: String,
     #[serde(rename = "name")]
     pub name: String,
     #[serde(rename = "completed")]
@@ -129,6 +131,8 @@ pub struct Task {
     pub details: Details,
     #[serde(rename = "link")]
     pub link: Link,
+    #[serde(default, rename = "tasklist_id", deserialize_with = "from_str")]
+    pub tasklist_id: i64,
     #[serde(rename = "tasklist")]
     pub tasklist: Option<Tasklist>,
     #[serde(rename = "status")]
@@ -148,9 +152,9 @@ pub struct CustomField {
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Dependency {
     #[serde(rename = "successor")]
-    pub successor: Vec<String>,
+    pub successor: Option<Vec<String>>,
     #[serde(rename = "predecessor")]
-    pub predecessor: Vec<String>,
+    pub predecessor: Option<Vec<String>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
@@ -205,7 +209,7 @@ pub struct Status {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Tasklist {
-    #[serde(rename = "id")]
+    #[serde(rename = "id", deserialize_with = "from_str")]
     pub id: i64,
     #[serde(rename = "name")]
     pub name: String,
