@@ -104,13 +104,13 @@ fn filter_by_name(milestones: Vec<Milestone>, name: &str) -> Result<Option<Miles
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ZohoMilestones {
     #[serde(rename = "milestones")]
     pub milestones: Vec<Milestone>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Milestone {
     #[serde(rename = "id")]
     pub id: i64,
@@ -140,7 +140,7 @@ pub struct Milestone {
     pub completed_date_long: Option<i64>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Link {
     #[serde(rename = "self")]
     pub self_link: SelfLink,
@@ -148,7 +148,7 @@ pub struct Link {
     pub status: SelfLink,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct SelfLink {
     #[serde(rename = "url")]
     pub url: String,

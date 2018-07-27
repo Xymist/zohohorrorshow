@@ -99,13 +99,13 @@ fn filter_by_name(forums: Vec<Forum>, name: &str) -> Result<Option<Forum>> {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ZohoForums {
     #[serde(rename = "forums")]
     pub forums: Vec<Forum>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Forum {
     #[serde(rename = "id")]
     pub id: i64,
@@ -129,13 +129,13 @@ pub struct Forum {
     pub link: Link,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Link {
     #[serde(rename = "self")]
     pub self_link: SelfLink,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct SelfLink {
     #[serde(rename = "url")]
     pub url: String,

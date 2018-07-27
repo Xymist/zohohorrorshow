@@ -89,13 +89,13 @@ impl TaskFragment {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ZohoTasks {
     #[serde(rename = "tasks")]
     pub tasks: Vec<Task>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Task {
     #[serde(rename = "id")]
     pub id: i64,
@@ -135,7 +135,7 @@ pub struct Task {
     pub status: Status,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct CustomField {
     #[serde(rename = "column_name")]
     pub column_name: String,
@@ -145,7 +145,7 @@ pub struct CustomField {
     pub value: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Dependency {
     #[serde(rename = "successor")]
     pub successor: Vec<String>,
@@ -153,7 +153,7 @@ pub struct Dependency {
     pub predecessor: Vec<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Details {
     #[serde(rename = "owners")]
     pub owners: Vec<Owner>,
@@ -161,7 +161,7 @@ pub struct Details {
 
 // Defaults are available here because in the event that a task has no owner, an owner object will be passed but with
 // an absent ID and meaningless name.
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Owner {
     #[serde(default = "owner_default_name", rename = "name")]
     pub name: String,
@@ -177,7 +177,7 @@ fn owner_default_id() -> i64 {
     0
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Link {
     #[serde(rename = "self")]
     pub self_link: SelfLink,
@@ -185,13 +185,13 @@ pub struct Link {
     pub timesheet: SelfLink,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct SelfLink {
     #[serde(rename = "url")]
     pub url: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Status {
     #[serde(rename = "name")]
     pub name: String,
@@ -203,7 +203,7 @@ pub struct Status {
     pub color_code: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Tasklist {
     #[serde(rename = "id")]
     pub id: i64,

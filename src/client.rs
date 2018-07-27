@@ -4,6 +4,7 @@ use reqwest;
 use reqwest::Method::{self, Delete, Get, Post, Put};
 use serde;
 use std::rc::Rc;
+use std::default;
 
 #[cfg(test)]
 use mockito;
@@ -150,40 +151,45 @@ impl ZohoClient {
 
     pub fn call_api<T>(&self, method: Method, url: &str, data: &str) -> Result<T>
     where
-        T: serde::de::DeserializeOwned,
+        T: serde::de::DeserializeOwned + default::Default,
     {
         let mut response = CLIENT.request(method, url).json(&data).send()?;
         if !response.status().is_success() {
             bail!("Server error: {:?}", response.status());
         };
-        let res_obj = response.json::<T>()?;
+
+        let res_obj: T = match response.status() {
+            reqwest::StatusCode::Ok => response.json()?,
+            _ => Default::default()
+        };
+
         Ok(res_obj)
     }
 
     pub fn get<T>(&self, url: &str) -> Result<T>
     where
-        T: serde::de::DeserializeOwned,
+        T: serde::de::DeserializeOwned + default::Default,
     {
         self.call_api(Get, url, "")
     }
 
     pub fn post<T>(&self, url: &str, data: &str) -> Result<T>
     where
-        T: serde::de::DeserializeOwned,
+        T: serde::de::DeserializeOwned + default::Default,
     {
         self.call_api(Post, url, data)
     }
 
     pub fn put<T>(&self, url: &str, data: &str) -> Result<T>
     where
-        T: serde::de::DeserializeOwned,
+        T: serde::de::DeserializeOwned + default::Default,
     {
         self.call_api(Put, url, data)
     }
 
     pub fn delete<T>(&self, url: &str) -> Result<T>
     where
-        T: serde::de::DeserializeOwned,
+        T: serde::de::DeserializeOwned + default::Default,
     {
         self.call_api(Delete, url, "")
     }

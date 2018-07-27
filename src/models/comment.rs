@@ -22,7 +22,7 @@ pub struct CommentFragment {
     pub path: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ZohoComments {
     comments: Vec<Comment>,
 }
@@ -49,12 +49,12 @@ impl CommentFragment {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Default)]
 pub struct Response {
     response: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Comment {
     #[serde(rename = "id")]
     pub id: i64,

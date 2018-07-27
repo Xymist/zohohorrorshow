@@ -123,13 +123,13 @@ impl ComponentType {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ZohoTimelogs {
     #[serde(rename = "timelogs")]
     pub timelogs: Timelogs,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Timelogs {
     #[serde(rename = "grandtotal")]
     pub grandtotal: String,
@@ -139,13 +139,13 @@ pub struct Timelogs {
     pub timelog: Timelog,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Timelog {
     #[serde(rename = "date")]
     pub date: Vec<Date>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Date {
     #[serde(rename = "date_long")]
     pub date_long: i64,
@@ -157,7 +157,7 @@ pub struct Date {
     pub buglogs: Vec<Buglog>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Buglog {
     #[serde(rename = "id")]
     pub id: i64,
@@ -183,7 +183,7 @@ pub struct Buglog {
     pub link: Link,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Bug {
     #[serde(rename = "id")]
     pub id: i64,
@@ -191,19 +191,19 @@ pub struct Bug {
     pub title: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Link {
     #[serde(rename = "self")]
     pub self_link: SelfLink,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct SelfLink {
     #[serde(rename = "url")]
     pub url: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Project {
     #[serde(rename = "id")]
     pub id: i64,

@@ -86,7 +86,7 @@ fn filter_by_name(portals: Vec<Portal>, name: &str) -> Result<Option<Portal>> {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ZohoPortals {
     #[serde(rename = "login_id", deserialize_with = "from_str")]
     pub login_id: i64,
@@ -94,7 +94,7 @@ pub struct ZohoPortals {
     pub portals: Vec<Portal>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Portal {
     #[serde(rename = "id")]
     pub id: i64,
@@ -116,19 +116,19 @@ pub struct Portal {
     pub link: Link,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Link {
     #[serde(rename = "project")]
     pub project: Project,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Project {
     #[serde(rename = "url")]
     pub url: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Locale {
     #[serde(rename = "code")]
     pub code: String,
@@ -138,7 +138,7 @@ pub struct Locale {
     pub country: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ProjectCount {
     #[serde(rename = "template")]
     pub template: Option<i64>,
@@ -148,7 +148,7 @@ pub struct ProjectCount {
     pub active: i64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Settings {
     #[serde(rename = "company_name")]
     pub company_name: String,

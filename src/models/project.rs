@@ -114,13 +114,13 @@ fn filter_by_name(projects: Vec<Project>, name: &str) -> Result<Option<Project>>
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ZohoProjects {
     #[serde(rename = "projects")]
     pub projects: Vec<Project>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Project {
     #[serde(rename = "custom_fields")]
     pub custom_fields: Option<Vec<HashMap<String, String>>>,
@@ -170,13 +170,13 @@ pub struct Project {
     pub start_date: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Link {
     #[serde(rename = "url")]
     pub url: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Count {
     #[serde(rename = "open")]
     pub open: i64,
@@ -184,13 +184,13 @@ pub struct Count {
     pub closed: i64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct CustomFields {
     #[serde(rename = "project_custom_fields")]
     pub fields: Vec<CustomField>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct CustomField {
     #[serde(rename = "is_visible")]
     pub is_visible: bool,

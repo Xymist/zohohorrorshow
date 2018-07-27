@@ -124,23 +124,25 @@ impl UserFragment {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Default)]
 pub struct Response {
     response: String,
 }
 
-#[derive(Debug, Deserialize)]
+
+
+#[derive(Debug, Deserialize, Default)]
 pub struct AvailCount {
     available_user_count: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ZohoUsers {
     #[serde(rename = "users")]
     pub users: Vec<User>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct User {
     #[serde(rename = "id", deserialize_with = "from_str")]
     pub id: i64,

@@ -42,18 +42,18 @@ impl CategoryFragment {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Default)]
 pub struct Response {
     response: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ZohoCategories {
     #[serde(rename = "categories")]
     pub categories: Vec<Category>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Category {
     #[serde(rename = "id", deserialize_with = "from_str")]
     pub id: i64,

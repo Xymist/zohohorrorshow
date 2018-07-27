@@ -30,13 +30,13 @@ impl ActivityFragment {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ZohoActivities {
     #[serde(rename = "activities")]
     pub activities: Vec<Activity>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Activity {
     #[serde(rename = "id")]
     pub id: i64,

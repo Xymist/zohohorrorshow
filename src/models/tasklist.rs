@@ -91,13 +91,13 @@ impl TasklistTasksPath {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ZohoTasklists {
     #[serde(rename = "tasklists")]
     pub tasklists: Vec<Tasklist>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Tasklist {
     #[serde(rename = "id")]
     pub id: i64,
@@ -121,7 +121,7 @@ pub struct Tasklist {
     pub link: TasklistLink,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct TasklistLink {
     #[serde(rename = "self")]
     pub link: Link,
@@ -129,13 +129,13 @@ pub struct TasklistLink {
     pub task: Link,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Link {
     #[serde(rename = "url")]
     pub url: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Milestone {
     #[serde(rename = "id")]
     pub id: i64,
@@ -161,7 +161,7 @@ pub struct Milestone {
     pub status: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct MilestoneLink {
     #[serde(rename = "self")]
     pub link: Link,

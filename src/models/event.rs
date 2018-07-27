@@ -86,18 +86,18 @@ impl EventFragment {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Response {
     response: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ZohoEvents {
     #[serde(rename = "events")]
     pub events: Vec<Event>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Event {
     #[serde(rename = "id")]
     pub id: i64,
@@ -127,7 +127,7 @@ pub struct Event {
     pub participants: Vec<Participant>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct NewEvent {
     pub title: String,
     pub date: String,
@@ -147,6 +147,12 @@ pub struct NewEvent {
 pub enum AmPm {
     Am,
     Pm,
+}
+
+impl Default for AmPm {
+    fn default() -> AmPm {
+        AmPm::Am
+    }
 }
 
 impl AmPm {
@@ -235,7 +241,7 @@ impl NumRepeat {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Participant {
     #[serde(rename = "participant_id", deserialize_with = "from_str")]
     pub participant_id: i64,
