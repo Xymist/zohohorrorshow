@@ -159,8 +159,8 @@ impl ZohoClient {
         };
 
         let res_obj: T = match response.status() {
-            reqwest::StatusCode::Ok => response.json()?,
-            _ => Default::default()
+            reqwest::StatusCode::NoContent => Default::default(),
+            _ => response.json()?,
         };
 
         Ok(res_obj)
