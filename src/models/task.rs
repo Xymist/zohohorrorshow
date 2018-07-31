@@ -105,6 +105,10 @@ pub struct Task {
     pub name: String,
     #[serde(rename = "completed")]
     pub completed: bool,
+    #[serde(rename = "last_updated_time")]
+    pub last_updated_time: String,
+    #[serde(rename = "last_updated_time_long")]
+    pub last_updated_time_long: i64,
     #[serde(rename = "created_by")]
     pub created_by: String,
     #[serde(rename = "created_person")]

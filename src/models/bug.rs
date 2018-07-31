@@ -15,7 +15,7 @@ pub fn bugs(cl: &Rc<ZohoClient>) -> BugFragment {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct BugFragment {
     pub client: Rc<ZohoClient>,
     pub path: String,
