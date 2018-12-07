@@ -1,8 +1,8 @@
-use client::ZohoClient;
-use errors::*;
-use models::task::{Task, ZohoTasks};
+use crate::client::ZohoClient;
+use crate::errors::*;
+use crate::models::task::{Task, ZohoTasks};
 use std::rc::Rc;
-use utils::from_str;
+use crate::utils::from_str;
 
 pub fn tasklists(cl: &Rc<ZohoClient>) -> TasklistFragment {
     let client = Rc::clone(cl);

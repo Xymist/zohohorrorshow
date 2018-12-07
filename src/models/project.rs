@@ -1,8 +1,8 @@
-use client::ZohoClient;
-use errors::*;
+use crate::client::ZohoClient;
+use crate::errors::*;
 use std::collections::HashMap;
 use std::rc::Rc;
-use utils::from_str;
+use crate::utils::from_str;
 
 pub fn projects(cl: &Rc<ZohoClient>) -> ProjectFragment {
     let client = Rc::clone(cl);

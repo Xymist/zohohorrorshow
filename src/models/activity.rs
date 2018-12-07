@@ -1,5 +1,5 @@
-use client::ZohoClient;
-use errors::*;
+use crate::client::ZohoClient;
+use crate::errors::*;
 use std::rc::Rc;
 
 pub fn activities(cl: &Rc<ZohoClient>) -> ActivityFragment {

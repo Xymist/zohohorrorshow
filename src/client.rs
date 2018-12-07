@@ -1,5 +1,5 @@
-use errors::*;
-use models::{portals, projects};
+use crate::errors::*;
+use crate::models::{portals, projects};
 use reqwest;
 use reqwest::Method::{self, Delete, Get, Post, Put};
 use serde;
