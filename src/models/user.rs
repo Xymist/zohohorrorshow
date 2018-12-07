@@ -70,7 +70,8 @@ impl UserFragment {
         if !self.path.contains("project") {
             return project_users(&self.client).update(role);
         };
-        let mut response: ZohoUsers = self.client
+        let mut response: ZohoUsers = self
+            .client
             .post(&format!("{}&role={}", self.path, role), "")?;
         Ok(response.users.remove(0))
     }
@@ -78,7 +79,8 @@ impl UserFragment {
     // Delete a user by ID
     pub fn delete(self, id: i64) -> Result<String> {
         let path_frags = self.path.split('?').collect::<Vec<&str>>();
-        let response: Response = self.client
+        let response: Response = self
+            .client
             .delete(&format!("{}{}/?{}", path_frags[0], id, path_frags[1]))?;
         Ok(response.response)
     }
@@ -88,7 +90,8 @@ impl UserFragment {
             return portal_users(&self.client).available();
         };
         let path_frags = self.path.split('?').collect::<Vec<&str>>();
-        let avail_response: AvailCount = self.client
+        let avail_response: AvailCount = self
+            .client
             .get(&format!("{}availcount/?{}", path_frags[0], path_frags[1]))?;
         Ok(avail_response.available_user_count)
     }
@@ -128,8 +131,6 @@ impl UserFragment {
 pub struct Response {
     response: String,
 }
-
-
 
 #[derive(Debug, Deserialize, Default)]
 pub struct AvailCount {

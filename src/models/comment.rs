@@ -36,14 +36,16 @@ impl CommentFragment {
         Ok(comment_list.comments)
     }
     pub fn create(self, content: &str) -> Result<Comment> {
-        let mut response: ZohoComments = self.client
+        let mut response: ZohoComments = self
+            .client
             .post(&format!("{}&content={}", self.path, content), "")?;
         Ok(response.comments.remove(0))
     }
     // Delete a comment by ID
     pub fn delete(self, id: i64) -> Result<String> {
         let path_frags = self.path.split('?').collect::<Vec<&str>>();
-        let response: Response = self.client
+        let response: Response = self
+            .client
             .delete(&format!("{}{}/?{}", path_frags[0], id, path_frags[1]))?;
         Ok(response.response)
     }

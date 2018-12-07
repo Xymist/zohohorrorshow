@@ -173,7 +173,11 @@ pub struct Details {
 pub struct Owner {
     #[serde(default = "owner_default_name", rename = "name")]
     pub name: String,
-    #[serde(default = "owner_default_id", rename = "id", deserialize_with = "from_str")]
+    #[serde(
+        default = "owner_default_id",
+        rename = "id",
+        deserialize_with = "from_str"
+    )]
     pub id: i64,
 }
 

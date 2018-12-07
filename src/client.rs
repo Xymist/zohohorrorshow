@@ -3,8 +3,8 @@ use models::{portals, projects};
 use reqwest;
 use reqwest::Method::{self, Delete, Get, Post, Put};
 use serde;
-use std::rc::Rc;
 use std::default;
+use std::rc::Rc;
 
 #[cfg(test)]
 use mockito;
@@ -338,7 +338,8 @@ mod tests {
             "abc123",
             Some("zillum"),
             Some("Promotional banner for women's day"),
-        ).unwrap();
+        )
+        .unwrap();
 
         assert_eq!(client.auth_token, "abc123");
         assert_eq!(client.portal_id(), 2063927);

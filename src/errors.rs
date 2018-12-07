@@ -4,7 +4,7 @@ use serde_json;
 use std::env::VarError;
 use std::num::ParseIntError;
 
-error_chain!{
+error_chain! {
     foreign_links {
         Reqwest(reqwest::Error);
         Chrono(ParseError);

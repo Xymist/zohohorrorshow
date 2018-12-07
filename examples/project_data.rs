@@ -16,7 +16,8 @@ fn run() -> Result<i32> {
         &env::var("ZOHO_AUTHTOKEN")?,
         Some(&env::var("ZOHO_PORTAL_NAME")?),
         Some(&env::var("ZOHO_PROJECT_NAME")?),
-    ).chain_err(|| "Could not initialize; exiting")?;
+    )
+    .chain_err(|| "Could not initialize; exiting")?;
 
     let pjts = projects(&client).fetch()?;
     println!("Existing projects: {:?}", pjts);

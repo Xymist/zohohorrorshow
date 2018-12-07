@@ -6,6 +6,7 @@ repository = "https://github.com/Xymist/zohohorrorshow"
 readme = "README.md"
 license-file = "LICENSE.md"
 description = "A library for interacting with the Zoho Projects API"
+edition = "2018"
 
 [dependencies]
 error-chain = "0.11"

@@ -27,7 +27,8 @@ impl EventFragment {
     // Delete an event by ID
     pub fn delete(self, id: i64) -> Result<String> {
         let path_frags = self.path.split('?').collect::<Vec<&str>>();
-        let response: Response = self.client
+        let response: Response = self
+            .client
             .delete(&format!("{}{}/?{}", path_frags[0], id, path_frags[1]))?;
         Ok(response.response)
     }

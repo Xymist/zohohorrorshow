@@ -30,13 +30,15 @@ impl CategoryFragment {
     // Delete a category by ID
     pub fn delete(self, id: i64) -> Result<String> {
         let path_frags = self.path.split('?').collect::<Vec<&str>>();
-        let response: Response = self.client
+        let response: Response = self
+            .client
             .delete(&format!("{}{}/?{}", path_frags[0], id, path_frags[1]))?;
         Ok(response.response)
     }
     // Create a category by name
     pub fn create(self, name: &str) -> Result<Category> {
-        let mut response: ZohoCategories = self.client
+        let mut response: ZohoCategories = self
+            .client
             .post(&format!("{}&name={}", self.path, name), "")?;
         Ok(response.categories.remove(0))
     }

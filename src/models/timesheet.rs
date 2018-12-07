@@ -27,7 +27,8 @@ impl TimesheetFragment {
 
     pub fn users_list(mut self, ids: Option<Vec<i64>>) -> TimesheetFragment {
         let users = match ids {
-            Some(u) => u.into_iter()
+            Some(u) => u
+                .into_iter()
                 .map(|p| p.to_string())
                 .collect::<Vec<String>>()
                 .join(","),
@@ -58,8 +59,10 @@ impl TimesheetFragment {
 
     // Execute the query against the Zoho API
     pub fn fetch(self) -> Result<Timelogs> {
-        if !self.path.contains("component_type") || !self.path.contains("bill_status")
-            || !self.path.contains("users_list") || !self.path.contains("view_type")
+        if !self.path.contains("component_type")
+            || !self.path.contains("bill_status")
+            || !self.path.contains("users_list")
+            || !self.path.contains("view_type")
             || !self.path.contains("date")
         {
             bail!(

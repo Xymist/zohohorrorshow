@@ -5,11 +5,14 @@ extern crate zohohorrorshow;
 
 use dotenv::dotenv;
 use std::env;
-use zohohorrorshow::{client::ZohoClient,
-                     errors::*,
-                     models::{event::{AmPm, NewEvent},
-                              events,
-                              project_users}};
+use zohohorrorshow::{
+    client::ZohoClient,
+    errors::*,
+    models::{
+        event::{AmPm, NewEvent},
+        events, project_users,
+    },
+};
 
 fn run() -> Result<i32> {
     dotenv().ok();
@@ -19,7 +22,8 @@ fn run() -> Result<i32> {
         &env::var("ZOHO_AUTHTOKEN")?,
         Some(&env::var("ZOHO_PORTAL_NAME")?),
         Some(&env::var("ZOHO_PROJECT_NAME")?),
-    ).chain_err(|| "Could not initialize; exiting")?;
+    )
+    .chain_err(|| "Could not initialize; exiting")?;
 
     let users = project_users(&client).fetch()?;
 
