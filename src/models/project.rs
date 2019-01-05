@@ -1,11 +1,12 @@
 use crate::client::ZohoClient;
 use crate::errors::*;
-use std::collections::HashMap;
-use std::rc::Rc;
 use crate::utils::from_str;
+use std::collections::HashMap;
 
-pub fn projects(cl: &Rc<ZohoClient>) -> ProjectFragment {
-    let client = Rc::clone(cl);
+pub const ModelPath: &str = "portal/{}/projects/";
+
+pub fn projects(cl: &ZohoClient) -> ProjectFragment {
+    let client = cl.clone();
     ProjectFragment {
         path: client.make_uri(&format!("portal/{}/projects/", client.portal_id())),
         client,
@@ -14,12 +15,12 @@ pub fn projects(cl: &Rc<ZohoClient>) -> ProjectFragment {
 
 #[derive(Debug)]
 pub struct ProjectFragment {
-    pub client: Rc<ZohoClient>,
+    pub client: ZohoClient,
     pub path: String,
 }
 
 impl ProjectFragment {
-    query_strings!(ProjectFragment; index, range, status, sort_column, sort_order);
+    query_strings!(index, range, status, sort_column, sort_order);
 
     // Fetch available custom fields (can be applied when creating projects)
     pub fn customfields(self) -> Result<Option<Vec<CustomField>>> {
@@ -44,7 +45,7 @@ impl ProjectFragment {
             path_frags.push(autht)
         }
         ProjectFilter {
-            client: Rc::clone(&self.client),
+            client: self.client.clone(),
             path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
             filter: Filter::ID(id),
         }
@@ -55,7 +56,7 @@ impl ProjectFragment {
             panic!("Cannot both filter and find by name")
         }
         ProjectFilter {
-            client: Rc::clone(&self.client),
+            client: self.client.clone(),
             path: self.path,
             filter: Filter::Name(name.to_owned()),
         }
@@ -75,7 +76,7 @@ enum Filter {
 
 #[derive(Debug)]
 pub struct ProjectFilter {
-    client: Rc<ZohoClient>,
+    client: ZohoClient,
     path: String,
     filter: Filter,
 }

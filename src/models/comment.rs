@@ -1,10 +1,11 @@
 use crate::client::ZohoClient;
 use crate::errors::*;
-use std::rc::Rc;
 use crate::utils::from_str;
 
-pub fn comments(cl: &Rc<ZohoClient>) -> CommentFragment {
-    let client = Rc::clone(cl);
+pub const ModelPath: &str = "portal/{}/projects/{}/forums/{}/comments";
+
+pub fn comments(cl: &ZohoClient) -> CommentFragment {
+    let client = cl.clone();
     CommentFragment {
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/forums/{}/comments",
@@ -18,7 +19,7 @@ pub fn comments(cl: &Rc<ZohoClient>) -> CommentFragment {
 
 #[derive(Debug)]
 pub struct CommentFragment {
-    pub client: Rc<ZohoClient>,
+    pub client: ZohoClient,
     pub path: String,
 }
 
@@ -28,7 +29,7 @@ pub struct ZohoComments {
 }
 
 impl CommentFragment {
-    query_strings!(CommentFragment; index, range);
+    query_strings!(index, range);
 
     // Execute the query against the Zoho API
     pub fn fetch(self) -> Result<Vec<Comment>> {

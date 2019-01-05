@@ -11,7 +11,7 @@ fn run() -> Result<i32> {
     dotenv().ok();
 
     // Generate the client, with a valid auth token.
-    let client = ZohoClient::new(
+    let client = ZohoClient::try_new(
         &env::var("ZOHO_AUTHTOKEN")?,
         Some(&env::var("ZOHO_PORTAL_NAME")?),
         Some(&env::var("ZOHO_PROJECT_NAME")?),

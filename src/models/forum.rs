@@ -1,9 +1,10 @@
 use crate::client::ZohoClient;
 use crate::errors::*;
-use std::rc::Rc;
 
-pub fn forums(cl: &Rc<ZohoClient>) -> ForumFragment {
-    let client = Rc::clone(cl);
+pub const ModelPath: &str = "portal/{}/projects/{}/forums/";
+
+pub fn forums(cl: &ZohoClient) -> ForumFragment {
+    let client = cl.clone();
     ForumFragment {
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/forums/",
@@ -16,7 +17,7 @@ pub fn forums(cl: &Rc<ZohoClient>) -> ForumFragment {
 
 #[derive(Debug)]
 pub struct ForumFragment {
-    pub client: Rc<ZohoClient>,
+    pub client: ZohoClient,
     pub path: String,
 }
 
@@ -33,7 +34,7 @@ impl ForumFragment {
         }
         let path_frags = self.path.split('?').collect::<Vec<&str>>();
         ForumFilter {
-            client: Rc::clone(&self.client),
+            client: self.client.clone(),
             path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
             filter: Filter::ID(id),
         }
@@ -60,7 +61,7 @@ enum Filter {
 
 #[derive(Debug)]
 pub struct ForumFilter {
-    client: Rc<ZohoClient>,
+    client: ZohoClient,
     path: String,
     filter: Filter,
 }

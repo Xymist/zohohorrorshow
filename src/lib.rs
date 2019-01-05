@@ -6,8 +6,6 @@
 #[macro_use]
 extern crate error_chain;
 #[macro_use]
-extern crate lazy_static;
-#[macro_use]
 extern crate serde_derive;
 
 #[macro_use]
@@ -17,3 +15,4 @@ mod utils;
 pub mod client;
 pub mod errors;
 pub mod models;
+pub mod request;

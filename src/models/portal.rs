@@ -1,33 +1,26 @@
-use crate::client::ZohoClient;
+use crate::client::{ZohoClient, ZohoRequest};
 use crate::errors::*;
-use std::rc::Rc;
 use crate::utils::from_str;
 
-pub fn portals(cl: &Rc<ZohoClient>) -> PortalFragment {
-    let client = Rc::clone(cl);
-    PortalFragment {
-        path: client.make_uri("portals/"),
-        client,
-    }
-}
+pub const ModelPath: &str = "portals/";
 
 #[derive(Debug)]
 pub struct PortalFragment {
-    pub client: Rc<ZohoClient>,
+    pub client: ZohoClient,
     pub path: String,
 }
 
 impl PortalFragment {
     pub fn by_id(self, id: i64) -> PortalFilter {
         PortalFilter {
-            client: Rc::clone(&self.client),
+            client: self.client.clone(),
             path: self.path,
-            filter: Filter::ID(id),
+            filter: Filter::Id(id),
         }
     }
     pub fn by_name(self, name: &str) -> PortalFilter {
         PortalFilter {
-            client: Rc::clone(&self.client),
+            client: self.client.clone(),
             path: self.path,
             filter: Filter::Name(name.to_owned()),
         }
@@ -41,13 +34,13 @@ impl PortalFragment {
 
 #[derive(Debug)]
 enum Filter {
-    ID(i64),
+    Id(i64),
     Name(String),
 }
 
 #[derive(Debug)]
 pub struct PortalFilter {
-    client: Rc<ZohoClient>,
+    client: ZohoClient,
     path: String,
     filter: Filter,
 }
@@ -58,7 +51,7 @@ impl PortalFilter {
         let portal_list: ZohoPortals = self.client.get(&self.path)?;
         let portals = portal_list.portals;
         match self.filter {
-            Filter::ID(id) => filter_by_id(portals, id),
+            Filter::Id(id) => filter_by_id(portals, id),
             Filter::Name(name) => filter_by_name(portals, &name),
         }
     }

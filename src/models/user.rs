@@ -1,18 +1,19 @@
 use crate::client::ZohoClient;
 use crate::errors::*;
-use std::rc::Rc;
 use crate::utils::from_str;
 
-pub fn portal_users(cl: &Rc<ZohoClient>) -> UserFragment {
-    let client = Rc::clone(cl);
+pub const ModelPath: &str = "portal/{}/users/";
+
+pub fn portal_users(cl: &ZohoClient) -> UserFragment {
+    let client = cl.clone();
     UserFragment {
         path: client.make_uri(&format!("portal/{}/users/", client.portal_id())),
         client,
     }
 }
 
-pub fn project_users(cl: &Rc<ZohoClient>) -> UserFragment {
-    let client = Rc::clone(cl);
+pub fn project_users(cl: &ZohoClient) -> UserFragment {
+    let client = cl.clone();
     UserFragment {
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/users/",
@@ -27,12 +28,12 @@ pub fn project_users(cl: &Rc<ZohoClient>) -> UserFragment {
 // with it a reference to the client which will be used to call it.
 #[derive(Debug)]
 pub struct UserFragment {
-    pub client: Rc<ZohoClient>,
+    pub client: ZohoClient,
     pub path: String,
 }
 
 impl UserFragment {
-    query_strings!(UserFragment; usertype);
+    query_strings!(usertype);
 
     // Execute the query against the Zoho API
     pub fn fetch(self) -> Result<Vec<User>> {

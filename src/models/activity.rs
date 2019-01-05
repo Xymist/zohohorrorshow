@@ -1,32 +1,44 @@
-use crate::client::ZohoClient;
 use crate::errors::*;
-use std::rc::Rc;
+use crate::request::{FilterOptions, RequestDetails, RequestParameters, ZohoRequest};
 
-pub fn activities(cl: &Rc<ZohoClient>) -> ActivityFragment {
-    let client = Rc::clone(cl);
-    ActivityFragment {
-        path: client.make_uri(&format!(
-            "portal/{}/projects/{}/activities/",
-            client.portal_id(),
-            client.project_id()
-        )),
-        client,
+pub const ModelPath: &str = "portal/{}/projects/{}/activities/";
+
+type ActivityDetails = RequestDetails;
+
+impl RequestParameters for ActivityDetails {
+    type ModelCollection = ZohoActivities;
+
+    fn filter(self, param: impl FilterOptions) -> Self {
+        let mut frp = ActivityDetails {
+            model_path: self.model_path,
+            id: self.id,
+            name: self.name,
+            params: self.params,
+        };
+        frp.params
+            .push((param.key().to_owned(), param.value().to_owned()));
+        frp
     }
 }
 
-#[derive(Debug)]
-pub struct ActivityFragment {
-    pub client: Rc<ZohoClient>,
-    pub path: String,
+pub enum Filter {
+    Index(i64),
+    Range(i64),
 }
 
-impl ActivityFragment {
-    query_strings!(ActivityFragment; index, range);
+impl FilterOptions for Filter {
+    fn key(&self) -> String {
+        match self {
+            Filter::Index(_) => "index".to_owned(),
+            Filter::Range(_) => "range".to_owned(),
+        }
+    }
 
-    // Execute the query against the Zoho API
-    pub fn fetch(self) -> Result<Vec<Activity>> {
-        let activity_list: ZohoActivities = self.client.get(&self.path)?;
-        Ok(activity_list.activities)
+    fn value(&self) -> String {
+        match self {
+            Filter::Index(index) => index.to_string(),
+            Filter::Range(range) => range.to_string(),
+        }
     }
 }
 

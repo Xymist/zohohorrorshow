@@ -1,10 +1,11 @@
 use crate::client::ZohoClient;
 use crate::errors::*;
-use std::rc::Rc;
 use crate::utils::from_str;
 
-pub fn milestones(cl: &Rc<ZohoClient>) -> MilestoneFragment {
-    let client = Rc::clone(cl);
+pub const ModelPath: &str = "portal/{}/projects/{}/milestones/";
+
+pub fn milestones(cl: &ZohoClient) -> MilestoneFragment {
+    let client = cl.clone();
     MilestoneFragment {
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/milestones/",
@@ -17,12 +18,12 @@ pub fn milestones(cl: &Rc<ZohoClient>) -> MilestoneFragment {
 
 #[derive(Debug)]
 pub struct MilestoneFragment {
-    pub client: Rc<ZohoClient>,
+    pub client: ZohoClient,
     pub path: String,
 }
 
 impl MilestoneFragment {
-    query_strings!(MilestoneFragment; index, range, status, display_type, flag);
+    query_strings!(index, range, status, display_type, flag);
 
     // Fetch a specific portal by id
     pub fn by_id(self, id: i64) -> MilestoneFilter {
@@ -32,7 +33,7 @@ impl MilestoneFragment {
             path_frags.push(autht)
         }
         MilestoneFilter {
-            client: Rc::clone(&self.client),
+            client: self.client.clone(),
             path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
             filter: Filter::ID(id),
         }
@@ -44,7 +45,7 @@ impl MilestoneFragment {
             panic!("Cannot both filter and find by name")
         }
         MilestoneFilter {
-            client: Rc::clone(&self.client),
+            client: self.client.clone(),
             path: self.path,
             filter: Filter::Name(name.to_owned()),
         }
@@ -65,7 +66,7 @@ enum Filter {
 
 #[derive(Debug)]
 pub struct MilestoneFilter {
-    client: Rc<ZohoClient>,
+    client: ZohoClient,
     path: String,
     filter: Filter,
 }

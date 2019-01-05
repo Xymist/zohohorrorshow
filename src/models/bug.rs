@@ -1,10 +1,11 @@
 use crate::client::ZohoClient;
 use crate::errors::*;
-use std::rc::Rc;
 use crate::utils::from_str;
 
-pub fn bugs(cl: &Rc<ZohoClient>) -> BugFragment {
-    let client = Rc::clone(cl);
+pub const ModelPath: &str = "portal/{}/projects/{}/bugs/";
+
+pub fn bugs(cl: &ZohoClient) -> BugFragment {
+    let client = cl.clone();
     BugFragment {
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/bugs/",
@@ -17,13 +18,12 @@ pub fn bugs(cl: &Rc<ZohoClient>) -> BugFragment {
 
 #[derive(Debug, Clone)]
 pub struct BugFragment {
-    pub client: Rc<ZohoClient>,
+    pub client: ZohoClient,
     pub path: String,
 }
 
 impl BugFragment {
     query_strings!(
-        BugFragment;
         index,
         range,
         status_type,
@@ -33,7 +33,6 @@ impl BugFragment {
         flag
     );
     query_groups!(
-        BugFragment;
         status,
         severity,
         classification,
@@ -51,7 +50,7 @@ impl BugFragment {
         }
         let path_frags = self.path.split('?').collect::<Vec<&str>>();
         BugFragment {
-            client: Rc::clone(&self.client),
+            client: self.client.clone(),
             path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
         }
     }

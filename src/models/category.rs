@@ -1,10 +1,11 @@
 use crate::client::ZohoClient;
 use crate::errors::*;
-use std::rc::Rc;
 use crate::utils::from_str;
 
-pub fn categories(cl: &Rc<ZohoClient>) -> CategoryFragment {
-    let client = Rc::clone(cl);
+pub const ModelPath: &str = "portal/{}/projects/{}/categories/";
+
+pub fn categories(cl: &ZohoClient) -> CategoryFragment {
+    let client = cl.clone();
     CategoryFragment {
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/categories/",
@@ -17,7 +18,7 @@ pub fn categories(cl: &Rc<ZohoClient>) -> CategoryFragment {
 
 #[derive(Debug)]
 pub struct CategoryFragment {
-    pub client: Rc<ZohoClient>,
+    pub client: ZohoClient,
     pub path: String,
 }
 

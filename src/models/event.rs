@@ -1,10 +1,11 @@
 use crate::client::ZohoClient;
 use crate::errors::*;
-use std::rc::Rc;
 use crate::utils::from_str;
 
-pub fn events(cl: &Rc<ZohoClient>) -> EventFragment {
-    let client = Rc::clone(cl);
+pub const ModelPath: &str = "portal/{}/projects/{}/events/";
+
+pub fn events(cl: &ZohoClient) -> EventFragment {
+    let client = cl.clone();
     EventFragment {
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/events/",
@@ -17,12 +18,12 @@ pub fn events(cl: &Rc<ZohoClient>) -> EventFragment {
 
 #[derive(Debug)]
 pub struct EventFragment {
-    pub client: Rc<ZohoClient>,
+    pub client: ZohoClient,
     pub path: String,
 }
 
 impl EventFragment {
-    query_strings!(EventFragment; index, range, status);
+    query_strings!(index, range, status);
 
     // Delete an event by ID
     pub fn delete(self, id: i64) -> Result<String> {

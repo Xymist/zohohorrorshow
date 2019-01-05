@@ -1,11 +1,12 @@
 use crate::client::ZohoClient;
 use crate::errors::*;
 use crate::models::task::{Task, ZohoTasks};
-use std::rc::Rc;
 use crate::utils::from_str;
 
-pub fn tasklists(cl: &Rc<ZohoClient>) -> TasklistFragment {
-    let client = Rc::clone(cl);
+pub const ModelPath: &str = "portal/{}/projects/{}/tasklists/";
+
+pub fn tasklists(cl: &ZohoClient) -> TasklistFragment {
+    let client = cl.clone();
     TasklistFragment {
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/tasklists/",
@@ -18,12 +19,12 @@ pub fn tasklists(cl: &Rc<ZohoClient>) -> TasklistFragment {
 
 #[derive(Debug)]
 pub struct TasklistFragment {
-    pub client: Rc<ZohoClient>,
+    pub client: ZohoClient,
     pub path: String,
 }
 
 impl TasklistFragment {
-    query_strings!(TasklistFragment; index, range, flag);
+    query_strings!(index, range, flag);
 
     // Designate a specific tasklist. This cannot be used to fetch it,
     // but can be POSTed to in order to update or delete.
@@ -33,7 +34,7 @@ impl TasklistFragment {
         }
         let path_frags = self.path.split('?').collect::<Vec<&str>>();
         TasklistPath {
-            client: Rc::clone(&self.client),
+            client: self.client.clone(),
             path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
         }
     }
@@ -53,7 +54,7 @@ impl TasklistFragment {
 
 #[derive(Debug)]
 pub struct TasklistPath {
-    pub client: Rc<ZohoClient>,
+    pub client: ZohoClient,
     pub path: String,
 }
 
@@ -62,7 +63,7 @@ impl TasklistPath {
     pub fn tasks(self) -> TasklistTasksPath {
         let path_frags = self.path.split('?').collect::<Vec<&str>>();
         TasklistTasksPath {
-            client: Rc::clone(&self.client),
+            client: self.client.clone(),
             path: format!("{}{}/?{}", path_frags[0], "tasks", path_frags[1]),
         }
     }
@@ -79,7 +80,7 @@ impl TasklistPath {
 
 #[derive(Debug)]
 pub struct TasklistTasksPath {
-    pub client: Rc<ZohoClient>,
+    pub client: ZohoClient,
     pub path: String,
 }
 

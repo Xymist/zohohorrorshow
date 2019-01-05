@@ -1,10 +1,11 @@
 use crate::client::ZohoClient;
 use crate::errors::*;
-use std::rc::Rc;
 use crate::utils::from_str;
 
-pub fn tasks(cl: &Rc<ZohoClient>) -> TaskFragment {
-    let client = Rc::clone(cl);
+pub const ModelPath: &str = "portal/{}/projects/{}/tasks/";
+
+pub fn tasks(cl: &ZohoClient) -> TaskFragment {
+    let client = cl.clone();
     TaskFragment {
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/tasks/",
@@ -19,7 +20,7 @@ pub fn tasks(cl: &Rc<ZohoClient>) -> TaskFragment {
 // with it a reference to the client which will be used to call it.
 #[derive(Debug)]
 pub struct TaskFragment {
-    pub client: Rc<ZohoClient>,
+    pub client: ZohoClient,
     pub path: String,
 }
 
@@ -60,7 +61,7 @@ impl TaskTimePeriod {
 }
 
 impl TaskFragment {
-    query_strings!(TaskFragment; index, range, owner, priority, tasklist_id, custom_status);
+    query_strings!(index, range, owner, priority, tasklist_id, custom_status);
 
     // Status of the task. Defaults to All
     pub fn status(&mut self, status: &TaskStatus) {
@@ -78,7 +79,7 @@ impl TaskFragment {
         }
         let path_frags = self.path.split('?').collect::<Vec<&str>>();
         TaskFragment {
-            client: Rc::clone(&self.client),
+            client: self.client.clone(),
             path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
         }
     }

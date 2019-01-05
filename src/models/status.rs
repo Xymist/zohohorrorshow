@@ -1,9 +1,10 @@
 use crate::client::ZohoClient;
 use crate::errors::*;
-use std::rc::Rc;
 
-pub fn statuses(cl: &Rc<ZohoClient>) -> StatusFragment {
-    let client = Rc::clone(cl);
+pub const ModelPath: &str = "portal/{}/projects/{}/statuses/";
+
+pub fn statuses(cl: &ZohoClient) -> StatusFragment {
+    let client = cl.clone();
     StatusFragment {
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/statuses/",
@@ -16,12 +17,12 @@ pub fn statuses(cl: &Rc<ZohoClient>) -> StatusFragment {
 
 #[derive(Debug)]
 pub struct StatusFragment {
-    pub client: Rc<ZohoClient>,
+    pub client: ZohoClient,
     pub path: String,
 }
 
 impl StatusFragment {
-    query_strings!(StatusFragment; index, range);
+    query_strings!(index, range);
 
     // Execute the query against the Zoho API
     pub fn fetch(self) -> Result<Vec<Status>> {

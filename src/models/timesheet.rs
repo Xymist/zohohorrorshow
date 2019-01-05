@@ -1,9 +1,10 @@
 use crate::client::ZohoClient;
 use crate::errors::*;
-use std::rc::Rc;
 
-pub fn timesheets(cl: &Rc<ZohoClient>) -> TimesheetFragment {
-    let client = Rc::clone(cl);
+pub const ModelPath: &str = "portal/{}/projects/{}/logs/";
+
+pub fn timesheets(cl: &ZohoClient) -> TimesheetFragment {
+    let client = cl.clone();
     TimesheetFragment {
         path: client.make_uri(&format!(
             "portal/{}/projects/{}/logs/",
@@ -18,12 +19,12 @@ pub fn timesheets(cl: &Rc<ZohoClient>) -> TimesheetFragment {
 // with it a reference to the client which will be used to call it.
 #[derive(Debug)]
 pub struct TimesheetFragment {
-    pub client: Rc<ZohoClient>,
+    pub client: ZohoClient,
     pub path: String,
 }
 
 impl TimesheetFragment {
-    query_strings!(TimesheetFragment; index, range, date);
+    query_strings!(index, range, date);
 
     pub fn users_list(mut self, ids: Option<Vec<i64>>) -> TimesheetFragment {
         let users = match ids {

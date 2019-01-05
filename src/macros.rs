@@ -1,20 +1,30 @@
 macro_rules! query_strings {
-    ($x:ident; $($y:ident),* ) => (
+    ($($y:ident),* ) => (
         $(
-            pub fn $y(mut self, param: &str) -> $x {
-                self.path = format!("{}&{}={}", self.path, stringify!($y), param);
-                self
+            pub fn $y(mut self, param: &str) -> Self {
+                let mut frp = Self {
+                    auth_token: self.auth_token,
+                    model_path: self.model_path,
+                    params: self.params,
+                };
+                frp.params.push((stringify!($y), param));
+                frp
             }
         )*
     )
 }
 
 macro_rules! query_groups {
-    ($x:ident; $($y:ident),* ) => (
+    ($($y:ident),* ) => (
         $(
-            pub fn $y(mut self, param: &[&str]) -> $x {
-                self.path = format!("{}&{}=%5B{}%5D", self.path, stringify!($y), param.join(","));
-                self
+            pub fn $y(mut self, param: &[&str]) -> Self {
+                let mut frp = Self {
+                    auth_token: self.auth_token,
+                    model_path: self.model_path,
+                    params: self.params,
+                };
+                frp.params.push((stringify!($y), format!("%5B{}%5D", param.join(","))));
+                frp
             }
         )*
     )

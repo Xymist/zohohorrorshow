@@ -1,31 +1,24 @@
 use crate::errors::*;
-use crate::models::{portals, projects};
+use crate::models::{activity, portals, projects};
 use reqwest;
-use reqwest::Method::{self, Delete, Get, Post, Put};
 use serde;
-use std::default;
-use std::rc::Rc;
 
 #[cfg(test)]
 use mockito;
 
 #[cfg(not(test))]
-const BASE_URL: &str = "https://projectsapi.zoho.com/restapi";
+pub const BASE_URL: &str = "https://projectsapi.zoho.com/restapi";
 
 #[cfg(test)]
-const BASE_URL: &str = mockito::SERVER_URL;
+pub const BASE_URL: &str = mockito::SERVER_URL;
 
-lazy_static! {
-    pub static ref CLIENT: reqwest::Client = reqwest::Client::new();
-}
-
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ZohoClient {
     auth_token: String,
     context: Context,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Context {
     portal_id: Option<i64>,
     project_id: Option<i64>,
@@ -37,12 +30,12 @@ impl ZohoClient {
     // The portal and project names are optional; if either is missing then it will be populated with the first in the
     // list from Zoho, which is often the only one (in the case of a portal) or the oldest one chronologically (in the case
     // of a project)
-    pub fn new(
+    pub fn try_new(
         auth_token: &str,
         portal_name: Option<&str>,
         project_name: Option<&str>,
-    ) -> Result<Rc<ZohoClient>> {
-        let client = ZohoClient {
+    ) -> Result<ZohoClient> {
+        let mut client = ZohoClient {
             auth_token: auth_token.to_owned(),
             context: Context {
                 portal_id: None,
@@ -51,12 +44,10 @@ impl ZohoClient {
             },
         };
 
-        let mut ref_client = Rc::new(client);
-
         let portal = match portal_name {
-            Some(name) => portals(&ref_client).by_name(name).fetch()?,
+            Some(name) => portals(&client).by_name(name).fetch()?,
             None => {
-                let mut ptls = portals(&ref_client).fetch()?;
+                let mut ptls = portals(&client).fetch()?;
                 match ptls.len() {
                     0 => None,
                     _ => Some(ptls.remove(0)),
@@ -64,16 +55,16 @@ impl ZohoClient {
             }
         };
 
-        if let (Some(p), Some(cl)) = (portal, Rc::get_mut(&mut ref_client)) {
-            cl.context.portal_id = Some(p.id)
+        if let Some(po) = portal {
+            client.context.portal_id = Some(po.id)
         } else {
             return Err("Could not set portal on initializing client".into());
         };
 
         let project = match project_name {
-            Some(name) => projects(&ref_client).by_name(name).fetch()?,
+            Some(name) => projects(&client).by_name(name).fetch()?,
             None => {
-                let mut pjts = projects(&ref_client).fetch()?;
+                let mut pjts = projects(&client).fetch()?;
                 match pjts.len() {
                     0 => None,
                     _ => Some(pjts.remove(0)),
@@ -81,32 +72,32 @@ impl ZohoClient {
             }
         };
 
-        if let (Some(p), Some(cl)) = (project, Rc::get_mut(&mut ref_client)) {
-            cl.context.project_id = Some(p.id)
+        if let Some(pr) = project {
+            client.context.project_id = Some(pr.id)
         } else {
             return Err("Could not set portal on initializing client".into());
         };
 
-        Ok(ref_client)
+        Ok(client)
     }
 
     // If a client is needed with some or all of its pieces missing, or if all the data
     // are already known, or not making API calls to set up the client is desired,
     // client::strict_new() just trusts the users and sets up a client as requested.
-    pub fn strict_new(
+    pub fn new(
         auth_token: &str,
         portal_id: Option<i64>,
         project_id: Option<i64>,
         forum_id: Option<i64>,
-    ) -> Rc<ZohoClient> {
-        Rc::new(ZohoClient {
+    ) -> Self {
+        ZohoClient {
             auth_token: auth_token.to_owned(),
             context: Context {
                 portal_id,
                 project_id,
                 forum_id,
             },
-        })
+        }
     }
 
     pub(crate) fn portal_id(&self) -> i64 {
@@ -142,56 +133,8 @@ impl ZohoClient {
         self.context.forum_id = Some(id)
     }
 
-    pub fn make_uri(&self, relative_path: &str) -> String {
-        format!(
-            "{}/{}?authtoken={}",
-            BASE_URL, relative_path, self.auth_token
-        )
-    }
-
-    pub fn call_api<T>(&self, method: Method, url: &str, data: &str) -> Result<T>
-    where
-        T: serde::de::DeserializeOwned + default::Default,
-    {
-        let mut response = CLIENT.request(method, url).json(&data).send()?;
-        if !response.status().is_success() {
-            bail!("Server error: {:?}", response.status());
-        };
-
-        let res_obj: T = match response.status() {
-            reqwest::StatusCode::NoContent => Default::default(),
-            _ => response.json()?,
-        };
-
-        Ok(res_obj)
-    }
-
-    pub fn get<T>(&self, url: &str) -> Result<T>
-    where
-        T: serde::de::DeserializeOwned + default::Default,
-    {
-        self.call_api(Get, url, "")
-    }
-
-    pub fn post<T>(&self, url: &str, data: &str) -> Result<T>
-    where
-        T: serde::de::DeserializeOwned + default::Default,
-    {
-        self.call_api(Post, url, data)
-    }
-
-    pub fn put<T>(&self, url: &str, data: &str) -> Result<T>
-    where
-        T: serde::de::DeserializeOwned + default::Default,
-    {
-        self.call_api(Put, url, data)
-    }
-
-    pub fn delete<T>(&self, url: &str) -> Result<T>
-    where
-        T: serde::de::DeserializeOwned + default::Default,
-    {
-        self.call_api(Delete, url, "")
+    pub fn activities(&self) -> ActivityRequest {
+        ActivityRequest::new(&self.auth_token.clone(), activity::ModelPath)
     }
 }
 
@@ -200,7 +143,7 @@ mod tests {
     use super::*;
     use mockito::mock;
 
-    const PORTAL: &'static str = "{
+    const PORTAL: &str = "{
         \"login_id\": \"2060758\",
         \"portals\": [{
             \"id\": 2063927,
@@ -232,7 +175,7 @@ mod tests {
         }]
     }";
 
-    const PROJECT: &'static str = "{
+    const PROJECT: &str = "{
         \"projects\": [{
             \"custom_fields\": [{
                 \"Template design\": \"Rightnav_temp\"
@@ -318,7 +261,7 @@ mod tests {
 
     #[test]
     fn create_invalid_client() {
-        let client = ZohoClient::new("bad-auth-token", None, None);
+        let client = ZohoClient::try_new("bad-auth-token", None, None);
         assert!(client.is_err());
     }
 
@@ -334,7 +277,7 @@ mod tests {
             .with_body(PROJECT)
             .create();
 
-        let client = ZohoClient::new(
+        let client = ZohoClient::try_new(
             "abc123",
             Some("zillum"),
             Some("Promotional banner for women's day"),
@@ -358,7 +301,7 @@ mod tests {
             .with_body(PROJECT)
             .create();
 
-        let client = ZohoClient::new("abc123", None, None).unwrap();
+        let client = ZohoClient::try_new("abc123", None, None).unwrap();
 
         assert_eq!(client.auth_token, "abc123");
         assert_eq!(client.portal_id(), 2063927);
