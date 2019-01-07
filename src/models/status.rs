@@ -1,33 +1,53 @@
-use crate::client::ZohoClient;
 use crate::errors::*;
+use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
 
 pub const ModelPath: &str = "portal/{}/projects/{}/statuses/";
 
-pub fn statuses(cl: &ZohoClient) -> StatusFragment {
-    let client = cl.clone();
-    StatusFragment {
-        path: client.make_uri(&format!(
-            "portal/{}/projects/{}/statuses/",
-            client.portal_id(),
-            client.project_id()
-        )),
-        client,
+pub struct StatusRequest(RequestDetails);
+
+impl StatusRequest {
+    pub fn new(auth_token: &str, model_path: &str) -> Self {
+        StatusRequest(RequestDetails::new(auth_token, model_path))
     }
 }
 
-#[derive(Debug)]
-pub struct StatusFragment {
-    pub client: ZohoClient,
-    pub path: String,
+impl ModelRequest for StatusRequest {
+    fn uri(&self) -> String {
+        self.0.uri()
+    }
 }
 
-impl StatusFragment {
-    query_strings!(index, range);
+impl RequestParameters for StatusRequest {
+    type ModelCollection = ZohoStatuses;
+    type NewModel = NewStatus;
 
-    // Execute the query against the Zoho API
-    pub fn fetch(self) -> Result<Vec<Status>> {
-        let status_list: ZohoStatuses = self.client.get(&self.path)?;
-        Ok(status_list.statuses)
+    fn put(&self, url: &str, data: &str) -> Result<Self::ModelCollection> {
+        bail!("PUT requests are not supported for Statuses");
+    }
+
+    fn delete(&self, url: &str) -> Result<Self::ModelCollection> {
+        bail!("DELETE requests are not supported for Statuses");
+    }
+}
+
+pub enum Filter {
+    Index(i64),
+    Range(i64),
+}
+
+impl FilterOptions for Filter {
+    fn key(&self) -> String {
+        match self {
+            Filter::Index(_) => "index".to_owned(),
+            Filter::Range(_) => "range".to_owned(),
+        }
+    }
+
+    fn value(&self) -> String {
+        match self {
+            Filter::Index(index) => index.to_string(),
+            Filter::Range(range) => range.to_string(),
+        }
     }
 }
 
@@ -51,4 +71,18 @@ pub struct Status {
     pub posted_time: String,
     #[serde(rename = "posted_time_long")]
     pub posted_time_long: i64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct NewStatus {
+    #[serde(rename = "content")]
+    content: String,
+}
+
+impl NewStatus {
+    pub fn new(content: &str) -> Self {
+        NewStatus {
+            content: content.to_owned(),
+        }
+    }
 }

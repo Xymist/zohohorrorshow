@@ -1,5 +1,5 @@
 use crate::errors::*;
-use crate::models::{activity, portals, projects};
+use crate::models::{activity, bug, portals, projects};
 use reqwest;
 use serde;
 
@@ -83,7 +83,7 @@ impl ZohoClient {
 
     // If a client is needed with some or all of its pieces missing, or if all the data
     // are already known, or not making API calls to set up the client is desired,
-    // client::strict_new() just trusts the users and sets up a client as requested.
+    // client::new() just trusts the users and sets up a client as requested.
     pub fn new(
         auth_token: &str,
         portal_id: Option<i64>,
@@ -102,39 +102,32 @@ impl ZohoClient {
 
     pub(crate) fn portal_id(&self) -> i64 {
         self.context.portal_id.expect(
-            "Portal context called without portal id set.
-            Hint: call ZohoClient::portal() with the ID of a valid portal to set the context.",
+            "Portal context called without portal id set.",
         )
     }
 
     pub(crate) fn project_id(&self) -> i64 {
         self.context.project_id.expect(
-            "Project context called without project id set.
-            Hint: call ZohoClient::project() with the ID of a valid project to set the context.",
+            "Project context called without project id set.",
         )
     }
 
     pub(crate) fn forum_id(&self) -> i64 {
         self.context.project_id.expect(
-            "Forum context called without forum id set.
-            Hint: call ZohoClient::forum() with the ID of a valid forum to set the context.",
+            "Forum context called without forum id set.",
         )
     }
 
-    pub fn portal(&mut self, id: i64) {
-        self.context.portal_id = Some(id)
+    pub fn activities(&self) -> activity::ActivityRequest {
+        activity::ActivityRequest::new(&self.auth_token.clone(), activity::ModelPath)
     }
 
-    pub fn project(&mut self, id: i64) {
-        self.context.project_id = Some(id)
+    pub fn bugs(&self) -> bug::BugRequest {
+        bug::BugRequest::new(&self.auth_token.clone(), bug::ModelPath)
     }
 
-    pub fn forum(&mut self, id: i64) {
-        self.context.forum_id = Some(id)
-    }
-
-    pub fn activities(&self) -> ActivityRequest {
-        ActivityRequest::new(&self.auth_token.clone(), activity::ModelPath)
+    pub fn bug(&self, id: i64) -> bug::BugRequest {
+        bug::BugRequest::new(&self.auth_token.clone(), bug::SingleModelPath)
     }
 }
 

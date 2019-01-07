@@ -1,63 +1,75 @@
-use crate::client::ZohoClient;
 use crate::errors::*;
+use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
 use crate::utils::from_str;
 
 pub const ModelPath: &str = "portal/{}/projects/{}/bugs/";
+pub const SingleModelPath: &str = "portal/{}/projects/{}/bugs/{}/";
 
-pub fn bugs(cl: &ZohoClient) -> BugFragment {
-    let client = cl.clone();
-    BugFragment {
-        path: client.make_uri(&format!(
-            "portal/{}/projects/{}/bugs/",
-            client.portal_id(),
-            client.project_id()
-        )),
-        client,
+pub struct BugRequest(RequestDetails);
+
+impl BugRequest {
+    pub fn new(auth_token: &str, model_path: &str) -> Self {
+        BugRequest(RequestDetails::new(auth_token, model_path))
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct BugFragment {
-    pub client: ZohoClient,
-    pub path: String,
+impl ModelRequest for BugRequest {
+    fn uri(&self) -> String {
+        self.0.uri()
+    }
 }
 
-impl BugFragment {
-    query_strings!(
-        index,
-        range,
-        status_type,
-        cview_id,
-        sort_column,
-        sort_order,
-        flag
-    );
-    query_groups!(
-        status,
-        severity,
-        classification,
-        module,
-        milestone,
-        assignee,
-        escalation,
-        reporter,
-        affected
-    );
-    // Fetch a specific bug
-    pub fn by_id(self, id: i64) -> BugFragment {
-        if self.path.contains('&') {
-            panic!("Cannot both filter and find by ID")
-        }
-        let path_frags = self.path.split('?').collect::<Vec<&str>>();
-        BugFragment {
-            client: self.client.clone(),
-            path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
+impl RequestParameters for BugRequest {
+    type ModelCollection = ZohoBugs;
+    type NewModel = NewBug;
+}
+
+pub enum Flag {
+    Internal,
+    External,
+}
+
+impl Flag {
+    pub fn value(&self) -> String {
+        match self {
+            Flag::External => "External".to_owned(),
+            Flag::Internal => "Internal".to_owned(),
         }
     }
-    // Execute the query against the Zoho API
-    pub fn fetch(self) -> Result<Vec<Bug>> {
-        let bug_list: ZohoBugs = self.client.get(&self.path)?;
-        Ok(bug_list.bugs)
+}
+
+pub enum Filter {
+    Index(i64),
+    Range(i64),
+    StatusType(String),
+    CViewId(String),
+    SortColumn(String),
+    SortOrder(String),
+    Flag(Flag),
+    Status(Vec<i64>),
+    Severity(Vec<i64>),
+    Classification(Vec<i64>),
+    Module(Vec<i64>),
+    Milestone(Vec<i64>),
+    Assignee(Vec<i64>),
+    Escalation(Vec<i64>),
+    Reporter(Vec<i64>),
+    Affected(Vec<i64>),
+}
+
+impl FilterOptions for Filter {
+    fn key(&self) -> String {
+        match self {
+            Filter::Index(_) => "index".to_owned(),
+            Filter::Range(_) => "range".to_owned(),
+        }
+    }
+
+    fn value(&self) -> String {
+        match self {
+            Filter::Index(index) => index.to_string(),
+            Filter::Range(range) => range.to_string(),
+        }
     }
 }
 
@@ -106,6 +118,9 @@ pub struct Bug {
     #[serde(rename = "key")]
     pub key: String,
 }
+
+##[derive(Debug, Serialize)]
+pub struct NewBug {}
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Default)]
 pub struct IntClassification {

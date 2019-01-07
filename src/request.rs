@@ -2,6 +2,7 @@ use crate::client::BASE_URL;
 use crate::errors::*;
 use reqwest::Method::{self, Delete, Get, Post, Put};
 use serde;
+use serde_json;
 use std::default;
 
 pub struct ZohoRequest {
@@ -61,10 +62,10 @@ impl ZohoRequest {
 }
 
 pub struct RequestDetails {
-    model_path: String,
-    id: Option<i64>,
-    name: Option<String>,
-    params: Vec<(String, String)>,
+    pub model_path: String,
+    pub id: Option<i64>,
+    pub name: Option<String>,
+    pub params: Vec<(String, String)>,
 }
 
 impl RequestDetails {
@@ -76,10 +77,14 @@ impl RequestDetails {
             params: vec![("authtoken".to_owned(), auth_token.to_owned())],
         }
     }
-}
 
-impl UriMaker for RequestDetails {
-    fn uri(&mut self) -> String {
+    pub fn filter(mut self, param: impl FilterOptions) -> Self {
+        self.params
+            .push((param.key().to_owned(), param.value().to_owned()));
+        self
+    }
+
+    pub fn uri(&self) -> String {
         let param_string: String = self
             .params
             .iter()
@@ -95,21 +100,21 @@ pub trait FilterOptions {
     fn value(&self) -> String;
 }
 
-pub trait UriMaker {
-    fn uri(&mut self) -> String;
+pub trait ModelRequest {
+    fn uri(&self) -> String;
 }
 
-pub trait RequestParameters: UriMaker {
-    type ModelCollection: serde::de::DeserializeOwned + default::Default;
-
-    fn filter(self, param: impl FilterOptions) -> Self;
+pub trait RequestParameters: ModelRequest {
+    type ModelCollection: serde::de::DeserializeOwned;
+    type NewModel: serde::Serialize;
 
     fn get(&self, url: &str) -> Result<Self::ModelCollection> {
         ZohoRequest::new(Get, &self.uri(), None).send()
     }
 
-    fn post(&self, url: &str, data: &str) -> Result<Self::ModelCollection> {
-        ZohoRequest::new(Post, &self.uri(), Some(data)).send()
+    fn post(&self, url: &str, data: Self::NewModel) -> Result<Self::ModelCollection> {
+        let json_data = serde_json::to_string(data);
+        ZohoRequest::new(Post, &self.uri(), Some(&json_data)).send()
     }
 
     fn put(&self, url: &str, data: &str) -> Result<Self::ModelCollection> {

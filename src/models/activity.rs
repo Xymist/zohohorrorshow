@@ -1,23 +1,36 @@
 use crate::errors::*;
-use crate::request::{FilterOptions, RequestDetails, RequestParameters, ZohoRequest};
+use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
 
 pub const ModelPath: &str = "portal/{}/projects/{}/activities/";
 
-type ActivityDetails = RequestDetails;
+pub struct ActivityRequest(RequestDetails);
 
-impl RequestParameters for ActivityDetails {
+impl ActivityRequest {
+    pub fn new(auth_token: &str, model_path: &str) -> Self {
+        ActivityRequest(RequestDetails::new(auth_token, model_path))
+    }
+}
+
+impl ModelRequest for ActivityRequest {
+    fn uri(&self) -> String {
+        self.0.uri()
+    }
+}
+
+impl RequestParameters for ActivityRequest {
     type ModelCollection = ZohoActivities;
+    type NewModel = NewActivity;
 
-    fn filter(self, param: impl FilterOptions) -> Self {
-        let mut frp = ActivityDetails {
-            model_path: self.model_path,
-            id: self.id,
-            name: self.name,
-            params: self.params,
-        };
-        frp.params
-            .push((param.key().to_owned(), param.value().to_owned()));
-        frp
+    fn post(&self, url: &str, data: &str) -> Result<Self::ModelCollection> {
+        bail!("POST requests are not supported for Activities");
+    }
+
+    fn put(&self, url: &str, data: Self::NewModel) -> Result<Self::ModelCollection> {
+        bail!("PUT requests are not supported for Activities");
+    }
+
+    fn delete(&self, url: &str) -> Result<Self::ModelCollection> {
+        bail!("DELETE requests are not supported for Activities");
     }
 }
 
@@ -67,3 +80,6 @@ pub struct Activity {
     #[serde(rename = "time")]
     pub time: String,
 }
+
+#[derive(Serialize)]
+pub struct NewActivity {}

@@ -16,7 +16,6 @@ pub mod user;
 // For convenience, lift all of these to this level to permit using (e.g.) `models::comments`
 // to call the API.
 pub use self::{
-    bug::bugs,
     category::categories,
     comment::comments,
     event::events,
