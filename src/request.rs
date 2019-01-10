@@ -1,25 +1,25 @@
 use crate::client::BASE_URL;
 use crate::errors::*;
-use reqwest::Method::{self, Delete, Get, Post, Put};
+use reqwest::Method::{self, Delete, Get, Post};
 use serde;
 use serde_json;
-use std::default;
+use std::collections::HashMap;
 
-pub struct ZohoRequest {
+pub struct ZohoRequest<T>
+where
+    T: serde::Serialize + Clone,
+{
     method: Method,
     url: String,
-    data: Option<String>,
+    data: Option<T>,
 }
 
-impl ZohoRequest {
-    pub fn new(method: Method, url: &str, data: Option<&str>) -> Self {
+impl<T: serde::Serialize + Clone> ZohoRequest<T> {
+    pub fn new(method: Method, url: &str, data: Option<T>) -> Self {
         ZohoRequest {
             method,
             url: url.to_owned(),
-            data: match data {
-                Some(d) => Some(d.to_owned()),
-                None => None,
-            },
+            data: data,
         }
     }
 
@@ -31,19 +31,39 @@ impl ZohoRequest {
         self.url.clone()
     }
 
-    pub fn data(&self) -> Option<String> {
+    pub fn data(&self) -> Option<T> {
         self.data.clone()
     }
 
-    pub fn send<T>(&self) -> Result<T>
+    // TODO(Xymist): WTF? This is terrible, replace it.
+    pub fn data_params(&self) -> String {
+        match self.data() {
+            None => "".to_owned(),
+            Some(d) => {
+                let mut json_data = String::new();
+                match serde_json::to_string(&d) {
+                    Ok(d) => {
+                        // Using .unwrap() here is probably safe, as long as we assume Serde
+                        // generates valid JSON.
+                        // This is pretty crap though, so what do I know?
+                        let hsh: HashMap<String, String> = serde_json::from_str(&d).unwrap();
+                        for (key, val) in hsh.iter() {
+                            json_data += &format!("&{}={}", key, val);
+                        }
+                    }
+                    _ => return "".to_owned(),
+                };
+                json_data
+            }
+        }
+    }
+
+    pub fn send<U>(&self) -> Result<U>
     where
-        T: serde::de::DeserializeOwned + default::Default,
+        U: serde::de::DeserializeOwned,
     {
         let req_client: reqwest::Client = reqwest::Client::new();
-        let json_data: String = match self.data() {
-            Some(d) => d,
-            None => "".to_owned(),
-        };
+        let json_data: String = serde_json::to_string(&self.data()).unwrap_or_else(|_| "".to_owned());
         let mut response = req_client
             .request(self.method(), &self.url())
             .json(&json_data)
@@ -52,8 +72,8 @@ impl ZohoRequest {
             bail!("Server error: {:?}", response.status());
         };
 
-        let res_obj: T = match response.status() {
-            reqwest::StatusCode::NoContent => Default::default(),
+        let res_obj: U = match response.status() {
+            reqwest::StatusCode::NoContent => bail!("No content received"),
             _ => response.json()?,
         };
 
@@ -106,22 +126,17 @@ pub trait ModelRequest {
 
 pub trait RequestParameters: ModelRequest {
     type ModelCollection: serde::de::DeserializeOwned;
-    type NewModel: serde::Serialize;
+    type NewModel: serde::Serialize + Clone;
 
-    fn get(&self, url: &str) -> Result<Self::ModelCollection> {
-        ZohoRequest::new(Get, &self.uri(), None).send()
+    fn get(&self) -> Result<Self::ModelCollection> {
+        ZohoRequest::<Self::NewModel>::new(Get, &self.uri(), None).send()
     }
 
-    fn post(&self, url: &str, data: Self::NewModel) -> Result<Self::ModelCollection> {
-        let json_data = serde_json::to_string(data);
-        ZohoRequest::new(Post, &self.uri(), Some(&json_data)).send()
+    fn post(&self, data: Self::NewModel) -> Result<Self::ModelCollection> {
+        ZohoRequest::<Self::NewModel>::new(Post, &self.uri(), Some(data)).send()
     }
 
-    fn put(&self, url: &str, data: &str) -> Result<Self::ModelCollection> {
-        ZohoRequest::new(Put, &self.uri(), Some(data)).send()
-    }
-
-    fn delete(&self, url: &str) -> Result<Self::ModelCollection> {
-        ZohoRequest::new(Delete, &self.uri(), None).send()
+    fn delete(&self) -> Result<Self::ModelCollection> {
+        ZohoRequest::<Self::NewModel>::new(Delete, &self.uri(), None).send()
     }
 }

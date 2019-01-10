@@ -1,5 +1,6 @@
 use crate::errors::*;
-use crate::models::{activity, bug, portals, projects};
+use crate::models::{activity, portal, project};
+use crate::request::RequestParameters;
 use reqwest;
 use serde;
 
@@ -15,119 +16,77 @@ pub const BASE_URL: &str = mockito::SERVER_URL;
 #[derive(Debug, Clone)]
 pub struct ZohoClient {
     auth_token: String,
-    context: Context,
-}
-
-#[derive(Debug, Clone)]
-struct Context {
     portal_id: Option<i64>,
     project_id: Option<i64>,
-    forum_id: Option<i64>,
 }
 
 impl ZohoClient {
-    // Generates a client from an auth_token, a portal name and a project name, searching for the latter two in that order.
-    // The portal and project names are optional; if either is missing then it will be populated with the first in the
-    // list from Zoho, which is often the only one (in the case of a portal) or the oldest one chronologically (in the case
-    // of a project)
-    pub fn try_new(
-        auth_token: &str,
-        portal_name: Option<&str>,
-        project_name: Option<&str>,
-    ) -> Result<ZohoClient> {
-        let mut client = ZohoClient {
-            auth_token: auth_token.to_owned(),
-            context: Context {
-                portal_id: None,
-                project_id: None,
-                forum_id: None,
-            },
-        };
-
-        let portal = match portal_name {
-            Some(name) => portals(&client).by_name(name).fetch()?,
-            None => {
-                let mut ptls = portals(&client).fetch()?;
-                match ptls.len() {
-                    0 => None,
-                    _ => Some(ptls.remove(0)),
-                }
-            }
-        };
-
-        if let Some(po) = portal {
-            client.context.portal_id = Some(po.id)
-        } else {
-            return Err("Could not set portal on initializing client".into());
-        };
-
-        let project = match project_name {
-            Some(name) => projects(&client).by_name(name).fetch()?,
-            None => {
-                let mut pjts = projects(&client).fetch()?;
-                match pjts.len() {
-                    0 => None,
-                    _ => Some(pjts.remove(0)),
-                }
-            }
-        };
-
-        if let Some(pr) = project {
-            client.context.project_id = Some(pr.id)
-        } else {
-            return Err("Could not set portal on initializing client".into());
-        };
-
-        Ok(client)
-    }
-
-    // If a client is needed with some or all of its pieces missing, or if all the data
-    // are already known, or not making API calls to set up the client is desired,
-    // client::new() just trusts the users and sets up a client as requested.
-    pub fn new(
-        auth_token: &str,
-        portal_id: Option<i64>,
-        project_id: Option<i64>,
-        forum_id: Option<i64>,
-    ) -> Self {
+    pub fn new(auth_token: &str) -> Self {
         ZohoClient {
             auth_token: auth_token.to_owned(),
-            context: Context {
-                portal_id,
-                project_id,
-                forum_id,
-            },
+            portal_id: None,
+            project_id: None,
         }
     }
 
+    pub fn set_portal(mut self, portal_name: &str) -> Result<Self> {
+        let portals = self.portals().get();
+        let portal = match portals {
+            Ok(p_list) => p_list.portals.into_iter().find(|p| p.name == portal_name),
+            Err(_) => return Err("Failed to fetch portals from Zoho".into()),
+        };
+
+        if let Some(po) = portal {
+            self.portal_id = Some(po.id)
+        } else {
+            return Err(format!("Could not find portal with name {}", portal_name).into());
+        };
+
+        Ok(self)
+    }
+
+    pub fn set_project(mut self, project_name: &str) -> Result<Self> {
+        let projects = self.projects().get();
+        let project = match projects {
+            Ok(p_list) => p_list.projects.into_iter().find(|p| p.name == project_name),
+            Err(_) => return Err("Failed to fetch portals from Zoho".into()),
+        };
+
+        if let Some(pr) = project {
+            self.project_id = Some(pr.id)
+        } else {
+            return Err(format!("Could not find project with name {}", project_name).into());
+        };
+
+        Ok(self)
+    }
+
     pub(crate) fn portal_id(&self) -> i64 {
-        self.context.portal_id.expect(
-            "Portal context called without portal id set.",
-        )
+        self.portal_id
+            .expect("Portal context called without portal id set.")
     }
 
     pub(crate) fn project_id(&self) -> i64 {
-        self.context.project_id.expect(
-            "Project context called without project id set.",
-        )
-    }
-
-    pub(crate) fn forum_id(&self) -> i64 {
-        self.context.project_id.expect(
-            "Forum context called without forum id set.",
-        )
+        self.project_id
+            .expect("Project context called without project id set.")
     }
 
     pub fn activities(&self) -> activity::ActivityRequest {
-        activity::ActivityRequest::new(&self.auth_token.clone(), activity::ModelPath)
+        activity::ActivityRequest::new(
+            &self.auth_token.clone(),
+            &activity::model_path(self.portal_id(), self.project_id()),
+        )
     }
 
-    pub fn bugs(&self) -> bug::BugRequest {
-        bug::BugRequest::new(&self.auth_token.clone(), bug::ModelPath)
+    pub fn portals(&self) -> portal::PortalRequest {
+        portal::PortalRequest::new(&self.auth_token.clone())
     }
 
-    pub fn bug(&self, id: i64) -> bug::BugRequest {
-        bug::BugRequest::new(&self.auth_token.clone(), bug::SingleModelPath)
+    pub fn projects(&self) -> project::ProjectRequest {
+        project::ProjectRequest::new(
+            &self.auth_token.clone(),
+            &project::model_path(self.portal_id()),
+        )
     }
 }
 

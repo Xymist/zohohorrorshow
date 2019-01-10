@@ -1,7 +1,9 @@
 use crate::errors::*;
 use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
 
-pub const ModelPath: &str = "portal/{}/projects/{}/activities/";
+pub fn model_path(portal: impl std::fmt::Display, project: impl std::fmt::Display) -> String {
+    format!("portal/{}/projects/{}/activities/", portal, project)
+}
 
 pub struct ActivityRequest(RequestDetails);
 
@@ -21,15 +23,11 @@ impl RequestParameters for ActivityRequest {
     type ModelCollection = ZohoActivities;
     type NewModel = NewActivity;
 
-    fn post(&self, url: &str, data: &str) -> Result<Self::ModelCollection> {
+    fn post(&self, _data: Self::NewModel) -> Result<Self::ModelCollection> {
         bail!("POST requests are not supported for Activities");
     }
 
-    fn put(&self, url: &str, data: Self::NewModel) -> Result<Self::ModelCollection> {
-        bail!("PUT requests are not supported for Activities");
-    }
-
-    fn delete(&self, url: &str) -> Result<Self::ModelCollection> {
+    fn delete(&self) -> Result<Self::ModelCollection> {
         bail!("DELETE requests are not supported for Activities");
     }
 }
@@ -81,5 +79,5 @@ pub struct Activity {
     pub time: String,
 }
 
-#[derive(Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct NewActivity {}

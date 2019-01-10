@@ -1,118 +1,88 @@
-use crate::client::ZohoClient;
-use crate::errors::*;
+use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
 use crate::utils::from_str;
 use std::collections::HashMap;
 
-pub const ModelPath: &str = "portal/{}/projects/";
+pub fn model_path(portal: impl std::fmt::Display) -> String {
+    format!("portal/{}/projects/", portal)
+}
 
-pub fn projects(cl: &ZohoClient) -> ProjectFragment {
-    let client = cl.clone();
-    ProjectFragment {
-        path: client.make_uri(&format!("portal/{}/projects/", client.portal_id())),
-        client,
+pub struct ProjectRequest(RequestDetails);
+
+impl ProjectRequest {
+    pub fn new(auth_token: &str, portal_name: &str) -> Self {
+        ProjectRequest(RequestDetails::new(auth_token, &model_path(portal_name)))
     }
 }
 
-#[derive(Debug)]
-pub struct ProjectFragment {
-    pub client: ZohoClient,
-    pub path: String,
-}
-
-impl ProjectFragment {
-    query_strings!(index, range, status, sort_column, sort_order);
-
-    // Fetch available custom fields (can be applied when creating projects)
-    pub fn customfields(self) -> Result<Option<Vec<CustomField>>> {
-        let mut path_frags = self.path.split('?').collect::<Vec<&str>>();
-        if path_frags[1].contains('&') {
-            let autht = path_frags.remove(1).split('&').collect::<Vec<&str>>()[0];
-            path_frags.push(autht)
-        }
-        println!("{:?}", self);
-        let fields: CustomFields = self.client.get(&format!(
-            "{}{}/?{}",
-            path_frags[0], "customfields", path_frags[1]
-        ))?;
-        Ok(Some(fields.fields))
-    }
-
-    // Fetch a specific portal by id
-    pub fn by_id(self, id: i64) -> ProjectFilter {
-        let mut path_frags = self.path.split('?').collect::<Vec<&str>>();
-        if path_frags[1].contains('&') {
-            let autht = path_frags.remove(1).split('&').collect::<Vec<&str>>()[0];
-            path_frags.push(autht)
-        }
-        ProjectFilter {
-            client: self.client.clone(),
-            path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
-            filter: Filter::ID(id),
-        }
-    }
-    // Fetch a specific portal by name
-    pub fn by_name(self, name: &str) -> ProjectFilter {
-        if self.path.contains('&') {
-            panic!("Cannot both filter and find by name")
-        }
-        ProjectFilter {
-            client: self.client.clone(),
-            path: self.path,
-            filter: Filter::Name(name.to_owned()),
-        }
-    }
-    // Execute the query against the Zoho API
-    pub fn fetch(self) -> Result<Vec<Project>> {
-        let project_list: ZohoProjects = self.client.get(&self.path)?;
-        Ok(project_list.projects)
+impl ModelRequest for ProjectRequest {
+    fn uri(&self) -> String {
+        self.0.uri()
     }
 }
 
-#[derive(Debug)]
-enum Filter {
-    ID(i64),
-    Name(String),
+impl RequestParameters for ProjectRequest {
+    type ModelCollection = ZohoProjects;
+    type NewModel = NewProject;
 }
 
-#[derive(Debug)]
-pub struct ProjectFilter {
-    client: ZohoClient,
-    path: String,
-    filter: Filter,
+pub enum Filter {
+    Index(i64),
+    Range(i64),
+    Status(String),
+    SortColumn(String),
+    SortOrder(String),
 }
 
-impl ProjectFilter {
-    // Execute the query against the Zoho API
-    pub fn fetch(self) -> Result<Option<Project>> {
-        let project_list: ZohoProjects = self.client.get(&self.path)?;
-        let projects = project_list.projects;
-        match self.filter {
-            Filter::ID(id) => filter_by_id(projects, id),
-            Filter::Name(name) => filter_by_name(projects, &name),
+impl FilterOptions for Filter {
+    fn key(&self) -> String {
+        match self {
+            Filter::Index(_) => "index".to_owned(),
+            Filter::Range(_) => "range".to_owned(),
+            Filter::Status(_) => "status".to_owned(),
+            Filter::SortColumn(_) => "sort_column".to_owned(),
+            Filter::SortOrder(_) => "sort_order".to_owned(),
+        }
+    }
+
+    fn value(&self) -> String {
+        match self {
+            Filter::Index(index) => index.to_string(),
+            Filter::Range(range) => range.to_string(),
+            Filter::Status(status) => status.to_owned(),
+            Filter::SortColumn(column) => column.to_owned(),
+            Filter::SortOrder(order) => order.to_owned(),
         }
     }
 }
 
-fn filter_by_id(projects: Vec<Project>, id: i64) -> Result<Option<Project>> {
-    let mut filtered = projects
-        .into_iter()
-        .filter(|p| p.id == id)
-        .collect::<Vec<Project>>();
-    match filtered.len() {
-        0 => Ok(None),
-        _ => Ok(Some(filtered.remove(0))),
-    }
-}
+// impl ProjectFragment {
+//     // Fetch available custom fields (can be applied when creating projects)
+//     pub fn customfields(self) -> Result<Option<Vec<CustomField>>> {
+//         let mut path_frags = self.path.split('?').collect::<Vec<&str>>();
+//         if path_frags[1].contains('&') {
+//             let autht = path_frags.remove(1).split('&').collect::<Vec<&str>>()[0];
+//             path_frags.push(autht)
+//         }
+//         println!("{:?}", self);
+//         let fields: CustomFields = self.client.get(&format!(
+//             "{}{}/?{}",
+//             path_frags[0], "customfields", path_frags[1]
+//         ))?;
+//         Ok(Some(fields.fields))
+//     }
+// }
 
-fn filter_by_name(projects: Vec<Project>, name: &str) -> Result<Option<Project>> {
-    let mut filtered = projects
-        .into_iter()
-        .filter(|p| p.name == name)
-        .collect::<Vec<Project>>();
-    match filtered.len() {
-        0 => Ok(None),
-        _ => Ok(Some(filtered.remove(0))),
-    }
+#[derive(Debug, Serialize, Clone)]
+pub struct NewProject {
+    name: String,
+    owner: i64,
+    description: String,
+    template_id: i64,
+    // [MM-DD-YYYY]
+    start_date: String,
+    // [MM-DD-YYYY]
+    end_date: String,
+    strict_project: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]

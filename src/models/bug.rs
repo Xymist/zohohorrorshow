@@ -119,7 +119,7 @@ pub struct Bug {
     pub key: String,
 }
 
-##[derive(Debug, Serialize)]
+#[derive(Debug, Serialize)]
 pub struct NewBug {}
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Default)]

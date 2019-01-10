@@ -1,83 +1,40 @@
-use crate::client::{ZohoClient, ZohoRequest};
 use crate::errors::*;
+use crate::request::{ModelRequest, RequestDetails, RequestParameters};
 use crate::utils::from_str;
 
-pub const ModelPath: &str = "portals/";
-
-#[derive(Debug)]
-pub struct PortalFragment {
-    pub client: ZohoClient,
-    pub path: String,
+pub fn model_path() -> String {
+    "portals/".to_owned()
 }
 
-impl PortalFragment {
-    pub fn by_id(self, id: i64) -> PortalFilter {
-        PortalFilter {
-            client: self.client.clone(),
-            path: self.path,
-            filter: Filter::Id(id),
-        }
-    }
-    pub fn by_name(self, name: &str) -> PortalFilter {
-        PortalFilter {
-            client: self.client.clone(),
-            path: self.path,
-            filter: Filter::Name(name.to_owned()),
-        }
-    }
-    // Execute the query against the Zoho API
-    pub fn fetch(self) -> Result<Vec<Portal>> {
-        let portal_list: ZohoPortals = self.client.get(&self.path)?;
-        Ok(portal_list.portals)
+pub struct PortalRequest(RequestDetails);
+
+impl PortalRequest {
+    pub fn new(auth_token: &str) -> Self {
+        PortalRequest(RequestDetails::new(auth_token, &model_path()))
     }
 }
 
-#[derive(Debug)]
-enum Filter {
-    Id(i64),
-    Name(String),
-}
-
-#[derive(Debug)]
-pub struct PortalFilter {
-    client: ZohoClient,
-    path: String,
-    filter: Filter,
-}
-
-impl PortalFilter {
-    // Execute the query against the Zoho API
-    pub fn fetch(self) -> Result<Option<Portal>> {
-        let portal_list: ZohoPortals = self.client.get(&self.path)?;
-        let portals = portal_list.portals;
-        match self.filter {
-            Filter::Id(id) => filter_by_id(portals, id),
-            Filter::Name(name) => filter_by_name(portals, &name),
-        }
+impl ModelRequest for PortalRequest {
+    fn uri(&self) -> String {
+        self.0.uri()
     }
 }
 
-fn filter_by_id(portals: Vec<Portal>, id: i64) -> Result<Option<Portal>> {
-    let mut filtered = portals
-        .into_iter()
-        .filter(|p| p.id == id)
-        .collect::<Vec<Portal>>();
-    match filtered.len() {
-        0 => Ok(None),
-        _ => Ok(Some(filtered.remove(0))),
+impl RequestParameters for PortalRequest {
+    type ModelCollection = ZohoPortals;
+    type NewModel = NewPortal;
+
+    fn post(&self, _data: Self::NewModel) -> Result<Self::ModelCollection> {
+        bail!("POST requests are not supported for Portals");
+    }
+
+    fn delete(&self) -> Result<Self::ModelCollection> {
+        bail!("DELETE requests are not supported for Portals");
     }
 }
 
-fn filter_by_name(portals: Vec<Portal>, name: &str) -> Result<Option<Portal>> {
-    let mut filtered = portals
-        .into_iter()
-        .filter(|p| p.name == name)
-        .collect::<Vec<Portal>>();
-    match filtered.len() {
-        0 => Ok(None),
-        _ => Ok(Some(filtered.remove(0))),
-    }
-}
+#[derive(Debug, Serialize, Clone)]
+pub struct NewPortal {}
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ZohoPortals {
