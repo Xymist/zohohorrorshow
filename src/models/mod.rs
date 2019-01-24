@@ -2,7 +2,7 @@ pub mod activity;
 // pub mod bug;
 // pub mod category;
 // pub mod comment;
-// pub mod event;
+pub mod event;
 // pub mod forum;
 // pub mod milestone;
 pub mod portal;

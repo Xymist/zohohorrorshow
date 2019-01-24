@@ -1,7 +1,7 @@
 use crate::client::ZohoClient;
 use crate::errors::*;
 use crate::models::task::{Task, ZohoTasks};
-use crate::utils::from_str;
+use crate::serializers::from_str;
 
 pub const ModelPath: &str = "portal/{}/projects/{}/tasklists/";
 

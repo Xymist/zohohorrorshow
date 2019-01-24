@@ -1,5 +1,6 @@
 use crate::errors::*;
 use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
+use std::collections::HashMap;
 
 pub fn model_path(portal: impl std::fmt::Display, project: impl std::fmt::Display) -> String {
     format!("portal/{}/projects/{}/activities/", portal, project)
@@ -9,7 +10,7 @@ pub struct ActivityRequest(RequestDetails);
 
 impl ActivityRequest {
     pub fn new(auth_token: &str, model_path: &str) -> Self {
-        ActivityRequest(RequestDetails::new(auth_token, model_path))
+        ActivityRequest(RequestDetails::new(auth_token, model_path, None))
     }
 }
 
@@ -17,17 +18,25 @@ impl ModelRequest for ActivityRequest {
     fn uri(&self) -> String {
         self.0.uri()
     }
+
+    fn params(&self) -> Option<HashMap<String, String>> {
+        self.0.params()
+    }
 }
 
 impl RequestParameters for ActivityRequest {
     type ModelCollection = ZohoActivities;
     type NewModel = NewActivity;
 
-    fn post(&self, _data: Self::NewModel) -> Result<Self::ModelCollection> {
+    fn post(&self, _data: Self::NewModel) -> Result<Option<Self::ModelCollection>> {
         bail!("POST requests are not supported for Activities");
     }
 
-    fn delete(&self) -> Result<Self::ModelCollection> {
+    fn put(&self, _data: Self::NewModel) -> Result<Option<Self::ModelCollection>> {
+        bail!("PUT requests are not supported for Activities");
+    }
+
+    fn delete(&self) -> Result<Option<Self::ModelCollection>> {
         bail!("DELETE requests are not supported for Activities");
     }
 }

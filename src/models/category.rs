@@ -1,6 +1,6 @@
 use crate::client::ZohoClient;
 use crate::errors::*;
-use crate::utils::from_str;
+use crate::serializers::from_str;
 
 pub const ModelPath: &str = "portal/{}/projects/{}/categories/";
 

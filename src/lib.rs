@@ -8,7 +8,7 @@ extern crate error_chain;
 #[macro_use]
 extern crate serde_derive;
 
-mod utils;
+mod serializers;
 
 pub mod client;
 pub mod errors;

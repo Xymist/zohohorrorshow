@@ -1,6 +1,6 @@
 use crate::errors::*;
 use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
-use crate::utils::from_str;
+use crate::serializers::from_str;
 
 pub const ModelPath: &str = "portal/{}/projects/{}/bugs/";
 pub const SingleModelPath: &str = "portal/{}/projects/{}/bugs/{}/";

@@ -1,8 +1,6 @@
 use crate::errors::*;
-use crate::models::{activity, portal, project};
+use crate::models::{activity, event, portal, project};
 use crate::request::RequestParameters;
-use reqwest;
-use serde;
 
 #[cfg(test)]
 use mockito;
@@ -11,7 +9,7 @@ use mockito;
 pub const BASE_URL: &str = "https://projectsapi.zoho.com/restapi";
 
 #[cfg(test)]
-pub const BASE_URL: &str = mockito::SERVER_URL;
+pub const BASE_URL: &str = &mockito::SERVER_URL;
 
 #[derive(Debug, Clone)]
 pub struct ZohoClient {
@@ -32,8 +30,8 @@ impl ZohoClient {
     pub fn set_portal(mut self, portal_name: &str) -> Result<Self> {
         let portals = self.portals().get();
         let portal = match portals {
-            Ok(p_list) => p_list.portals.into_iter().find(|p| p.name == portal_name),
-            Err(_) => return Err("Failed to fetch portals from Zoho".into()),
+            Ok(Some(p_list)) => p_list.portals.into_iter().find(|p| p.name == portal_name),
+            Err(_) | Ok(None) => return Err("Failed to fetch portals from Zoho".into()),
         };
 
         if let Some(po) = portal {
@@ -46,10 +44,10 @@ impl ZohoClient {
     }
 
     pub fn set_project(mut self, project_name: &str) -> Result<Self> {
-        let projects = self.projects().get();
+        let projects = self.projects(None).get();
         let project = match projects {
-            Ok(p_list) => p_list.projects.into_iter().find(|p| p.name == project_name),
-            Err(_) => return Err("Failed to fetch portals from Zoho".into()),
+            Ok(Some(p_list)) => p_list.projects.into_iter().find(|p| p.name == project_name),
+            Err(_) | Ok(None) => return Err("Failed to fetch portals from Zoho".into()),
         };
 
         if let Some(pr) = project {
@@ -78,14 +76,23 @@ impl ZohoClient {
         )
     }
 
+    pub fn events(&self, id: Option<i64>) -> event::EventRequest {
+        event::EventRequest::new(
+            &self.auth_token.clone(),
+            &event::model_path(self.portal_id(), self.project_id()),
+            id,
+        )
+    }
+
     pub fn portals(&self) -> portal::PortalRequest {
         portal::PortalRequest::new(&self.auth_token.clone())
     }
 
-    pub fn projects(&self) -> project::ProjectRequest {
+    pub fn projects(&self, id: Option<i64>) -> project::ProjectRequest {
         project::ProjectRequest::new(
             &self.auth_token.clone(),
             &project::model_path(self.portal_id()),
+            id,
         )
     }
 }
@@ -212,13 +219,7 @@ mod tests {
     }";
 
     #[test]
-    fn create_invalid_client() {
-        let client = ZohoClient::try_new("bad-auth-token", None, None);
-        assert!(client.is_err());
-    }
-
-    #[test]
-    fn force_populate_client() {
+    fn initialize_client() {
         let _portals = mock("GET", "/portals/?authtoken=abc123")
             .with_status(201)
             .with_body(PORTAL)
@@ -229,34 +230,14 @@ mod tests {
             .with_body(PROJECT)
             .create();
 
-        let client = ZohoClient::try_new(
-            "abc123",
-            Some("zillum"),
-            Some("Promotional banner for women's day"),
-        )
-        .unwrap();
+        let mut client = ZohoClient::new("abc123");
+        client = client.set_portal("zillum").expect("Failed to set portal");
+        client = client
+            .set_project("Promotional banner for women's day")
+            .expect("Failed to set project");
 
         assert_eq!(client.auth_token, "abc123");
-        assert_eq!(client.portal_id(), 2063927);
-        assert_eq!(client.project_id(), 170876000003152069);
-    }
-
-    #[test]
-    fn autopopulate_client() {
-        let _portals = mock("GET", "/portals/?authtoken=abc123")
-            .with_status(201)
-            .with_body(PORTAL)
-            .create();
-
-        let _projects = mock("GET", "/portal/2063927/projects/?authtoken=abc123")
-            .with_status(201)
-            .with_body(PROJECT)
-            .create();
-
-        let client = ZohoClient::try_new("abc123", None, None).unwrap();
-
-        assert_eq!(client.auth_token, "abc123");
-        assert_eq!(client.portal_id(), 2063927);
-        assert_eq!(client.project_id(), 170876000003152069);
+        assert_eq!(client.portal_id(), 2_063_927);
+        assert_eq!(client.project_id(), 170_876_000_003_152_069);
     }
 }

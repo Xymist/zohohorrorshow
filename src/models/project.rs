@@ -1,5 +1,5 @@
 use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
-use crate::utils::from_str;
+use crate::serializers::from_str;
 use std::collections::HashMap;
 
 pub fn model_path(portal: impl std::fmt::Display) -> String {
@@ -9,14 +9,18 @@ pub fn model_path(portal: impl std::fmt::Display) -> String {
 pub struct ProjectRequest(RequestDetails);
 
 impl ProjectRequest {
-    pub fn new(auth_token: &str, portal_name: &str) -> Self {
-        ProjectRequest(RequestDetails::new(auth_token, &model_path(portal_name)))
+    pub fn new(auth_token: &str, model_path: &str, id: Option<i64>) -> Self {
+        ProjectRequest(RequestDetails::new(auth_token, model_path, id))
     }
 }
 
 impl ModelRequest for ProjectRequest {
     fn uri(&self) -> String {
         self.0.uri()
+    }
+
+    fn params(&self) -> Option<HashMap<String, String>> {
+        self.0.params()
     }
 }
 

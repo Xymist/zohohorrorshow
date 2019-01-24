@@ -1,6 +1,7 @@
 use crate::errors::*;
 use crate::request::{ModelRequest, RequestDetails, RequestParameters};
-use crate::utils::from_str;
+use crate::serializers::from_str;
+use std::collections::HashMap;
 
 pub fn model_path() -> String {
     "portals/".to_owned()
@@ -10,7 +11,7 @@ pub struct PortalRequest(RequestDetails);
 
 impl PortalRequest {
     pub fn new(auth_token: &str) -> Self {
-        PortalRequest(RequestDetails::new(auth_token, &model_path()))
+        PortalRequest(RequestDetails::new(auth_token, &model_path(), None))
     }
 }
 
@@ -18,17 +19,25 @@ impl ModelRequest for PortalRequest {
     fn uri(&self) -> String {
         self.0.uri()
     }
+
+    fn params(&self) -> Option<HashMap<String, String>> {
+        self.0.params()
+    }
 }
 
 impl RequestParameters for PortalRequest {
     type ModelCollection = ZohoPortals;
     type NewModel = NewPortal;
 
-    fn post(&self, _data: Self::NewModel) -> Result<Self::ModelCollection> {
+    fn post(&self, _data: Self::NewModel) -> Result<Option<Self::ModelCollection>> {
         bail!("POST requests are not supported for Portals");
     }
 
-    fn delete(&self) -> Result<Self::ModelCollection> {
+    fn put(&self, _data: Self::NewModel) -> Result<Option<Self::ModelCollection>> {
+        bail!("PUT requests are not supported for Portals");
+    }
+
+    fn delete(&self) -> Result<Option<Self::ModelCollection>> {
         bail!("DELETE requests are not supported for Portals");
     }
 }

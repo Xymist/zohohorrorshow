@@ -1,90 +1,56 @@
-use crate::client::ZohoClient;
-use crate::errors::*;
-use crate::utils::from_str;
+use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
+use crate::serializers::{from_str, join_ids};
+use serde::ser::{Serialize, Serializer};
+use std::collections::HashMap;
 
-pub const ModelPath: &str = "portal/{}/projects/{}/events/";
+pub fn model_path(portal: impl std::fmt::Display, project: impl std::fmt::Display) -> String {
+    format!("portal/{}/projects/{}/events/", portal, project)
+}
 
-pub fn events(cl: &ZohoClient) -> EventFragment {
-    let client = cl.clone();
-    EventFragment {
-        path: client.make_uri(&format!(
-            "portal/{}/projects/{}/events/",
-            client.portal_id(),
-            client.project_id()
-        )),
-        client,
+pub struct EventRequest(RequestDetails);
+
+impl EventRequest {
+    pub fn new(auth_token: &str, model_path: &str, id: Option<i64>) -> Self {
+        EventRequest(RequestDetails::new(auth_token, model_path, id))
     }
 }
 
-#[derive(Debug)]
-pub struct EventFragment {
-    pub client: ZohoClient,
-    pub path: String,
+impl ModelRequest for EventRequest {
+    fn uri(&self) -> String {
+        self.0.uri()
+    }
+
+    fn params(&self) -> Option<HashMap<String, String>> {
+        self.0.params()
+    }
 }
 
-impl EventFragment {
-    query_strings!(index, range, status);
+impl RequestParameters for EventRequest {
+    type ModelCollection = ZohoEvents;
+    type NewModel = NewEvent;
+}
 
-    // Delete an event by ID
-    pub fn delete(self, id: i64) -> Result<String> {
-        let path_frags = self.path.split('?').collect::<Vec<&str>>();
-        let response: Response = self
-            .client
-            .delete(&format!("{}{}/?{}", path_frags[0], id, path_frags[1]))?;
-        Ok(response.response)
+pub enum Filter {
+    Index(i64),
+    Range(i64),
+    Status(String),
+}
+
+impl FilterOptions for Filter {
+    fn key(&self) -> String {
+        match self {
+            Filter::Index(_) => "index".to_owned(),
+            Filter::Range(_) => "range".to_owned(),
+            Filter::Status(_) => "status".to_owned(),
+        }
     }
 
-    pub fn update(mut self, id: i64, event_details: NewEvent) -> Result<Event> {
-        let path = self.path.clone();
-        let path_frags = path.split('?').collect::<Vec<&str>>();
-        self.path = format!("{}{}/?{}", path_frags[0], id, path_frags[1]);
-        self.create(event_details)
-    }
-
-    pub fn create(mut self, new_event: NewEvent) -> Result<Event> {
-        let participants = new_event
-            .participants
-            .into_iter()
-            .map(|p| p.to_string())
-            .collect::<Vec<String>>()
-            .join(",");
-        self.path = format!(
-            "{}&title={}&date={}&hour={}&minutes={}&ampm={}&duration_hour={}&duration_mins={}&participants={}",
-            self.path,
-            new_event.title,
-            new_event.date,
-            new_event.hour,
-            new_event.minutes,
-            new_event.ampm.to_string(),
-            new_event.duration_hour,
-            new_event.duration_mins,
-            participants
-        );
-
-        if let Some(rb) = new_event.remind_before {
-            self.path = format!("{}&remind_before={}", self.path, rb.to_string());
+    fn value(&self) -> String {
+        match self {
+            Filter::Index(index) => index.to_string(),
+            Filter::Range(range) => range.to_string(),
+            Filter::Status(status) => status.clone(),
         }
-        if let Some(r) = new_event.repeat {
-            self.path = format!("{}&repeat={}", self.path, r.to_string());
-        }
-        if let Some(nr) = new_event.nooftimes_repeat {
-            self.path = format!("{}&noofimes_repeat={}", self.path, nr.to_i());
-        }
-        if let Some(l) = new_event.location {
-            self.path = format!("{}&location={}", self.path, l.to_string());
-        }
-
-        let mut event: ZohoEvents = self.client.post(&self.path, "")?;
-        Ok(event.events.remove(0))
-    }
-
-    // Execute the query against the Zoho API
-    pub fn fetch(self) -> Result<Vec<Event>> {
-        if !self.path.contains("status") {
-            return self.status("open").fetch();
-        }
-        let event_list: ZohoEvents = self.client.get(&self.path)?;
-        Ok(event_list.events)
     }
 }
 
@@ -126,10 +92,10 @@ pub struct Event {
     #[serde(rename = "is_open")]
     pub is_open: Option<bool>,
     #[serde(rename = "participants")]
-    pub participants: Vec<Participant>,
+    pub participants: Option<Vec<Participant>>,
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Serialize, Debug, Clone, Default)]
 pub struct NewEvent {
     pub title: String,
     pub date: String,
@@ -138,14 +104,15 @@ pub struct NewEvent {
     pub ampm: AmPm,
     pub duration_hour: String,
     pub duration_mins: String,
-    pub participants: Vec<i64>,
+    #[serde(serialize_with = "join_ids")]
+    pub participants: Option<Vec<i64>>,
     pub remind_before: Option<RemindBefore>,
     pub repeat: Option<Repeat>,
     pub nooftimes_repeat: Option<NumRepeat>,
     pub location: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Clone, Debug, Deserialize)]
 pub enum AmPm {
     Am,
     Pm,
@@ -163,6 +130,15 @@ impl AmPm {
             AmPm::Am => "am".to_owned(),
             AmPm::Pm => "pm".to_owned(),
         }
+    }
+}
+
+impl Serialize for AmPm {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
     }
 }
 
