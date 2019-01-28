@@ -1,4 +1,3 @@
-use crate::client;
 use crate::errors::*;
 use reqwest::{Method, StatusCode};
 use serde;
@@ -113,9 +112,11 @@ impl RequestDetails {
     }
 
     pub fn uri(&self) -> String {
+        let base_url = "https://projectsapi.zoho.com/restapi";
+
         match self.id {
-            Some(model_id) => format!("{}/{}{}/", client::base_url(), self.model_path, model_id),
-            None => format!("{}/{}", client::base_url(), self.model_path),
+            Some(model_id) => format!("{}/{}{}/", base_url, self.model_path, model_id),
+            None => format!("{}/{}", base_url, self.model_path),
         }
     }
 

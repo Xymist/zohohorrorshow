@@ -13,13 +13,13 @@ use webbrowser;
 
 #[derive(Debug, Clone)]
 pub struct Credentials {
-    pub client_id: String,
-    pub client_secret: String,
-    pub auth_url: String,
-    pub token_url: String,
+    client_id: String,
+    client_secret: String,
+    auth_url: String,
+    token_url: String,
     access_token: Option<String>,
-    pub access_token_expiry: Option<Duration>,
-    pub refresh_token: Option<String>,
+    access_token_expiry: Option<SystemTime>,
+    refresh_token: Option<String>,
 }
 
 impl Credentials {
@@ -44,14 +44,40 @@ impl Credentials {
         }
     }
 
-    pub fn access_token(&self) -> String {
-        // TODO(Xymist): If access token missing or out of date, fetch a new one. Also, error handling.
+    pub fn access_token(&mut self) -> String {
+        let missing = self.access_token.is_none();
+
+        if missing || self.outdated() {
+            let mut oauth_client = ZohoClient::new(self.clone());
+
+            oauth_client.request_access();
+            let creds = oauth_client.credentials();
+
+            self.access_token = creds.raw_access_token();
+            self.access_token_expiry = creds.raw_expiry();
+        }
+
         self.access_token.clone().unwrap()
+    }
+
+    fn raw_access_token(&self) -> Option<String> {
+        self.access_token.clone()
+    }
+
+    fn raw_expiry(&self) -> Option<SystemTime> {
+        self.access_token_expiry
+    }
+
+    fn outdated(&self) -> bool {
+        match self.access_token_expiry {
+            Some(expiry) => expiry.duration_since(SystemTime::now()).is_err(),
+            None => true,
+        }
     }
 }
 
 #[derive(Debug, Clone, Deserialize)]
-pub struct ZohoTokenResponse {
+struct ZohoTokenResponse {
     access_token: Option<String>,
     refresh_token: Option<String>,
     expires_in_sec: usize,
@@ -60,13 +86,37 @@ pub struct ZohoTokenResponse {
     expires_in: usize,
 }
 
-pub struct ZohoClient {
+struct ZohoClient {
     oauth_client: BasicClient,
     credentials: Credentials,
 }
 
 impl ZohoClient {
-    pub fn request_access(&mut self) {
+    pub(in crate::oauth) fn new(credentials: Credentials) -> Self {
+        let oauth_client = BasicClient::new(
+            ClientId::new(credentials.client_id.clone()),
+            Some(ClientSecret::new(credentials.client_secret.clone())),
+            AuthUrl::new(
+                Url::parse(&credentials.auth_url).expect("Failed to parse authentication URL"),
+            ),
+            Some(TokenUrl::new(
+                Url::parse(&credentials.token_url).expect("Failed to parse token URL"),
+            )),
+        )
+        .add_scope(Scope::new("ZohoProjects.portals.READ".to_string()))
+        .add_scope(Scope::new("ZohoProjects.projects.ALL".to_string()))
+        .add_scope(Scope::new("ZohoProjects.events.ALL".to_string()))
+        .set_redirect_url(RedirectUrl::new(
+            Url::parse("http://localhost:8080").expect("Invalid redirect URL"),
+        ));
+
+        ZohoClient {
+            oauth_client: oauth_client,
+            credentials: credentials,
+        }
+    }
+
+    pub(in crate::oauth) fn request_access(&mut self) {
         let (authorize_url, csrf_state) = self.oauth_client.authorize_url(CsrfToken::new_random);
 
         if webbrowser::open(&authorize_url.to_string()).is_err() {
@@ -81,9 +131,7 @@ impl ZohoClient {
             if let Ok(mut stream) = stream {
                 let code;
                 let state;
-                let now = SystemTime::now()
-                    .duration_since(SystemTime::UNIX_EPOCH)
-                    .expect("System time predates Unix epoch.");
+                let now = SystemTime::now();
                 {
                     let mut reader = BufReader::new(&stream);
 
@@ -146,7 +194,7 @@ impl ZohoClient {
         }
     }
 
-    pub fn exchange_code(&self, code: AuthorizationCode) -> ZohoTokenResponse {
+    fn exchange_code(&self, code: AuthorizationCode) -> ZohoTokenResponse {
         let req_client: reqwest::Client = reqwest::Client::new();
         let mut builder =
             req_client.request(reqwest::Method::POST, &self.credentials.token_url.clone());
@@ -170,31 +218,7 @@ impl ZohoClient {
         token_response
     }
 
-    pub fn credentials(&self) -> Credentials {
+    pub(in crate::oauth) fn credentials(&self) -> Credentials {
         self.credentials.clone()
-    }
-}
-
-pub fn client(credentials: Credentials) -> ZohoClient {
-    let oauth_client = BasicClient::new(
-        ClientId::new(credentials.client_id.clone()),
-        Some(ClientSecret::new(credentials.client_secret.clone())),
-        AuthUrl::new(
-            Url::parse(&credentials.auth_url).expect("Failed to parse authentication URL"),
-        ),
-        Some(TokenUrl::new(
-            Url::parse(&credentials.token_url).expect("Failed to parse token URL"),
-        )),
-    )
-    .add_scope(Scope::new("ZohoProjects.portals.READ".to_string()))
-    .add_scope(Scope::new("ZohoProjects.projects.ALL".to_string()))
-    .add_scope(Scope::new("ZohoProjects.events.ALL".to_string()))
-    .set_redirect_url(RedirectUrl::new(
-        Url::parse("http://localhost:8080").expect("Invalid redirect URL"),
-    ));
-
-    ZohoClient {
-        oauth_client: oauth_client,
-        credentials: credentials,
     }
 }
