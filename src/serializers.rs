@@ -17,14 +17,12 @@ pub(crate) fn join_ids<S>(maybe_ids: &Option<Vec<i64>>, serializer: S) -> Result
 where
     S: Serializer,
 {
-    serializer.serialize_str(
-        &match maybe_ids {
-            Some(ids) => ids
-                .iter()
-                .map(|id| id.to_string())
-                .collect::<Vec<String>>()
-                .join(","),
-            None => "".to_owned(),
-        }
-    )
+    serializer.serialize_str(&match maybe_ids {
+        Some(ids) => ids
+            .iter()
+            .map(|id| id.to_string())
+            .collect::<Vec<String>>()
+            .join(","),
+        None => "".to_owned(),
+    })
 }

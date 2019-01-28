@@ -1,4 +1,4 @@
-use crate::client::BASE_URL;
+use crate::client;
 use crate::errors::*;
 use reqwest::{Method, StatusCode};
 use serde;
@@ -11,6 +11,7 @@ where
     method: Method,
     url: String,
     data: Option<T>,
+    access_token: String,
     params: Option<HashMap<String, String>>,
 }
 
@@ -19,12 +20,14 @@ impl<T: serde::Serialize + Clone> ZohoRequest<T> {
         method: Method,
         url: &str,
         data: Option<T>,
+        access_token: String,
         params: Option<HashMap<String, String>>,
     ) -> Self {
         ZohoRequest {
             method,
             url: url.to_owned(),
             data,
+            access_token,
             params,
         }
     }
@@ -45,12 +48,17 @@ impl<T: serde::Serialize + Clone> ZohoRequest<T> {
         self.params.clone()
     }
 
+    fn access_token(&self) -> String {
+        self.access_token.clone()
+    }
+
     pub fn send<U>(&self) -> Result<Option<U>>
     where
         U: serde::de::DeserializeOwned,
     {
         let req_client: reqwest::Client = reqwest::Client::new();
         let mut builder = req_client.request(self.method(), &self.url());
+        builder = builder.header("Authorization", format!("Bearer {}", self.access_token()));
         if self.params.is_some() {
             builder = builder.query(&self.params().unwrap());
         }
@@ -83,19 +91,18 @@ pub struct RequestDetails {
     pub model_path: String,
     pub id: Option<i64>,
     pub name: Option<String>,
+    pub access_token: String,
     pub params: HashMap<String, String>,
 }
 
 impl RequestDetails {
-    pub fn new(auth_token: &str, model_path: &str, id: Option<i64>) -> Self {
-        let mut params = HashMap::new();
-        params.insert("authtoken".to_owned(), auth_token.to_owned());
-
+    pub fn new(access_token: &str, model_path: &str, id: Option<i64>) -> Self {
         RequestDetails {
             model_path: model_path.to_owned(),
             id: id,
             name: None,
-            params: params,
+            access_token: access_token.to_owned(),
+            params: HashMap::new(),
         }
     }
 
@@ -107,13 +114,17 @@ impl RequestDetails {
 
     pub fn uri(&self) -> String {
         match self.id {
-            Some(model_id) => format!("{}/{}{}/", BASE_URL, self.model_path, model_id),
-            None => format!("{}/{}", BASE_URL, self.model_path),
+            Some(model_id) => format!("{}/{}{}/", client::base_url(), self.model_path, model_id),
+            None => format!("{}/{}", client::base_url(), self.model_path),
         }
     }
 
     pub fn params(&self) -> Option<HashMap<String, String>> {
         Some(self.params.clone())
+    }
+
+    pub fn access_token(&self) -> String {
+        self.access_token.clone()
     }
 }
 
@@ -125,6 +136,7 @@ pub trait FilterOptions {
 pub trait ModelRequest {
     fn uri(&self) -> String;
     fn params(&self) -> Option<HashMap<String, String>>;
+    fn access_token(&self) -> String;
 }
 
 pub trait RequestParameters: ModelRequest {
@@ -132,21 +144,47 @@ pub trait RequestParameters: ModelRequest {
     type NewModel: serde::Serialize + Clone;
 
     fn get(&self) -> Result<Option<Self::ModelCollection>> {
-        ZohoRequest::<Self::NewModel>::new(Method::GET, &self.uri(), None, self.params()).send()
+        ZohoRequest::<Self::NewModel>::new(
+            Method::GET,
+            &self.uri(),
+            None,
+            self.access_token(),
+            self.params(),
+        )
+        .send()
     }
 
     fn post(&self, data: Self::NewModel) -> Result<Option<Self::ModelCollection>> {
-        ZohoRequest::<Self::NewModel>::new(Method::POST, &self.uri(), Some(data), self.params())
-            .send()
+        ZohoRequest::<Self::NewModel>::new(
+            Method::POST,
+            &self.uri(),
+            Some(data),
+            self.access_token(),
+            self.params(),
+        )
+        .send()
     }
 
     fn put(&self, data: Self::NewModel) -> Result<Option<Self::ModelCollection>> {
-        ZohoRequest::<Self::NewModel>::new(Method::POST, &self.uri(), Some(data), self.params())
-            .send()
+        ZohoRequest::<Self::NewModel>::new(
+            Method::POST,
+            &self.uri(),
+            Some(data),
+            self.access_token(),
+            self.params(),
+        )
+        .send()
     }
 
     fn delete(&self) -> Result<Option<Self::ModelCollection>> {
-        ZohoRequest::<Self::NewModel>::new(Method::DELETE, &self.uri(), None, self.params()).send()
+        ZohoRequest::<Self::NewModel>::new(
+            Method::DELETE,
+            &self.uri(),
+            None,
+            self.access_token(),
+            self.params(),
+        )
+        .send()
     }
 }
 

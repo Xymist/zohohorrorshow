@@ -9,8 +9,8 @@ pub fn model_path(portal: impl std::fmt::Display) -> String {
 pub struct ProjectRequest(RequestDetails);
 
 impl ProjectRequest {
-    pub fn new(auth_token: &str, model_path: &str, id: Option<i64>) -> Self {
-        ProjectRequest(RequestDetails::new(auth_token, model_path, id))
+    pub fn new(access_token: &str, model_path: &str, id: Option<i64>) -> Self {
+        ProjectRequest(RequestDetails::new(access_token, model_path, id))
     }
 }
 
@@ -21,6 +21,10 @@ impl ModelRequest for ProjectRequest {
 
     fn params(&self) -> Option<HashMap<String, String>> {
         self.0.params()
+    }
+
+    fn access_token(&self) -> String {
+        self.0.access_token()
     }
 }
 

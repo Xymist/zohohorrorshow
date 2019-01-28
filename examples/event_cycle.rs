@@ -9,14 +9,26 @@ use zohohorrorshow::{
     client::ZohoClient,
     errors::*,
     models::event::{AmPm, NewEvent},
+    oauth,
     request::RequestParameters,
 };
 
 fn run() -> Result<i32> {
     dotenv().ok();
 
+    let creds = oauth::Credentials::new(
+        &env::var("ZOHO_CLIENT_ID")?,
+        &env::var("ZOHO_CLIENT_SECRET")?,
+        None,
+        None,
+    );
+
+    let mut oauth_client = oauth::client(creds);
+
+    oauth_client.request_access();
+
     // Generate the client, with a valid auth token.
-    let client = ZohoClient::new(&env::var("ZOHO_AUTHTOKEN")?)
+    let client = ZohoClient::new(&oauth_client.credentials().access_token())
         .set_portal(&env::var("ZOHO_PORTAL_NAME")?)?
         .set_project(&env::var("ZOHO_PROJECT_NAME")?)
         .chain_err(|| "Could not initialize; exiting")?;

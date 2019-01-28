@@ -9,8 +9,8 @@ pub fn model_path(portal: impl std::fmt::Display, project: impl std::fmt::Displa
 pub struct ActivityRequest(RequestDetails);
 
 impl ActivityRequest {
-    pub fn new(auth_token: &str, model_path: &str) -> Self {
-        ActivityRequest(RequestDetails::new(auth_token, model_path, None))
+    pub fn new(access_token: &str, model_path: &str) -> Self {
+        ActivityRequest(RequestDetails::new(access_token, model_path, None))
     }
 }
 
@@ -21,6 +21,10 @@ impl ModelRequest for ActivityRequest {
 
     fn params(&self) -> Option<HashMap<String, String>> {
         self.0.params()
+    }
+
+    fn access_token(&self) -> String {
+        self.0.access_token()
     }
 }
 

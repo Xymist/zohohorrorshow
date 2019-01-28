@@ -10,8 +10,8 @@ pub fn model_path() -> String {
 pub struct PortalRequest(RequestDetails);
 
 impl PortalRequest {
-    pub fn new(auth_token: &str) -> Self {
-        PortalRequest(RequestDetails::new(auth_token, &model_path(), None))
+    pub fn new(access_token: &str) -> Self {
+        PortalRequest(RequestDetails::new(access_token, &model_path(), None))
     }
 }
 
@@ -22,6 +22,10 @@ impl ModelRequest for PortalRequest {
 
     fn params(&self) -> Option<HashMap<String, String>> {
         self.0.params()
+    }
+
+    fn access_token(&self) -> String {
+        self.0.access_token()
     }
 }
 

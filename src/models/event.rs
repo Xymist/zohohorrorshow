@@ -10,8 +10,8 @@ pub fn model_path(portal: impl std::fmt::Display, project: impl std::fmt::Displa
 pub struct EventRequest(RequestDetails);
 
 impl EventRequest {
-    pub fn new(auth_token: &str, model_path: &str, id: Option<i64>) -> Self {
-        EventRequest(RequestDetails::new(auth_token, model_path, id))
+    pub fn new(access_token: &str, model_path: &str, id: Option<i64>) -> Self {
+        EventRequest(RequestDetails::new(access_token, model_path, id))
     }
 }
 
@@ -22,6 +22,10 @@ impl ModelRequest for EventRequest {
 
     fn params(&self) -> Option<HashMap<String, String>> {
         self.0.params()
+    }
+
+    fn access_token(&self) -> String {
+        self.0.access_token()
     }
 }
 

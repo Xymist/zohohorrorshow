@@ -8,14 +8,22 @@ pub const SingleModelPath: &str = "portal/{}/projects/{}/bugs/{}/";
 pub struct BugRequest(RequestDetails);
 
 impl BugRequest {
-    pub fn new(auth_token: &str, model_path: &str) -> Self {
-        BugRequest(RequestDetails::new(auth_token, model_path))
+    pub fn new(accss_token: &str, model_path: &str, id: Option<i64>) -> Self {
+        BugRequest(RequestDetails::new(access_token, model_path, id))
     }
 }
 
 impl ModelRequest for BugRequest {
     fn uri(&self) -> String {
         self.0.uri()
+    }
+
+    fn params(&self) -> Option<HashMap<String, String>> {
+        self.0.params()
+    }
+
+    fn access_token(&self) -> String {
+        self.0.access_token()
     }
 }
 

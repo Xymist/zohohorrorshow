@@ -13,4 +13,5 @@ mod serializers;
 pub mod client;
 pub mod errors;
 pub mod models;
+pub mod oauth;
 pub mod request;

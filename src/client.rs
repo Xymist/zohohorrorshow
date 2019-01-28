@@ -6,22 +6,30 @@ use crate::request::RequestParameters;
 use mockito;
 
 #[cfg(not(test))]
-pub const BASE_URL: &str = "https://projectsapi.zoho.com/restapi";
+pub const TESTING: bool = false;
 
 #[cfg(test)]
-pub const BASE_URL: &str = &mockito::SERVER_URL;
+pub const TESTING: bool = true;
+
+pub(crate) fn base_url() -> String {
+    if TESTING {
+        mockito::server_url()
+    } else {
+        "https://projectsapi.zoho.com/restapi".to_owned()
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct ZohoClient {
-    auth_token: String,
+    access_token: String,
     portal_id: Option<i64>,
     project_id: Option<i64>,
 }
 
 impl ZohoClient {
-    pub fn new(auth_token: &str) -> Self {
+    pub fn new(access_token: &str) -> Self {
         ZohoClient {
-            auth_token: auth_token.to_owned(),
+            access_token: access_token.to_owned(),
             portal_id: None,
             project_id: None,
         }
@@ -71,26 +79,26 @@ impl ZohoClient {
 
     pub fn activities(&self) -> activity::ActivityRequest {
         activity::ActivityRequest::new(
-            &self.auth_token.clone(),
+            &self.access_token.clone(),
             &activity::model_path(self.portal_id(), self.project_id()),
         )
     }
 
     pub fn events(&self, id: Option<i64>) -> event::EventRequest {
         event::EventRequest::new(
-            &self.auth_token.clone(),
+            &self.access_token.clone(),
             &event::model_path(self.portal_id(), self.project_id()),
             id,
         )
     }
 
     pub fn portals(&self) -> portal::PortalRequest {
-        portal::PortalRequest::new(&self.auth_token.clone())
+        portal::PortalRequest::new(&self.access_token.clone())
     }
 
     pub fn projects(&self, id: Option<i64>) -> project::ProjectRequest {
         project::ProjectRequest::new(
-            &self.auth_token.clone(),
+            &self.access_token.clone(),
             &project::model_path(self.portal_id()),
             id,
         )
@@ -236,7 +244,7 @@ mod tests {
             .set_project("Promotional banner for women's day")
             .expect("Failed to set project");
 
-        assert_eq!(client.auth_token, "abc123");
+        assert_eq!(client.access_token, "abc123");
         assert_eq!(client.portal_id(), 2_063_927);
         assert_eq!(client.project_id(), 170_876_000_003_152_069);
     }
