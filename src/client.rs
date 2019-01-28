@@ -1,5 +1,5 @@
 use crate::errors::*;
-use crate::models::{activity, bug, event, portal, project};
+use crate::models::{activity, bug, category, event, forum, milestone, portal, project};
 use crate::oauth;
 use crate::request::RequestParameters;
 
@@ -82,10 +82,46 @@ impl ZohoClient {
         )
     }
 
+    pub fn categories(&mut self, id: Option<i64>) -> category::CategoryRequest {
+        category::CategoryRequest::new(
+            &self.access_token(),
+            &category::model_path(self.portal_id(), self.project_id()),
+            id,
+        )
+    }
+
     pub fn events(&mut self, id: Option<i64>) -> event::EventRequest {
         event::EventRequest::new(
             &self.access_token(),
             &event::model_path(self.portal_id(), self.project_id()),
+            id,
+        )
+    }
+
+    pub fn forums(&mut self, id: Option<i64>) -> forum::ForumRequest {
+        forum::ForumRequest::new(
+            &self.access_token(),
+            &event::model_path(self.portal_id(), self.project_id()),
+            id,
+        )
+    }
+
+    pub fn forum_comments(
+        &mut self,
+        forum_id: i64,
+        id: Option<i64>,
+    ) -> forum::comment::CommentRequest {
+        forum::comment::CommentRequest::new(
+            &self.access_token(),
+            &forum::comment::model_path(self.portal_id(), self.project_id(), forum_id),
+            id,
+        )
+    }
+
+    pub fn milestones(&mut self, id: Option<i64>) -> milestone::MilestoneRequest {
+        milestone::MilestoneRequest::new(
+            &self.access_token(),
+            &milestone::model_path(self.portal_id(), self.project_id()),
             id,
         )
     }

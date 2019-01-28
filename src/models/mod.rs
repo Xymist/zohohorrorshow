@@ -1,10 +1,9 @@
 pub mod activity;
 pub mod bug;
-// pub mod category;
-// pub mod comment;
+pub mod category;
 pub mod event;
-// pub mod forum;
-// pub mod milestone;
+pub mod forum;
+pub mod milestone;
 pub mod portal;
 pub mod project;
 pub mod status;

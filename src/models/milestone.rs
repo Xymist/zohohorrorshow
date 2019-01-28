@@ -1,107 +1,57 @@
-use crate::client::ZohoClient;
-use crate::errors::*;
+use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
 use crate::serializers::from_str;
+use std::collections::HashMap;
 
-pub const ModelPath: &str = "portal/{}/projects/{}/milestones/";
+pub fn model_path(portal: impl std::fmt::Display, project: impl std::fmt::Display) -> String {
+    format!("portal/{}/projects/{}/milestones/", portal, project)
+}
 
-pub fn milestones(cl: &ZohoClient) -> MilestoneFragment {
-    let client = cl.clone();
-    MilestoneFragment {
-        path: client.make_uri(&format!(
-            "portal/{}/projects/{}/milestones/",
-            client.portal_id(),
-            client.project_id()
-        )),
-        client,
+pub struct MilestoneRequest(RequestDetails);
+
+impl MilestoneRequest {
+    pub fn new(access_token: &str, model_path: &str, id: Option<i64>) -> Self {
+        MilestoneRequest(RequestDetails::new(access_token, model_path, id))
     }
 }
 
-#[derive(Debug)]
-pub struct MilestoneFragment {
-    pub client: ZohoClient,
-    pub path: String,
-}
-
-impl MilestoneFragment {
-    query_strings!(index, range, status, display_type, flag);
-
-    // Fetch a specific portal by id
-    pub fn by_id(self, id: i64) -> MilestoneFilter {
-        let mut path_frags = self.path.split('?').collect::<Vec<&str>>();
-        if path_frags[1].contains('&') {
-            let autht = path_frags.remove(1).split('&').collect::<Vec<&str>>()[0];
-            path_frags.push(autht)
-        }
-        MilestoneFilter {
-            client: self.client.clone(),
-            path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
-            filter: Filter::ID(id),
-        }
+impl ModelRequest for MilestoneRequest {
+    fn uri(&self) -> String {
+        self.0.uri()
     }
 
-    // Fetch a specific portal by name
-    pub fn by_name(self, name: &str) -> MilestoneFilter {
-        if self.path.contains('&') {
-            panic!("Cannot both filter and find by name")
-        }
-        MilestoneFilter {
-            client: self.client.clone(),
-            path: self.path,
-            filter: Filter::Name(name.to_owned()),
+    fn params(&self) -> Option<HashMap<String, String>> {
+        self.0.params()
+    }
+
+    fn access_token(&self) -> String {
+        self.0.access_token()
+    }
+}
+
+impl RequestParameters for MilestoneRequest {
+    type ModelCollection = ZohoMilestones;
+    type NewModel = NewMilestone;
+}
+
+pub enum Filter {
+    Index(i64),
+    Range(i64),
+    //TODO(Xymist): Status, DisplayType, Flag
+}
+
+impl FilterOptions for Filter {
+    fn key(&self) -> String {
+        match self {
+            Filter::Index(_) => "index".to_owned(),
+            Filter::Range(_) => "range".to_owned(),
         }
     }
 
-    // Execute the query against the Zoho API
-    pub fn fetch(self) -> Result<Vec<Milestone>> {
-        let milestone_list: ZohoMilestones = self.client.get(&self.path)?;
-        Ok(milestone_list.milestones)
-    }
-}
-
-#[derive(Debug)]
-enum Filter {
-    ID(i64),
-    Name(String),
-}
-
-#[derive(Debug)]
-pub struct MilestoneFilter {
-    client: ZohoClient,
-    path: String,
-    filter: Filter,
-}
-
-impl MilestoneFilter {
-    // Execute the query against the Zoho API
-    pub fn fetch(self) -> Result<Option<Milestone>> {
-        let milestone_list: ZohoMilestones = self.client.get(&self.path)?;
-        let milestones = milestone_list.milestones;
-        match self.filter {
-            Filter::ID(id) => filter_by_id(milestones, id),
-            Filter::Name(name) => filter_by_name(milestones, &name),
+    fn value(&self) -> String {
+        match self {
+            Filter::Index(index) => index.to_string(),
+            Filter::Range(range) => range.to_string(),
         }
-    }
-}
-
-fn filter_by_id(milestones: Vec<Milestone>, id: i64) -> Result<Option<Milestone>> {
-    let mut filtered = milestones
-        .into_iter()
-        .filter(|m| m.id == id)
-        .collect::<Vec<Milestone>>();
-    match filtered.len() {
-        0 => Ok(None),
-        _ => Ok(Some(filtered.remove(0))),
-    }
-}
-
-fn filter_by_name(milestones: Vec<Milestone>, name: &str) -> Result<Option<Milestone>> {
-    let mut filtered = milestones
-        .into_iter()
-        .filter(|m| m.name == name)
-        .collect::<Vec<Milestone>>();
-    match filtered.len() {
-        0 => Ok(None),
-        _ => Ok(Some(filtered.remove(0))),
     }
 }
 
@@ -153,4 +103,13 @@ pub struct Link {
 pub struct SelfLink {
     #[serde(rename = "url")]
     pub url: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct NewMilestone {
+    name: String,
+    start_date: String,
+    end_date: String,
+    owner: i64,
+    flag: String,
 }

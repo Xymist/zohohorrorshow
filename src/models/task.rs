@@ -1,28 +1,13 @@
-use crate::client::ZohoClient;
 use crate::errors::*;
+use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
+use std::collections::HashMap;
 use crate::serializers::from_str;
 
-pub const ModelPath: &str = "portal/{}/projects/{}/tasks/";
-
-pub fn tasks(cl: &ZohoClient) -> TaskFragment {
-    let client = cl.clone();
-    TaskFragment {
-        path: client.make_uri(&format!(
-            "portal/{}/projects/{}/tasks/",
-            client.portal_id(),
-            client.project_id()
-        )),
-        client,
-    }
+pub fn model_path(portal: impl std::fmt::Display, project: impl std::fmt::Display) -> String {
+    format!("portal/{}/projects/{}/tasks/", portal, project)
 }
 
-// A fragment of the path to call for the Zoho Tasks API. This carries
-// with it a reference to the client which will be used to call it.
-#[derive(Debug)]
-pub struct TaskFragment {
-    pub client: ZohoClient,
-    pub path: String,
-}
+pub struct TaskRequest(RequestDetails);
 
 #[derive(Debug)]
 pub enum TaskStatus {

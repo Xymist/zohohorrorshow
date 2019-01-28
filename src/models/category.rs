@@ -1,65 +1,64 @@
-use crate::client::ZohoClient;
 use crate::errors::*;
+use crate::request::{ModelRequest, RequestDetails, RequestParameters};
 use crate::serializers::from_str;
+use std::collections::HashMap;
 
-pub const ModelPath: &str = "portal/{}/projects/{}/categories/";
+pub fn model_path(portal: impl std::fmt::Display, project: impl std::fmt::Display) -> String {
+    format!("portal/{}/projects/{}/categories/", portal, project)
+}
 
-pub fn categories(cl: &ZohoClient) -> CategoryFragment {
-    let client = cl.clone();
-    CategoryFragment {
-        path: client.make_uri(&format!(
-            "portal/{}/projects/{}/categories/",
-            client.portal_id(),
-            client.project_id()
-        )),
-        client,
+pub struct CategoryRequest(RequestDetails);
+
+impl CategoryRequest {
+    pub fn new(access_token: &str, model_path: &str, id: Option<i64>) -> Self {
+        CategoryRequest(RequestDetails::new(access_token, model_path, id))
     }
 }
 
-#[derive(Debug)]
-pub struct CategoryFragment {
-    pub client: ZohoClient,
-    pub path: String,
-}
+impl ModelRequest for CategoryRequest {
+    fn uri(&self) -> String {
+        self.0.uri()
+    }
 
-impl CategoryFragment {
-    // Execute the query against the Zoho API
-    pub fn fetch(self) -> Result<Vec<Category>> {
-        let category_list: ZohoCategories = self.client.get(&self.path)?;
-        Ok(category_list.categories)
+    fn params(&self) -> Option<HashMap<String, String>> {
+        self.0.params()
     }
-    // Delete a category by ID
-    pub fn delete(self, id: i64) -> Result<String> {
-        let path_frags = self.path.split('?').collect::<Vec<&str>>();
-        let response: Response = self
-            .client
-            .delete(&format!("{}{}/?{}", path_frags[0], id, path_frags[1]))?;
-        Ok(response.response)
-    }
-    // Create a category by name
-    pub fn create(self, name: &str) -> Result<Category> {
-        let mut response: ZohoCategories = self
-            .client
-            .post(&format!("{}&name={}", self.path, name), "")?;
-        Ok(response.categories.remove(0))
+
+    fn access_token(&self) -> String {
+        self.0.access_token()
     }
 }
 
-#[derive(Debug, Deserialize, Default)]
+impl RequestParameters for CategoryRequest {
+    type ModelCollection = ZohoCategories;
+    type NewModel = NewCategory;
+
+    fn put(&self, _data: Self::NewModel) -> Result<Option<Self::ModelCollection>> {
+        bail!("PUT requests are not supported for Activities");
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Default)]
 pub struct Response {
     response: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct ZohoCategories {
     #[serde(rename = "categories")]
     pub categories: Vec<Category>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct Category {
     #[serde(rename = "id", deserialize_with = "from_str")]
     pub id: i64,
+    #[serde(rename = "name")]
+    pub name: String,
+}
+
+#[derive(Clone, Debug, Serialize, Default)]
+pub struct NewCategory {
     #[serde(rename = "name")]
     pub name: String,
 }
