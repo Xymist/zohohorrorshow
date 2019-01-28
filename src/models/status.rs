@@ -1,13 +1,16 @@
 use crate::errors::*;
 use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
+use std::collections::HashMap;
 
-pub const ModelPath: &str = "portal/{}/projects/{}/statuses/";
+pub fn model_path(portal: impl std::fmt::Display, project: impl std::fmt::Display) -> String {
+    format!("portal/{}/projects/{}/statuses/", portal, project)
+}
 
 pub struct StatusRequest(RequestDetails);
 
 impl StatusRequest {
-    pub fn new(auth_token: &str, model_path: &str) -> Self {
-        StatusRequest(RequestDetails::new(auth_token, model_path))
+    pub fn new(access_token: &str, model_path: &str) -> Self {
+        StatusRequest(RequestDetails::new(access_token, model_path, None))
     }
 }
 
@@ -15,17 +18,25 @@ impl ModelRequest for StatusRequest {
     fn uri(&self) -> String {
         self.0.uri()
     }
+
+    fn params(&self) -> Option<HashMap<String, String>> {
+        self.0.params()
+    }
+
+    fn access_token(&self) -> String {
+        self.0.access_token()
+    }
 }
 
 impl RequestParameters for StatusRequest {
     type ModelCollection = ZohoStatuses;
     type NewModel = NewStatus;
 
-    fn put(&self, url: &str, data: &str) -> Result<Self::ModelCollection> {
+    fn put(&self, _data: Self::NewModel) -> Result<Option<Self::ModelCollection>> {
         bail!("PUT requests are not supported for Statuses");
     }
 
-    fn delete(&self, url: &str) -> Result<Self::ModelCollection> {
+    fn delete(&self) -> Result<Option<Self::ModelCollection>> {
         bail!("DELETE requests are not supported for Statuses");
     }
 }
@@ -73,7 +84,7 @@ pub struct Status {
     pub posted_time_long: i64,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct NewStatus {
     #[serde(rename = "content")]
     content: String,

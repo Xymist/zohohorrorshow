@@ -106,8 +106,7 @@ impl RequestDetails {
     }
 
     pub fn filter(mut self, param: &impl FilterOptions) -> Self {
-        self.params
-            .insert(param.key().to_owned(), param.value().to_owned());
+        self.params.insert(param.key(), param.value());
         self
     }
 

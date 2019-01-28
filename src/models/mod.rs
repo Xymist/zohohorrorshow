@@ -1,5 +1,5 @@
 pub mod activity;
-// pub mod bug;
+pub mod bug;
 // pub mod category;
 // pub mod comment;
 pub mod event;
@@ -7,7 +7,7 @@ pub mod event;
 // pub mod milestone;
 pub mod portal;
 pub mod project;
-// pub mod status;
+pub mod status;
 // pub mod task;
 // pub mod tasklist;
 // pub mod timesheet;

@@ -1,14 +1,15 @@
-use crate::errors::*;
 use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
 use crate::serializers::from_str;
+use std::collections::HashMap;
 
-pub const ModelPath: &str = "portal/{}/projects/{}/bugs/";
-pub const SingleModelPath: &str = "portal/{}/projects/{}/bugs/{}/";
+pub fn model_path(portal: impl std::fmt::Display, project: impl std::fmt::Display) -> String {
+    format!("portal/{}/projects/{}/bugs/", portal, project)
+}
 
 pub struct BugRequest(RequestDetails);
 
 impl BugRequest {
-    pub fn new(accss_token: &str, model_path: &str, id: Option<i64>) -> Self {
+    pub fn new(access_token: &str, model_path: &str, id: Option<i64>) -> Self {
         BugRequest(RequestDetails::new(access_token, model_path, id))
     }
 }
@@ -49,10 +50,10 @@ impl Flag {
 pub enum Filter {
     Index(i64),
     Range(i64),
-    StatusType(String),
+    StatusType(StatusType),
     CViewId(String),
-    SortColumn(String),
-    SortOrder(String),
+    SortColumn(SortColumn),
+    SortOrder(SortOrder),
     Flag(Flag),
     Status(Vec<i64>),
     Severity(Vec<i64>),
@@ -70,6 +71,20 @@ impl FilterOptions for Filter {
         match self {
             Filter::Index(_) => "index".to_owned(),
             Filter::Range(_) => "range".to_owned(),
+            Filter::StatusType(_) => "status_type".to_owned(),
+            Filter::CViewId(_) => "cview_id".to_owned(),
+            Filter::SortColumn(_) => "sort_column".to_owned(),
+            Filter::SortOrder(_) => "sort_order".to_owned(),
+            Filter::Flag(_) => "flag".to_owned(),
+            Filter::Status(_) => "status".to_owned(),
+            Filter::Severity(_) => "severity".to_owned(),
+            Filter::Classification(_) => "classification".to_owned(),
+            Filter::Module(_) => "module".to_owned(),
+            Filter::Milestone(_) => "milestone".to_owned(),
+            Filter::Assignee(_) => "assignee".to_owned(),
+            Filter::Escalation(_) => "escalation".to_owned(),
+            Filter::Reporter(_) => "reporter".to_owned(),
+            Filter::Affected(_) => "affected".to_owned(),
         }
     }
 
@@ -77,6 +92,56 @@ impl FilterOptions for Filter {
         match self {
             Filter::Index(index) => index.to_string(),
             Filter::Range(range) => range.to_string(),
+            Filter::StatusType(status_type) => status_type.to_string(),
+            Filter::CViewId(cview_id) => cview_id.to_owned(),
+            Filter::SortColumn(sort_column) => sort_column.to_string(),
+            Filter::SortOrder(sort_order) => sort_order.to_string(),
+            Filter::Flag(flag) => flag.value(),
+            Filter::Status(status) => status
+                .iter()
+                .map(|i| i.to_string())
+                .collect::<Vec<String>>()
+                .join(","),
+            Filter::Severity(severity) => severity
+                .iter()
+                .map(|i| i.to_string())
+                .collect::<Vec<String>>()
+                .join(","),
+            Filter::Classification(classification) => classification
+                .iter()
+                .map(|i| i.to_string())
+                .collect::<Vec<String>>()
+                .join(","),
+            Filter::Module(module) => module
+                .iter()
+                .map(|i| i.to_string())
+                .collect::<Vec<String>>()
+                .join(","),
+            Filter::Milestone(milestone) => milestone
+                .iter()
+                .map(|i| i.to_string())
+                .collect::<Vec<String>>()
+                .join(","),
+            Filter::Assignee(assignee) => assignee
+                .iter()
+                .map(|i| i.to_string())
+                .collect::<Vec<String>>()
+                .join(","),
+            Filter::Escalation(escalation) => escalation
+                .iter()
+                .map(|i| i.to_string())
+                .collect::<Vec<String>>()
+                .join(","),
+            Filter::Reporter(reporter) => reporter
+                .iter()
+                .map(|i| i.to_string())
+                .collect::<Vec<String>>()
+                .join(","),
+            Filter::Affected(affected) => affected
+                .iter()
+                .map(|i| i.to_string())
+                .collect::<Vec<String>>()
+                .join(","),
         }
     }
 }
@@ -127,7 +192,7 @@ pub struct Bug {
     pub key: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct NewBug {}
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Default)]
@@ -176,4 +241,49 @@ pub struct Module {
     pub id: i64,
     #[serde(rename = "name")]
     pub name: String,
+}
+
+#[derive(Debug, Clone)]
+pub enum SortOrder {
+    Ascending,
+    Descending,
+}
+
+impl SortOrder {
+    pub fn to_string(&self) -> String {
+        match self {
+            SortOrder::Ascending => "ascending".to_owned(),
+            SortOrder::Descending => "descending".to_owned(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum SortColumn {
+    CreatedTime,
+    LastModifiedTime,
+}
+
+impl SortColumn {
+    pub fn to_string(&self) -> String {
+        match self {
+            SortColumn::CreatedTime => "created_time".to_owned(),
+            SortColumn::LastModifiedTime => "last_modified_time".to_owned(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum StatusType {
+    Open,
+    Closed,
+}
+
+impl StatusType {
+    pub fn to_string(&self) -> String {
+        match self {
+            StatusType::Open => "open".to_owned(),
+            StatusType::Closed => "closed".to_owned(),
+        }
+    }
 }

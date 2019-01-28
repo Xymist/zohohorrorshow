@@ -1,5 +1,5 @@
 use crate::errors::*;
-use crate::models::{activity, event, portal, project};
+use crate::models::{activity, bug, event, portal, project};
 use crate::oauth;
 use crate::request::RequestParameters;
 
@@ -71,6 +71,14 @@ impl ZohoClient {
         activity::ActivityRequest::new(
             &self.access_token(),
             &activity::model_path(self.portal_id(), self.project_id()),
+        )
+    }
+
+    pub fn bugs(&mut self, id: Option<i64>) -> bug::BugRequest {
+        bug::BugRequest::new(
+            &self.access_token(),
+            &bug::model_path(self.portal_id(), self.project_id()),
+            id,
         )
     }
 
