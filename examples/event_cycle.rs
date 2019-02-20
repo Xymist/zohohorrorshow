@@ -41,16 +41,16 @@ fn run() -> Result<i32> {
         location: None,
     };
 
-    let new_event = &client.events(None).post(event.clone())?.unwrap().events[0];
+    let new_event = &client.events().post(event.clone())?.unwrap().events[0];
     let ne_id = new_event.id;
 
     event.title = "TestEvent - Updated".to_string();
-    client.events(Some(ne_id)).put(event)?;
+    client.event(ne_id).put(event)?;
 
-    let updated_events = client.events(None).get()?;
+    let updated_events = client.events().get()?;
     println!("Updated events: {:?}", updated_events);
 
-    let destroyed_event = client.events(Some(ne_id)).delete()?;
+    let destroyed_event = client.event(ne_id).delete()?;
     println!("Delete response: {:?}", destroyed_event);
 
     Ok(0)

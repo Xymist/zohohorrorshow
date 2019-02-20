@@ -1,13 +1,81 @@
-use crate::errors::*;
 use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
-use std::collections::HashMap;
 use crate::serializers::from_str;
+use std::collections::HashMap;
 
 pub fn model_path(portal: impl std::fmt::Display, project: impl std::fmt::Display) -> String {
     format!("portal/{}/projects/{}/tasks/", portal, project)
 }
 
 pub struct TaskRequest(RequestDetails);
+
+impl TaskRequest {
+    pub fn new(access_token: &str, model_path: &str, id: Option<i64>) -> Self {
+        TaskRequest(RequestDetails::new(access_token, model_path, id))
+    }
+}
+
+impl ModelRequest for TaskRequest {
+    fn uri(&self) -> String {
+        self.0.uri()
+    }
+
+    fn params(&self) -> Option<HashMap<String, String>> {
+        self.0.params()
+    }
+
+    fn access_token(&self) -> String {
+        self.0.access_token()
+    }
+
+    fn filter(mut self, param: impl FilterOptions) -> Self {
+        self.0 = self.0.filter(&param);
+        self
+    }
+}
+
+impl RequestParameters for TaskRequest {
+    type ModelCollection = ZohoTasks;
+    type NewModel = NewTask;
+}
+
+pub enum Filter {
+    Index(i64),
+    Range(i64),
+    Owner(i64),
+    Priority(String),
+    TasklistId(i64),
+    CustomStatus(String),
+    Status(TaskStatus),
+    Time(TaskTimePeriod),
+}
+
+impl FilterOptions for Filter {
+    fn key(&self) -> String {
+        match self {
+            Filter::Index(_) => "index".to_owned(),
+            Filter::Range(_) => "range".to_owned(),
+            Filter::Owner(_) => "owner".to_owned(),
+            Filter::Priority(_) => "priority".to_owned(),
+            Filter::TasklistId(_) => "tasklist_id".to_owned(),
+            Filter::CustomStatus(_) => "custom_status".to_owned(),
+            Filter::Status(_) => "status".to_owned(),
+            Filter::Time(_) => "time".to_owned(),
+        }
+    }
+
+    fn value(&self) -> String {
+        match self {
+            Filter::Index(index) => index.to_string(),
+            Filter::Range(range) => range.to_string(),
+            Filter::Owner(owner) => owner.to_string(),
+            Filter::Priority(priority) => priority.clone(),
+            Filter::TasklistId(tasklist_id) => tasklist_id.to_string(),
+            Filter::CustomStatus(custom_status) => custom_status.clone(),
+            Filter::Status(status) => status.to_string(),
+            Filter::Time(time) => time.to_string(),
+        }
+    }
+}
 
 #[derive(Debug)]
 pub enum TaskStatus {
@@ -45,40 +113,16 @@ impl TaskTimePeriod {
     }
 }
 
-impl TaskFragment {
-    query_strings!(index, range, owner, priority, tasklist_id, custom_status);
-
-    // Status of the task. Defaults to All
-    pub fn status(&mut self, status: &TaskStatus) {
-        self.path = format!("{}&status={}", self.path, status.to_string());
-    }
-    // Time period of the task. Defaults to All
-    pub fn time(&mut self, time: &TaskTimePeriod) {
-        self.path = format!("{}&time={}", self.path, time.to_string());
-    }
-
-    // Fetch a specific task
-    pub fn by_id(self, id: i64) -> TaskFragment {
-        if self.path.contains('&') {
-            panic!("Cannot both filter and find by ID")
-        }
-        let path_frags = self.path.split('?').collect::<Vec<&str>>();
-        TaskFragment {
-            client: self.client.clone(),
-            path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
-        }
-    }
-    // Execute the query against the Zoho API
-    pub fn fetch(self) -> Result<Vec<Task>> {
-        let task_list: ZohoTasks = self.client.get(&self.path)?;
-        Ok(task_list.tasks)
-    }
-}
-
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ZohoTasks {
     #[serde(rename = "tasks")]
     pub tasks: Vec<Task>,
+}
+
+#[derive(Debug, Serialize, Clone, Default)]
+pub struct NewTask {
+    #[serde(rename = "name")]
+    pub name: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]

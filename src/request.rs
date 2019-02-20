@@ -3,6 +3,7 @@ use reqwest::{Method, StatusCode};
 use serde;
 use std::collections::HashMap;
 
+// TODO(Xymist): Split this; POST/PUT requests should carry data, GET and DELETE should not.
 pub struct ZohoRequest<T>
 where
     T: serde::Serialize + Clone,
@@ -86,6 +87,7 @@ impl<T: serde::Serialize + Clone> ZohoRequest<T> {
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct RequestDetails {
     pub model_path: String,
     pub id: Option<i64>,
@@ -137,6 +139,7 @@ pub trait ModelRequest {
     fn uri(&self) -> String;
     fn params(&self) -> Option<HashMap<String, String>>;
     fn access_token(&self) -> String;
+    fn filter(self, param: impl FilterOptions) -> Self;
 }
 
 pub trait RequestParameters: ModelRequest {

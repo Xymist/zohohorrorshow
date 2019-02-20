@@ -1,5 +1,5 @@
 use crate::errors::*;
-use crate::request::{ModelRequest, RequestDetails, RequestParameters};
+use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
 use crate::serializers::from_str;
 use std::collections::HashMap;
 
@@ -26,6 +26,10 @@ impl ModelRequest for PortalRequest {
 
     fn access_token(&self) -> String {
         self.0.access_token()
+    }
+
+    fn filter(self, _param: impl FilterOptions) -> Self {
+        self
     }
 }
 

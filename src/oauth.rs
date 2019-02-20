@@ -110,6 +110,17 @@ impl ZohoClient {
         .add_scope(Scope::new("ZohoProjects.status.READ".to_string()))
         .add_scope(Scope::new("ZohoProjects.status.CREATE".to_string()))
         .add_scope(Scope::new("ZohoProjects.forums.ALL".to_string()))
+        .add_scope(Scope::new("ZohoProjects.milestones.ALL".to_string()))
+        .add_scope(Scope::new("ZohoProjects.tasks.ALL".to_string()))
+        .add_scope(Scope::new("ZohoProjects.tasklists.ALL".to_string()))
+        .add_scope(Scope::new("ZohoProjects.users.ALL".to_string()))
+        .add_scope(Scope::new("ZohoProjects.documents.READ".to_string()))
+        .add_scope(Scope::new("ZohoProjects.documents.CREATE".to_string()))
+        .add_scope(Scope::new("ZohoProjects.documents.UPDATE".to_string()))
+        .add_scope(Scope::new("ZohoProjects.documents.DELETE".to_string()))
+        .add_scope(Scope::new("ZohoPC.files.READ".to_string()))
+        .add_scope(Scope::new("ZohoPC.files.CREATE".to_string()))
+        .add_scope(Scope::new("ZohoPC.files.DELETE".to_string()))
         .set_redirect_url(RedirectUrl::new(
             Url::parse("http://localhost:8080").expect("Invalid redirect URL"),
         ));

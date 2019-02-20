@@ -1,5 +1,5 @@
 use crate::errors::*;
-use crate::request::{ModelRequest, RequestDetails, RequestParameters, ZohoRequest};
+use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters, ZohoRequest};
 use reqwest::Method;
 use std::collections::HashMap;
 
@@ -28,6 +28,10 @@ impl ModelRequest for ForumRequest {
 
     fn access_token(&self) -> String {
         self.0.access_token()
+    }
+
+    fn filter(self, _param: impl FilterOptions) -> Self {
+        self
     }
 }
 

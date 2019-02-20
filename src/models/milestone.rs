@@ -26,6 +26,11 @@ impl ModelRequest for MilestoneRequest {
     fn access_token(&self) -> String {
         self.0.access_token()
     }
+
+    fn filter(mut self, param: impl FilterOptions) -> Self {
+        self.0 = self.0.filter(&param);
+        self
+    }
 }
 
 impl RequestParameters for MilestoneRequest {
@@ -36,7 +41,9 @@ impl RequestParameters for MilestoneRequest {
 pub enum Filter {
     Index(i64),
     Range(i64),
-    //TODO(Xymist): Status, DisplayType, Flag
+    Status(String),
+    DisplayType(String),
+    Flag(String),
 }
 
 impl FilterOptions for Filter {
@@ -44,6 +51,9 @@ impl FilterOptions for Filter {
         match self {
             Filter::Index(_) => "index".to_owned(),
             Filter::Range(_) => "range".to_owned(),
+            Filter::Status(_) => "status".to_owned(),
+            Filter::DisplayType(_) => "display_type".to_owned(),
+            Filter::Flag(_) => "flag".to_owned(),
         }
     }
 
@@ -51,6 +61,9 @@ impl FilterOptions for Filter {
         match self {
             Filter::Index(index) => index.to_string(),
             Filter::Range(range) => range.to_string(),
+            Filter::Status(status) => status.clone(),
+            Filter::DisplayType(display_type) => display_type.clone(),
+            Filter::Flag(flag) => flag.clone(),
         }
     }
 }

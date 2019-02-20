@@ -34,6 +34,11 @@ impl ModelRequest for CommentRequest {
     fn access_token(&self) -> String {
         self.0.access_token()
     }
+
+    fn filter(mut self, param: impl FilterOptions) -> Self {
+        self.0 = self.0.filter(&param);
+        self
+    }
 }
 
 impl RequestParameters for CommentRequest {

@@ -20,7 +20,7 @@ fn run() -> Result<i32> {
     .set_project(&env::var("ZOHO_PROJECT_NAME")?)
     .chain_err(|| "Could not initialize; exiting")?;
 
-    let pjts = client.projects(None).get()?;
+    let pjts = client.projects().get()?;
     println!("Existing projects: {:?}", pjts);
 
     // Commented until reimplemented

@@ -42,7 +42,7 @@ impl ZohoClient {
     }
 
     pub fn set_project(mut self, project_name: &str) -> Result<Self> {
-        let projects = self.projects(None).get();
+        let projects = self.projects().get();
         let project = match projects {
             Ok(Some(p_list)) => p_list.projects.into_iter().find(|p| p.name == project_name),
             Err(_) | Ok(None) => return Err("Failed to fetch portals from Zoho".into()),
@@ -74,55 +74,99 @@ impl ZohoClient {
         )
     }
 
-    pub fn bugs(&mut self, id: Option<i64>) -> bug::BugRequest {
+    pub fn bug(&mut self, id: i64) -> bug::BugRequest {
         bug::BugRequest::new(
             &self.access_token(),
             &bug::model_path(self.portal_id(), self.project_id()),
-            id,
+            Some(id),
         )
     }
 
-    pub fn categories(&mut self, id: Option<i64>) -> category::CategoryRequest {
+    pub fn bugs(&mut self) -> bug::BugRequest {
+        bug::BugRequest::new(
+            &self.access_token(),
+            &bug::model_path(self.portal_id(), self.project_id()),
+            None,
+        )
+    }
+
+    pub fn category(&mut self, id: i64) -> category::CategoryRequest {
         category::CategoryRequest::new(
             &self.access_token(),
             &category::model_path(self.portal_id(), self.project_id()),
-            id,
+            Some(id),
         )
     }
 
-    pub fn events(&mut self, id: Option<i64>) -> event::EventRequest {
+    pub fn categories(&mut self) -> category::CategoryRequest {
+        category::CategoryRequest::new(
+            &self.access_token(),
+            &category::model_path(self.portal_id(), self.project_id()),
+            None,
+        )
+    }
+
+    pub fn event(&mut self, id: i64) -> event::EventRequest {
         event::EventRequest::new(
             &self.access_token(),
             &event::model_path(self.portal_id(), self.project_id()),
-            id,
+            Some(id),
         )
     }
 
-    pub fn forums(&mut self, id: Option<i64>) -> forum::ForumRequest {
+    pub fn events(&mut self) -> event::EventRequest {
+        event::EventRequest::new(
+            &self.access_token(),
+            &event::model_path(self.portal_id(), self.project_id()),
+            None,
+        )
+    }
+
+    pub fn forum(&mut self, id: i64) -> forum::ForumRequest {
         forum::ForumRequest::new(
             &self.access_token(),
             &event::model_path(self.portal_id(), self.project_id()),
-            id,
+            Some(id),
         )
     }
 
-    pub fn forum_comments(
-        &mut self,
-        forum_id: i64,
-        id: Option<i64>,
-    ) -> forum::comment::CommentRequest {
+    pub fn forums(&mut self) -> forum::ForumRequest {
+        forum::ForumRequest::new(
+            &self.access_token(),
+            &event::model_path(self.portal_id(), self.project_id()),
+            None,
+        )
+    }
+
+    pub fn forum_comment(&mut self, forum_id: i64, id: i64) -> forum::comment::CommentRequest {
         forum::comment::CommentRequest::new(
             &self.access_token(),
             &forum::comment::model_path(self.portal_id(), self.project_id(), forum_id),
-            id,
+            Some(id),
         )
     }
 
-    pub fn milestones(&mut self, id: Option<i64>) -> milestone::MilestoneRequest {
+    pub fn forum_comments(&mut self, forum_id: i64) -> forum::comment::CommentRequest {
+        forum::comment::CommentRequest::new(
+            &self.access_token(),
+            &forum::comment::model_path(self.portal_id(), self.project_id(), forum_id),
+            None,
+        )
+    }
+
+    pub fn milestone(&mut self, id: i64) -> milestone::MilestoneRequest {
         milestone::MilestoneRequest::new(
             &self.access_token(),
             &milestone::model_path(self.portal_id(), self.project_id()),
-            id,
+            Some(id),
+        )
+    }
+
+    pub fn milestones(&mut self) -> milestone::MilestoneRequest {
+        milestone::MilestoneRequest::new(
+            &self.access_token(),
+            &milestone::model_path(self.portal_id(), self.project_id()),
+            None,
         )
     }
 
@@ -130,11 +174,19 @@ impl ZohoClient {
         portal::PortalRequest::new(&self.access_token())
     }
 
-    pub fn projects(&mut self, id: Option<i64>) -> project::ProjectRequest {
+    pub fn project(&mut self, id: i64) -> project::ProjectRequest {
         project::ProjectRequest::new(
             &self.access_token(),
             &project::model_path(self.portal_id()),
-            id,
+            Some(id),
+        )
+    }
+
+    pub fn projects(&mut self) -> project::ProjectRequest {
+        project::ProjectRequest::new(
+            &self.access_token(),
+            &project::model_path(self.portal_id()),
+            None,
         )
     }
 }
