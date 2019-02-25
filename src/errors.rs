@@ -1,3 +1,6 @@
+//! Error wrapper module utilising ErrorChain to unify error handling.
+//! This probably ought to be replaced either with Failure or a custom implementation with a bit more clarity.
+
 use chrono::ParseError;
 use reqwest;
 use serde_json;

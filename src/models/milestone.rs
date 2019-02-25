@@ -2,10 +2,14 @@ use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParamet
 use crate::serializers::from_str;
 use std::collections::HashMap;
 
-pub fn model_path(portal: impl std::fmt::Display, project: impl std::fmt::Display) -> String {
+pub(crate) fn model_path(
+    portal: impl std::fmt::Display,
+    project: impl std::fmt::Display,
+) -> String {
     format!("portal/{}/projects/{}/milestones/", portal, project)
 }
 
+#[derive(Clone, Debug)]
 pub struct MilestoneRequest(RequestDetails);
 
 impl MilestoneRequest {
@@ -39,11 +43,89 @@ impl RequestParameters for MilestoneRequest {
 }
 
 pub enum Filter {
-    Index(i64),
-    Range(i64),
-    Status(String),
-    DisplayType(String),
-    Flag(String),
+    Index(usize),
+    Range(i8),
+    Status(Status),
+    DisplayType(DisplayType),
+    Flag(Flag),
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub enum Flag {
+    #[serde(rename = "all")]
+    AllFlag,
+    #[serde(rename = "internal")]
+    Internal,
+    #[serde(rename = "external")]
+    External,
+}
+
+impl Flag {
+    pub fn to_string(&self) -> String {
+        match self {
+            Flag::AllFlag => "all".to_owned(),
+            Flag::Internal => "internal".to_owned(),
+            Flag::External => "external".to_owned(),
+        }
+    }
+}
+
+impl Default for Flag {
+    fn default() -> Self {
+        Flag::AllFlag
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub enum DisplayType {
+    #[serde(rename = "all")]
+    All,
+    #[serde(rename = "upcoming")]
+    Upcoming,
+    #[serde(rename = "delayed")]
+    Delayed,
+}
+
+impl DisplayType {
+    pub fn to_string(&self) -> String {
+        match self {
+            DisplayType::All => "all".to_owned(),
+            DisplayType::Upcoming => "upcoming".to_owned(),
+            DisplayType::Delayed => "delayed".to_owned(),
+        }
+    }
+}
+
+impl Default for DisplayType {
+    fn default() -> Self {
+        DisplayType::All
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub enum Status {
+    #[serde(rename = "all")]
+    All,
+    #[serde(rename = "completed")]
+    Completed,
+    #[serde(rename = "notcompleted")]
+    NotCompleted,
+}
+
+impl Status {
+    pub fn to_string(&self) -> String {
+        match self {
+            Status::All => "all".to_owned(),
+            Status::Completed => "completed".to_owned(),
+            Status::NotCompleted => "notcompleted".to_owned(),
+        }
+    }
+}
+
+impl Default for Status {
+    fn default() -> Self {
+        Status::All
+    }
 }
 
 impl FilterOptions for Filter {
@@ -61,9 +143,9 @@ impl FilterOptions for Filter {
         match self {
             Filter::Index(index) => index.to_string(),
             Filter::Range(range) => range.to_string(),
-            Filter::Status(status) => status.clone(),
-            Filter::DisplayType(display_type) => display_type.clone(),
-            Filter::Flag(flag) => flag.clone(),
+            Filter::Status(status) => status.to_string(),
+            Filter::DisplayType(display_type) => display_type.to_string(),
+            Filter::Flag(flag) => flag.to_string(),
         }
     }
 }
@@ -87,7 +169,7 @@ pub struct Milestone {
     #[serde(rename = "owner_id", deserialize_with = "from_str")]
     pub owner_id: i64,
     #[serde(rename = "flag")]
-    pub flag: String,
+    pub flag: Flag,
     #[serde(rename = "start_date")]
     pub start_date: String,
     #[serde(rename = "start_date_long")]
@@ -97,7 +179,7 @@ pub struct Milestone {
     #[serde(rename = "end_date_long")]
     pub end_date_long: i64,
     #[serde(rename = "status")]
-    pub status: String,
+    pub status: Status,
     #[serde(rename = "completed_date")]
     pub completed_date: Option<String>,
     #[serde(rename = "completed_date_long")]

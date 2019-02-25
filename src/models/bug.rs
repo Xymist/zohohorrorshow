@@ -1,16 +1,25 @@
+use crate::errors::*;
 use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
 use crate::serializers::from_str;
 use std::collections::HashMap;
 
-pub fn model_path(portal: impl std::fmt::Display, project: impl std::fmt::Display) -> String {
+pub(crate) fn model_path(
+    portal: impl std::fmt::Display,
+    project: impl std::fmt::Display,
+) -> String {
     format!("portal/{}/projects/{}/bugs/", portal, project)
 }
 
+#[derive(Clone, Debug)]
 pub struct BugRequest(RequestDetails);
 
 impl BugRequest {
     pub fn new(access_token: &str, model_path: &str, id: Option<i64>) -> Self {
         BugRequest(RequestDetails::new(access_token, model_path, id))
+    }
+
+    pub fn iter_get(self) -> BugIterator {
+        BugIterator::new(self)
     }
 }
 
@@ -53,8 +62,9 @@ impl Flag {
 }
 
 pub enum Filter {
-    Index(i64),
-    Range(i64),
+    Index(usize),
+    // Zoho only accepts ranges up to 100, no point in this being any bigger.
+    Range(i8),
     StatusType(StatusType),
     CViewId(String),
     SortColumn(SortColumn),
@@ -289,6 +299,78 @@ impl StatusType {
         match self {
             StatusType::Open => "open".to_owned(),
             StatusType::Closed => "closed".to_owned(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct BugIterator {
+    pub items: <Vec<Bug> as IntoIterator>::IntoIter,
+    pub last_full: bool,
+    pub request: BugRequest,
+    pub start_index: usize,
+}
+
+impl BugIterator {
+    pub fn new(request: BugRequest) -> BugIterator {
+        BugIterator {
+            items: Vec::new().into_iter(),
+            last_full: true,
+            request: request,
+            start_index: 0,
+        }
+    }
+
+    fn range(&self) -> i8 {
+        match self.request.params() {
+            Some(params) => match params.get("range") {
+                Some(range_string) => range_string.parse::<i8>().unwrap_or(100),
+                None => 100,
+            },
+            None => 100,
+        }
+    }
+
+    pub fn try_next(&mut self) -> Result<Option<Bug>> {
+        // If there are still items in the local cache from the last request, use the next one of those.
+        if let Some(bug) = self.items.next() {
+            return Ok(Some(bug));
+        }
+
+        // If we didn't get a full 100 (the default number to retrieve) the last time, then we must have
+        // run out in Zoho; don't request any more.
+        if !self.last_full {
+            return Ok(None);
+        }
+
+        let returned_tickets = self
+            .request
+            .clone()
+            .filter(Filter::Index(self.start_index))
+            .get()?;
+
+        if let Some(ticket_list) = returned_tickets {
+            self.last_full = ticket_list.bugs.len() as i8 == self.range();
+
+            self.start_index += ticket_list.bugs.len();
+
+            self.items = ticket_list.bugs.into_iter();
+
+            Ok(self.items.next())
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+impl Iterator for BugIterator {
+    type Item = Result<Bug>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.try_next() {
+            Ok(Some(val)) => Some(Ok(val)),
+            Ok(None) => None,
+            Err(err) => Some(Err(err)),
         }
     }
 }

@@ -2,15 +2,23 @@ use crate::errors::*;
 use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
 use std::collections::HashMap;
 
-pub fn model_path(portal: impl std::fmt::Display, project: impl std::fmt::Display) -> String {
+pub(crate) fn model_path(
+    portal: impl std::fmt::Display,
+    project: impl std::fmt::Display,
+) -> String {
     format!("portal/{}/projects/{}/activities/", portal, project)
 }
 
+#[derive(Clone, Debug)]
 pub struct ActivityRequest(RequestDetails);
 
 impl ActivityRequest {
     pub fn new(access_token: &str, model_path: &str) -> Self {
         ActivityRequest(RequestDetails::new(access_token, model_path, None))
+    }
+
+    pub fn iter_get(self) -> ActivityIterator {
+        ActivityIterator::new(self)
     }
 }
 
@@ -50,9 +58,15 @@ impl RequestParameters for ActivityRequest {
     }
 }
 
+/// Filters available for Activities, to restrict the records returned
 pub enum Filter {
-    Index(i64),
-    Range(i64),
+    /// Index of first record to return. Defaults to 0.
+    Index(usize),
+
+    /// Number of records to return, if possible. Maximum 100, defaults to 100.
+    /// If fewer than this number of records are available (after adjusting for any
+    /// Index filter) then all records will be returned.
+    Range(i8),
 }
 
 impl FilterOptions for Filter {
@@ -71,13 +85,16 @@ impl FilterOptions for Filter {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+/// Wrapper struct representing the object returned by the Zoho API containing a list of
+/// Activities.
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct ZohoActivities {
+    /// All Activity records corresponding to the applied filters
     #[serde(rename = "activities")]
     pub activities: Vec<Activity>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct Activity {
     #[serde(rename = "id")]
     pub id: i64,
@@ -97,5 +114,79 @@ pub struct Activity {
     pub time: String,
 }
 
-#[derive(Debug, Serialize, Clone)]
-pub struct NewActivity {}
+/// Unconstructable enum representing a theoretical new Activity.
+/// Zoho Projects does not permit creating new Activities through the API.
+#[derive(Clone, Serialize, Deserialize)]
+pub enum NewActivity {}
+
+#[derive(Debug, Clone)]
+pub struct ActivityIterator {
+    pub items: <Vec<Activity> as IntoIterator>::IntoIter,
+    pub last_full: bool,
+    pub request: ActivityRequest,
+    pub start_index: usize,
+}
+
+impl ActivityIterator {
+    pub fn new(request: ActivityRequest) -> Self {
+        Self {
+            items: Vec::new().into_iter(),
+            last_full: true,
+            request: request,
+            start_index: 0,
+        }
+    }
+
+    fn range(&self) -> i8 {
+        match self.request.params() {
+            Some(params) => match params.get("range") {
+                Some(range_string) => range_string.parse::<i8>().unwrap_or(100),
+                None => 100,
+            },
+            None => 100,
+        }
+    }
+
+    pub fn try_next(&mut self) -> Result<Option<Activity>> {
+        // If there are still items in the local cache from the last request, use the next one of those.
+        if let Some(activity) = self.items.next() {
+            return Ok(Some(activity));
+        }
+
+        // If we didn't get a full 100 (the default number to retrieve) the last time, then we must have
+        // run out in Zoho; don't request any more.
+        if !self.last_full {
+            return Ok(None);
+        }
+
+        let returned_activities = self
+            .request
+            .clone()
+            .filter(Filter::Index(self.start_index))
+            .get()?;
+
+        if let Some(activity_list) = returned_activities {
+            self.last_full = activity_list.activities.len() as i8 == self.range();
+
+            self.start_index += activity_list.activities.len();
+
+            self.items = activity_list.activities.into_iter();
+
+            Ok(self.items.next())
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+impl Iterator for ActivityIterator {
+    type Item = Result<Activity>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.try_next() {
+            Ok(Some(val)) => Some(Ok(val)),
+            Ok(None) => None,
+            Err(err) => Some(Err(err)),
+        }
+    }
+}

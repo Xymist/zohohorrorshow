@@ -3,14 +3,17 @@ use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParamet
 use crate::serializers::from_str;
 use std::collections::HashMap;
 
-pub fn model_path() -> String {
+pub(crate) fn model_path() -> String {
     "portals/".to_owned()
 }
 
+/// Request for Portal(s) from Zoho
+#[derive(Clone, Debug)]
 pub struct PortalRequest(RequestDetails);
 
 impl PortalRequest {
-    pub fn new(access_token: &str) -> Self {
+    /// Constructor for a new PortalRequest
+    pub(crate) fn new(access_token: &str) -> Self {
         PortalRequest(RequestDetails::new(access_token, &model_path(), None))
     }
 }
@@ -50,8 +53,10 @@ impl RequestParameters for PortalRequest {
     }
 }
 
+/// Unconstructable enum representing a theoretical new Portal record.
+/// The Zoho Projects API does not permit creating Portals.
 #[derive(Debug, Serialize, Clone)]
-pub struct NewPortal {}
+pub enum NewPortal {}
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ZohoPortals {

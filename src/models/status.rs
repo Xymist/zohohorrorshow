@@ -2,10 +2,14 @@ use crate::errors::*;
 use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
 use std::collections::HashMap;
 
-pub fn model_path(portal: impl std::fmt::Display, project: impl std::fmt::Display) -> String {
+pub(crate) fn model_path(
+    portal: impl std::fmt::Display,
+    project: impl std::fmt::Display,
+) -> String {
     format!("portal/{}/projects/{}/statuses/", portal, project)
 }
 
+#[derive(Clone, Debug)]
 pub struct StatusRequest(RequestDetails);
 
 impl StatusRequest {
@@ -47,8 +51,8 @@ impl RequestParameters for StatusRequest {
 }
 
 pub enum Filter {
-    Index(i64),
-    Range(i64),
+    Index(usize),
+    Range(i8),
 }
 
 impl FilterOptions for Filter {

@@ -2,10 +2,14 @@ use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParamet
 use crate::serializers::from_str;
 use std::collections::HashMap;
 
-pub fn model_path(portal: impl std::fmt::Display, project: impl std::fmt::Display) -> String {
+pub(crate) fn model_path(
+    portal: impl std::fmt::Display,
+    project: impl std::fmt::Display,
+) -> String {
     format!("portal/{}/projects/{}/tasks/", portal, project)
 }
 
+#[derive(Clone, Debug)]
 pub struct TaskRequest(RequestDetails);
 
 impl TaskRequest {
@@ -39,8 +43,8 @@ impl RequestParameters for TaskRequest {
 }
 
 pub enum Filter {
-    Index(i64),
-    Range(i64),
+    Index(usize),
+    Range(i8),
     Owner(i64),
     Priority(String),
     TasklistId(i64),

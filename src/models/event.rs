@@ -3,10 +3,14 @@ use crate::serializers::{from_str, join_ids};
 use serde::ser::{Serialize, Serializer};
 use std::collections::HashMap;
 
-pub fn model_path(portal: impl std::fmt::Display, project: impl std::fmt::Display) -> String {
+pub(crate) fn model_path(
+    portal: impl std::fmt::Display,
+    project: impl std::fmt::Display,
+) -> String {
     format!("portal/{}/projects/{}/events/", portal, project)
 }
 
+#[derive(Clone, Debug)]
 pub struct EventRequest(RequestDetails);
 
 impl EventRequest {
@@ -40,8 +44,8 @@ impl RequestParameters for EventRequest {
 }
 
 pub enum Filter {
-    Index(i64),
-    Range(i64),
+    Index(usize),
+    Range(i8),
     Status(String),
 }
 

@@ -5,15 +5,23 @@ use std::collections::HashMap;
 
 pub mod comment;
 
-pub fn model_path(portal: impl std::fmt::Display, project: impl std::fmt::Display) -> String {
+pub(crate) fn model_path(
+    portal: impl std::fmt::Display,
+    project: impl std::fmt::Display,
+) -> String {
     format!("portal/{}/projects/{}/forums/", portal, project)
 }
 
+#[derive(Clone, Debug)]
 pub struct ForumRequest(RequestDetails);
 
 impl ForumRequest {
     pub fn new(access_token: &str, model_path: &str, id: Option<i64>) -> Self {
         ForumRequest(RequestDetails::new(access_token, model_path, id))
+    }
+
+    pub fn iter_get(self) -> ForumIterator {
+        ForumIterator::new(self)
     }
 }
 
@@ -118,4 +126,58 @@ pub struct NewForum {
 #[derive(Clone, Debug, Deserialize, Default)]
 pub struct Response {
     response: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct ForumIterator {
+    pub items: <Vec<Forum> as IntoIterator>::IntoIter,
+    pub last_full: bool,
+    pub request: ForumRequest,
+}
+
+impl ForumIterator {
+    pub fn new(request: ForumRequest) -> ForumIterator {
+        ForumIterator {
+            items: Vec::new().into_iter(),
+            last_full: true,
+            request: request,
+        }
+    }
+
+    pub fn try_next(&mut self) -> Result<Option<Forum>> {
+        // If there are still items in the local cache from the last request, use the next one of those.
+        if let Some(forum) = self.items.next() {
+            return Ok(Some(forum));
+        }
+
+        // If we didn't get a full 100 (the default number to retrieve) the last time, then we must have
+        // run out in Zoho; don't request any more.
+        if !self.last_full {
+            return Ok(None);
+        }
+
+        let returned_forums = self.request.clone().get()?;
+
+        if let Some(forum_list) = returned_forums {
+            self.last_full = forum_list.forums.len() as i8 == 100;
+
+            self.items = forum_list.forums.into_iter();
+
+            Ok(self.items.next())
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+impl Iterator for ForumIterator {
+    type Item = Result<Forum>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.try_next() {
+            Ok(Some(val)) => Some(Ok(val)),
+            Ok(None) => None,
+            Err(err) => Some(Err(err)),
+        }
+    }
 }

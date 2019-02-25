@@ -1,10 +1,13 @@
+//! Principally a wrapper module for Reqwest, this abstracts the details necessary for actually
+//! creating and making a request to the Zoho API.
+
 use crate::errors::*;
 use reqwest::{Method, StatusCode};
 use serde;
 use std::collections::HashMap;
 
 // TODO(Xymist): Split this; POST/PUT requests should carry data, GET and DELETE should not.
-pub struct ZohoRequest<T>
+pub(crate) struct ZohoRequest<T>
 where
     T: serde::Serialize + Clone,
 {
@@ -16,7 +19,7 @@ where
 }
 
 impl<T: serde::Serialize + Clone> ZohoRequest<T> {
-    pub fn new(
+    pub(crate) fn new(
         method: Method,
         url: &str,
         data: Option<T>,
@@ -32,19 +35,19 @@ impl<T: serde::Serialize + Clone> ZohoRequest<T> {
         }
     }
 
-    pub fn method(&self) -> Method {
+    pub(crate) fn method(&self) -> Method {
         self.method.clone()
     }
 
-    pub fn url(&self) -> String {
+    pub(crate) fn url(&self) -> String {
         self.url.clone()
     }
 
-    pub fn data(&self) -> Option<T> {
+    pub(crate) fn data(&self) -> Option<T> {
         self.data.clone()
     }
 
-    pub fn params(&self) -> Option<HashMap<String, String>> {
+    pub(crate) fn params(&self) -> Option<HashMap<String, String>> {
         self.params.clone()
     }
 
@@ -52,7 +55,9 @@ impl<T: serde::Serialize + Clone> ZohoRequest<T> {
         self.access_token.clone()
     }
 
-    pub fn send<U>(&self) -> Result<Option<U>>
+    /// The .send<U> method uses the details provided to the ZohoRequest to make a request
+    /// against the Zoho Projects API. This is generic over the various ZohoModels.
+    pub(crate) fn send<U>(&self) -> Result<Option<U>>
     where
         U: serde::de::DeserializeOwned,
     {
@@ -88,15 +93,16 @@ impl<T: serde::Serialize + Clone> ZohoRequest<T> {
 }
 
 #[derive(Clone, Debug)]
-pub struct RequestDetails {
-    pub model_path: String,
-    pub id: Option<i64>,
-    pub name: Option<String>,
-    pub access_token: String,
-    pub params: HashMap<String, String>,
+pub(crate) struct RequestDetails {
+    pub(crate) model_path: String,
+    pub(crate) id: Option<i64>,
+    pub(crate) name: Option<String>,
+    pub(crate) access_token: String,
+    pub(crate) params: HashMap<String, String>,
 }
 
 impl RequestDetails {
+    /// Constructor method for new RequestDetails structs
     pub fn new(access_token: &str, model_path: &str, id: Option<i64>) -> Self {
         RequestDetails {
             model_path: model_path.to_owned(),
@@ -107,11 +113,14 @@ impl RequestDetails {
         }
     }
 
+    /// Setter method for request parameters. Utilises the Filter enums from the various models
+    /// to ensure valid input.
     pub fn filter(mut self, param: &impl FilterOptions) -> Self {
         self.params.insert(param.key(), param.value());
         self
     }
 
+    /// Constructor for URI string, to be used for making requests to the Zoho Projects API
     pub fn uri(&self) -> String {
         let base_url = "https://projectsapi.zoho.com/restapi";
 
@@ -121,29 +130,47 @@ impl RequestDetails {
         }
     }
 
+    /// Accessor method for parameter hash
     pub fn params(&self) -> Option<HashMap<String, String>> {
         Some(self.params.clone())
     }
 
+    /// Accessor method for access token
     pub fn access_token(&self) -> String {
         self.access_token.clone()
     }
 }
 
+/// A trait which defines access functions for turning Filters into parameters which the Zoho system will accept.
+/// This is defined for all module::Filter enums, where a request is filterable.
 pub trait FilterOptions {
+    /// Returns the String to use as the 'key' part of a key=value parameter pair for a given Filter
     fn key(&self) -> String;
+    /// Returns the String to use as the 'value' part of a key=value parameter pair for a given Filter
     fn value(&self) -> String;
 }
 
-pub trait ModelRequest {
+pub(crate) trait ModelRequest {
     fn uri(&self) -> String;
     fn params(&self) -> Option<HashMap<String, String>>;
     fn access_token(&self) -> String;
     fn filter(self, param: impl FilterOptions) -> Self;
 }
 
-pub trait RequestParameters: ModelRequest {
+/// Trait with global implementations for issuing requests of each Method.
+/// Implemented for each type of ModelRequest, overridden where a specific
+/// request Method is not available for that model.
+pub(crate) trait RequestParameters: ModelRequest {
+
+    /// ModelCollection must be a "ZohoModels" struct, which contains just Vec<ZohoModel>.
+    /// The Zoho Projects API always returns an object containing a JSONArray of whatever model
+    /// is being requested, even if requested by ID and therefore returning either a single item
+    /// or an error.
     type ModelCollection: serde::de::DeserializeOwned;
+
+    /// NewModel is a struct containing the fields which the Zoho API accepts to create a new item
+    /// of the model type. For those models which Zoho does not accept creation events though the API
+    /// this is an empty struct.
     type NewModel: serde::Serialize + Clone;
 
     fn get(&self) -> Result<Option<Self::ModelCollection>> {
@@ -191,7 +218,12 @@ pub trait RequestParameters: ModelRequest {
     }
 }
 
+/// On deleting an item the return value is an object with a response String in it, not the deleted item or
+/// an empty list as might usually be expected. This struct packages that so that there is a valid return
+/// type available for Delete responses to be parsed into.
+/// This type will never be returned; if a Delete request is successfully made the response
+/// from this wrapper is Ok(None).
 #[derive(Deserialize, Clone)]
-pub struct DeleteResponse {
+struct DeleteResponse {
     response: String,
 }

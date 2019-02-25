@@ -1,94 +1,99 @@
-use crate::client::ZohoClient;
-use crate::errors::*;
-use crate::models::task::{Task, ZohoTasks};
+use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
 use crate::serializers::from_str;
+use std::collections::HashMap;
 
-pub const ModelPath: &str = "portal/{}/projects/{}/tasklists/";
+pub(crate) fn model_path(
+    portal: impl std::fmt::Display,
+    project: impl std::fmt::Display,
+) -> String {
+    format!("portal/{}/projects/{}/tasklists/", portal, project)
+}
 
-pub fn tasklists(cl: &ZohoClient) -> TasklistFragment {
-    let client = cl.clone();
-    TasklistFragment {
-        path: client.make_uri(&format!(
-            "portal/{}/projects/{}/tasklists/",
-            client.portal_id(),
-            client.project_id()
-        )),
-        client,
+// pub(crate) fn tasks_path(
+//     portal: impl std::fmt::Display,
+//     project: impl std::fmt::Display,
+//     id: usize,
+// ) -> String {
+//     format!(
+//         "portal/{}/projects/{}/tasklists/{}/tasks",
+//         portal, project, id
+//     )
+// }
+
+#[derive(Clone, Debug)]
+pub struct TasklistRequest(RequestDetails);
+
+impl TasklistRequest {
+    pub fn new(access_token: &str, model_path: &str, id: Option<i64>) -> Self {
+        TasklistRequest(RequestDetails::new(access_token, model_path, id))
     }
 }
 
-#[derive(Debug)]
-pub struct TasklistFragment {
-    pub client: ZohoClient,
-    pub path: String,
-}
-
-impl TasklistFragment {
-    query_strings!(index, range, flag);
-
-    // Designate a specific tasklist. This cannot be used to fetch it,
-    // but can be POSTed to in order to update or delete.
-    pub fn by_id(self, id: i64) -> TasklistPath {
-        if self.path.contains('&') {
-            panic!("Cannot both filter and find by ID")
-        }
-        let path_frags = self.path.split('?').collect::<Vec<&str>>();
-        TasklistPath {
-            client: self.client.clone(),
-            path: format!("{}{}/?{}", path_frags[0], id, path_frags[1]),
-        }
+impl ModelRequest for TasklistRequest {
+    fn uri(&self) -> String {
+        self.0.uri()
     }
 
-    // Execute the query against the Zoho API
-    pub fn fetch(self) -> Result<Vec<Tasklist>> {
-        if !self.path.contains("flag") {
-            bail!(
-                "The 'flag' parameter is mandatory. Please call '.flag()'
-                with either 'internal' or 'external' before calling."
-            )
-        }
-        let tasklist_list: ZohoTasklists = self.client.get(&self.path)?;
-        Ok(tasklist_list.tasklists)
+    fn params(&self) -> Option<HashMap<String, String>> {
+        self.0.params()
+    }
+
+    fn access_token(&self) -> String {
+        self.0.access_token()
+    }
+
+    fn filter(mut self, param: impl FilterOptions) -> Self {
+        self.0 = self.0.filter(&param);
+        self
     }
 }
 
-#[derive(Debug)]
-pub struct TasklistPath {
-    pub client: ZohoClient,
-    pub path: String,
+impl RequestParameters for TasklistRequest {
+    type ModelCollection = ZohoTasklists;
+    type NewModel = NewTasklist;
 }
 
-impl TasklistPath {
-    // Obtain the path for all tasks for a given tasklist
-    pub fn tasks(self) -> TasklistTasksPath {
-        let path_frags = self.path.split('?').collect::<Vec<&str>>();
-        TasklistTasksPath {
-            client: self.client.clone(),
-            path: format!("{}{}/?{}", path_frags[0], "tasks", path_frags[1]),
-        }
-    }
+pub enum Filter {
+    Index(usize),
+    Range(i8),
+    Flag(Flag),
+    Milestone(usize),
+}
 
-    // Execute the query against the Zoho API
-    pub fn fetch(self) -> Result<Option<Tasklist>> {
-        let mut tasklist_list: ZohoTasklists = self.client.get(&self.path)?;
-        match tasklist_list.tasklists.len() {
-            0 => Ok(None),
-            _ => Ok(Some(tasklist_list.tasklists.remove(0))),
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub enum Flag {
+    #[serde(rename = "internal")]
+    Internal,
+    #[serde(rename = "external")]
+    External,
+}
+
+impl Flag {
+    pub fn to_string(&self) -> String {
+        match self {
+            Flag::Internal => "internal".to_owned(),
+            Flag::External => "external".to_owned(),
         }
     }
 }
 
-#[derive(Debug)]
-pub struct TasklistTasksPath {
-    pub client: ZohoClient,
-    pub path: String,
-}
+impl FilterOptions for Filter {
+    fn key(&self) -> String {
+        match self {
+            Filter::Index(_) => "index".to_owned(),
+            Filter::Range(_) => "range".to_owned(),
+            Filter::Flag(_) => "flag".to_owned(),
+            Filter::Milestone(_) => "milestone_id".to_owned(),
+        }
+    }
 
-impl TasklistTasksPath {
-    // Execute the query against the Zoho API
-    pub fn fetch(self) -> Result<Vec<Task>> {
-        let task_list: ZohoTasks = self.client.get(&self.path)?;
-        Ok(task_list.tasks)
+    fn value(&self) -> String {
+        match self {
+            Filter::Index(index) => index.to_string(),
+            Filter::Range(range) => range.to_string(),
+            Filter::Flag(flag) => flag.to_string(),
+            Filter::Milestone(id) => id.to_string(),
+        }
     }
 }
 
@@ -98,6 +103,14 @@ pub struct ZohoTasklists {
     pub tasklists: Vec<Tasklist>,
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NewTasklist {
+    name: String,
+    milestone_id: usize,
+    flag: Flag,
+}
+
+// TODO(Xymist): Implement Tasklist::tasks() to create a new request to fetch all tasks for a tasklist
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Tasklist {
     #[serde(rename = "id")]
