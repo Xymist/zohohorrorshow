@@ -11,10 +11,11 @@ extern crate error_chain;
 #[macro_use]
 extern crate serde_derive;
 
-mod serializers;
-
+pub mod prelude;
+pub mod models;
+pub mod request;
 pub mod client;
 pub mod errors;
-pub mod models;
+
 mod oauth;
-pub mod request;
+mod serializers;

@@ -1,5 +1,5 @@
 /target/
 **/*.rs.bk
-Cargo.lock
 .vscode
 .env
+/examples/get_team_assignments.rs

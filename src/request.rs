@@ -93,12 +93,12 @@ impl<T: serde::Serialize + Clone> ZohoRequest<T> {
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct RequestDetails {
-    pub(crate) model_path: String,
-    pub(crate) id: Option<i64>,
-    pub(crate) name: Option<String>,
-    pub(crate) access_token: String,
-    pub(crate) params: HashMap<String, String>,
+pub struct RequestDetails {
+    pub model_path: String,
+    pub id: Option<i64>,
+    pub name: Option<String>,
+    pub access_token: String,
+    pub params: HashMap<String, String>,
 }
 
 impl RequestDetails {
@@ -150,7 +150,7 @@ pub trait FilterOptions {
     fn value(&self) -> String;
 }
 
-pub(crate) trait ModelRequest {
+pub trait ModelRequest {
     fn uri(&self) -> String;
     fn params(&self) -> Option<HashMap<String, String>>;
     fn access_token(&self) -> String;
@@ -160,7 +160,7 @@ pub(crate) trait ModelRequest {
 /// Trait with global implementations for issuing requests of each Method.
 /// Implemented for each type of ModelRequest, overridden where a specific
 /// request Method is not available for that model.
-pub(crate) trait RequestParameters: ModelRequest {
+pub trait RequestParameters: ModelRequest {
 
     /// ModelCollection must be a "ZohoModels" struct, which contains just Vec<ZohoModel>.
     /// The Zoho Projects API always returns an object containing a JSONArray of whatever model

@@ -86,7 +86,7 @@ impl FilterOptions for Filter {
         match self {
             Filter::Index(_) => "index".to_owned(),
             Filter::Range(_) => "range".to_owned(),
-            Filter::StatusType(_) => "status_type".to_owned(),
+            Filter::StatusType(_) => "statustype".to_owned(),
             Filter::CViewId(_) => "cview_id".to_owned(),
             Filter::SortColumn(_) => "sort_column".to_owned(),
             Filter::SortOrder(_) => "sort_order".to_owned(),

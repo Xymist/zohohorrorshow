@@ -5,12 +5,7 @@ extern crate zohohorrorshow;
 
 use dotenv::dotenv;
 use std::env;
-use zohohorrorshow::{
-    client::ZohoClient,
-    errors::*,
-    models::event::{AmPm, NewEvent},
-    request::RequestParameters,
-};
+use zohohorrorshow::{prelude::*, errors::*};
 
 fn run() -> Result<i32> {
     dotenv().ok();
@@ -26,12 +21,12 @@ fn run() -> Result<i32> {
 
     // let users = project_users(&client).fetch()?;
 
-    let mut event = NewEvent {
+    let mut event = zoho_event::NewEvent {
         title: "TestEvent".to_string(),
         date: "01-01-2020".to_string(),
         hour: "02".to_string(),
         minutes: "00".to_string(),
-        ampm: AmPm::Am,
+        ampm: zoho_event::AmPm::Am,
         duration_hour: "01".to_string(),
         duration_mins: "05".to_string(),
         participants: Some(vec![3_928_929]),
