@@ -2,23 +2,14 @@ use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParamet
 use crate::serializers::from_str;
 use std::collections::HashMap;
 
+pub mod task;
+
 pub(crate) fn model_path(
     portal: impl std::fmt::Display,
     project: impl std::fmt::Display,
 ) -> String {
     format!("portal/{}/projects/{}/tasklists/", portal, project)
 }
-
-// pub(crate) fn tasks_path(
-//     portal: impl std::fmt::Display,
-//     project: impl std::fmt::Display,
-//     id: usize,
-// ) -> String {
-//     format!(
-//         "portal/{}/projects/{}/tasklists/{}/tasks",
-//         portal, project, id
-//     )
-// }
 
 #[derive(Clone, Debug)]
 pub struct TasklistRequest(RequestDetails);

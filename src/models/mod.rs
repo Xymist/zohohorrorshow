@@ -14,5 +14,5 @@ pub mod project;
 pub mod status;
 pub mod task;
 pub mod tasklist;
-// pub mod timesheet;
+pub mod timesheet;
 // pub mod user;

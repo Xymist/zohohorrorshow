@@ -2,6 +2,8 @@ use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParamet
 use crate::serializers::from_str;
 use std::collections::HashMap;
 
+pub mod user;
+
 pub(crate) fn model_path(portal: impl std::fmt::Display) -> String {
     format!("portal/{}/projects/", portal)
 }

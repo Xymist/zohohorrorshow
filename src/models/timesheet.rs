@@ -1,78 +1,86 @@
-use crate::client::ZohoClient;
-use crate::errors::*;
+use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
+use std::collections::HashMap;
 
-pub const ModelPath: &str = "portal/{}/projects/{}/logs/";
+pub(crate) fn model_path(
+    portal: impl std::fmt::Display,
+    project: impl std::fmt::Display,
+) -> String {
+    format!("portal/{}/projects/{}/logs/", portal, project)
+}
 
-pub fn timesheets(cl: &ZohoClient) -> TimesheetFragment {
-    let client = cl.clone();
-    TimesheetFragment {
-        path: client.make_uri(&format!(
-            "portal/{}/projects/{}/logs/",
-            client.portal_id(),
-            client.project_id()
-        )),
-        client,
+#[derive(Clone, Debug)]
+pub struct TimesheetRequest(RequestDetails);
+
+impl TimesheetRequest {
+    pub fn new(access_token: &str, model_path: &str, id: Option<i64>) -> Self {
+        TimesheetRequest(RequestDetails::new(access_token, model_path, id))
     }
 }
 
-// A fragment of the path to call for the Zoho Timesheets API. This carries
-// with it a reference to the client which will be used to call it.
-#[derive(Debug)]
-pub struct TimesheetFragment {
-    pub client: ZohoClient,
-    pub path: String,
+impl ModelRequest for TimesheetRequest {
+    fn uri(&self) -> String {
+        self.0.uri()
+    }
+
+    fn params(&self) -> Option<HashMap<String, String>> {
+        self.0.params()
+    }
+
+    fn access_token(&self) -> String {
+        self.0.access_token()
+    }
+
+    fn filter(mut self, param: impl FilterOptions) -> Self {
+        self.0 = self.0.filter(&param);
+        self
+    }
 }
 
-impl TimesheetFragment {
-    query_strings!(index, range, date);
+impl RequestParameters for TimesheetRequest {
+    type ModelCollection = ZohoTimeLogs;
+    type NewModel = NewTimeLog;
+}
 
-    pub fn users_list(mut self, ids: Option<Vec<i64>>) -> TimesheetFragment {
-        let users = match ids {
-            Some(u) => u
-                .into_iter()
-                .map(|p| p.to_string())
-                .collect::<Vec<String>>()
-                .join(","),
-            None => "all".to_owned(),
-        };
-        self.path = format!("{}&users_list={}", self.path, users);
-        self
-    }
+pub enum Filter {
+    Index(usize),
+    Range(i8),
+    Date(String),
+    Users(Option<Vec<i64>>),
+    ViewType(ViewType),
+    ComponentType(ComponentType),
+    BillStatus(BillStatus),
+}
 
-    pub fn view_type(mut self, view_type: &ViewType) -> TimesheetFragment {
-        self.path = format!("{}&view_type={}", self.path, view_type.to_string());
-        self
-    }
-
-    pub fn component_type(mut self, component_type: &ComponentType) -> TimesheetFragment {
-        self.path = format!(
-            "{}&component_type={}",
-            self.path,
-            component_type.to_string()
-        );
-        self
-    }
-
-    pub fn bill_status(mut self, bill_status: &BillStatus) -> TimesheetFragment {
-        self.path = format!("{}&bill_status={}", self.path, bill_status.to_string());
-        self
-    }
-
-    // Execute the query against the Zoho API
-    pub fn fetch(self) -> Result<Timelogs> {
-        if !self.path.contains("component_type")
-            || !self.path.contains("bill_status")
-            || !self.path.contains("users_list")
-            || !self.path.contains("view_type")
-            || !self.path.contains("date")
-        {
-            bail!(
-                "More information needed; please specify at least date, view type,
-                component type, billable status and users scope before searching time logs."
-            )
+impl FilterOptions for Filter {
+    fn key(&self) -> String {
+        match self {
+            Filter::Index(_) => "index".to_owned(),
+            Filter::Range(_) => "range".to_owned(),
+            Filter::Date(_) => "date".to_owned(),
+            Filter::Users(_) => "users".to_owned(),
+            Filter::ViewType(_) => "view_type".to_owned(),
+            Filter::ComponentType(_) => "component_type".to_owned(),
+            Filter::BillStatus(_) => "bill_status".to_owned(),
         }
-        let timelog_list: ZohoTimelogs = self.client.get(&self.path)?;
-        Ok(timelog_list.timelogs)
+    }
+
+    fn value(&self) -> String {
+        match self {
+            Filter::Index(index) => index.to_string(),
+            Filter::Range(range) => range.to_string(),
+            Filter::Date(date) => date.to_owned(),
+            Filter::Users(users) => match users {
+                Some(u) => u
+                    .into_iter()
+                    .map(|p| p.to_string())
+                    .collect::<Vec<String>>()
+                    .join(","),
+                None => "all".to_owned(),
+            },
+            Filter::ViewType(view_type) => view_type.to_string(),
+            Filter::ComponentType(component_type) => component_type.to_string(),
+            Filter::BillStatus(bill_status) => bill_status.to_string(),
+        }
     }
 }
 
@@ -127,30 +135,33 @@ impl ComponentType {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
-pub struct ZohoTimelogs {
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
+pub struct ZohoTimeLogs {
     #[serde(rename = "timelogs")]
-    pub timelogs: Timelogs,
+    pub timelogs: TimeLogs,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
-pub struct Timelogs {
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
+pub struct TimeLogs {
     #[serde(rename = "grandtotal")]
     pub grandtotal: String,
     #[serde(rename = "role")]
     pub role: String,
     #[serde(rename = "timelog")]
-    pub timelog: Timelog,
+    pub timelog: TimeLog,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
-pub struct Timelog {
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
+pub struct TimeLog {
     #[serde(rename = "date")]
-    pub date: Vec<Date>,
+    pub date: Vec<DateLog>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
-pub struct Date {
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
+pub struct NewTimeLog {}
+
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
+pub struct DateLog {
     #[serde(rename = "date_long")]
     pub date_long: i64,
     #[serde(rename = "display_format")]
@@ -158,11 +169,11 @@ pub struct Date {
     #[serde(rename = "totalhours")]
     pub totalhours: String,
     #[serde(rename = "buglogs")]
-    pub buglogs: Vec<Buglog>,
+    pub buglogs: Vec<BugLog>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
-pub struct Buglog {
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
+pub struct BugLog {
     #[serde(rename = "id")]
     pub id: i64,
     #[serde(rename = "notes")]
@@ -187,7 +198,7 @@ pub struct Buglog {
     pub link: Link,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct Bug {
     #[serde(rename = "id")]
     pub id: i64,
@@ -195,19 +206,19 @@ pub struct Bug {
     pub title: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct Link {
     #[serde(rename = "self")]
     pub self_link: SelfLink,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct SelfLink {
     #[serde(rename = "url")]
     pub url: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct Project {
     #[serde(rename = "id")]
     pub id: i64,

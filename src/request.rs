@@ -150,10 +150,15 @@ pub trait FilterOptions {
     fn value(&self) -> String;
 }
 
+/// All Model Requests need to implement a small number of convenience methods for accessing the Zoho API
 pub trait ModelRequest {
+    /// Find or create the URI to call for this model
     fn uri(&self) -> String;
+    /// Set parameters to send with this request, in the standard `&key=value` format
     fn params(&self) -> Option<HashMap<String, String>>;
+    /// Find or create the access token with which we can authenticate the request
     fn access_token(&self) -> String;
+    /// For GET requests, set filters to reduce the number of hits returned
     fn filter(self, param: impl FilterOptions) -> Self;
 }
 
@@ -161,7 +166,6 @@ pub trait ModelRequest {
 /// Implemented for each type of ModelRequest, overridden where a specific
 /// request Method is not available for that model.
 pub trait RequestParameters: ModelRequest {
-
     /// ModelCollection must be a "ZohoModels" struct, which contains just Vec<ZohoModel>.
     /// The Zoho Projects API always returns an object containing a JSONArray of whatever model
     /// is being requested, even if requested by ID and therefore returning either a single item
@@ -173,6 +177,7 @@ pub trait RequestParameters: ModelRequest {
     /// this is an empty struct.
     type NewModel: serde::Serialize + Clone;
 
+    /// Send an HTTP GET request to the model
     fn get(&self) -> Result<Option<Self::ModelCollection>> {
         ZohoRequest::<Self::NewModel>::new(
             Method::GET,
@@ -184,6 +189,7 @@ pub trait RequestParameters: ModelRequest {
         .send()
     }
 
+    /// Send an HTTP POST request to the model
     fn post(&self, data: Self::NewModel) -> Result<Option<Self::ModelCollection>> {
         ZohoRequest::<Self::NewModel>::new(
             Method::POST,
@@ -195,6 +201,7 @@ pub trait RequestParameters: ModelRequest {
         .send()
     }
 
+    /// Send an HTTP PUT request to the model
     fn put(&self, data: Self::NewModel) -> Result<Option<Self::ModelCollection>> {
         ZohoRequest::<Self::NewModel>::new(
             Method::POST,
@@ -206,6 +213,7 @@ pub trait RequestParameters: ModelRequest {
         .send()
     }
 
+    /// Send an HTTP DELETE request to the model
     fn delete(&self) -> Result<Option<Self::ModelCollection>> {
         ZohoRequest::<Self::NewModel>::new(
             Method::DELETE,

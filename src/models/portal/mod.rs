@@ -3,6 +3,8 @@ use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParamet
 use crate::serializers::from_str;
 use std::collections::HashMap;
 
+pub mod user;
+
 pub(crate) fn model_path() -> String {
     "portals/".to_owned()
 }
