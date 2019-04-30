@@ -72,19 +72,19 @@ impl<T: serde::Serialize + Clone> ZohoRequest<T> {
         }
         let mut response = builder.send()?;
         if !response.status().is_success() {
-            bail!("Server error: {:?}", response.status());
+            return Err(Error::server_error(response.status().to_string()));
         };
 
         // TODO(Xymist): This should probably be an enum for types of response, rather than just an Option
         if self.method() == Method::DELETE {
             let _res_obj: DeleteResponse = match response.status() {
-                StatusCode::NO_CONTENT => bail!("No content received"),
+                StatusCode::NO_CONTENT => return Err(Error::no_content()),
                 _ => response.json()?,
             };
             Ok(None)
         } else {
             let res_obj: U = match response.status() {
-                StatusCode::NO_CONTENT => bail!("No content received"),
+                StatusCode::NO_CONTENT => return Err(Error::no_content()),
                 _ => response.json()?,
             };
             Ok(Some(res_obj))

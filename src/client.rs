@@ -24,6 +24,7 @@ pub struct ZohoClient {
 }
 
 impl ZohoClient {
+    /// Generate new ZohoClient which may be used to make requests
     pub fn new(client_id: &str, client_secret: &str) -> Self {
         let credentials = oauth::Credentials::new(client_id, client_secret, None, None);
 
@@ -34,6 +35,7 @@ impl ZohoClient {
         }
     }
 
+    /// Fetch API access token from OAuth
     pub fn access_token(&mut self) -> String {
         self.oauth_credentials.access_token()
     }
@@ -42,13 +44,14 @@ impl ZohoClient {
         let portals = self.portals().get();
         let portal = match portals {
             Ok(Some(p_list)) => p_list.portals.into_iter().find(|p| p.name == portal_name),
-            Err(_) | Ok(None) => return Err("Failed to fetch portals from Zoho".into()),
+            Ok(None) => return Err(Error::empty_entity_list("portal")),
+            Err(e) => return Err(e),
         };
 
         if let Some(po) = portal {
             self.portal_id = Some(po.id)
         } else {
-            return Err(format!("Could not find portal with name {}", portal_name).into());
+            return Err(Error::missing_entity_name(portal_name));
         };
 
         Ok(self)
@@ -58,13 +61,14 @@ impl ZohoClient {
         let projects = self.projects().get();
         let project = match projects {
             Ok(Some(p_list)) => p_list.projects.into_iter().find(|p| p.name == project_name),
-            Err(_) | Ok(None) => return Err("Failed to fetch portals from Zoho".into()),
+            Ok(None) => return Err(Error::empty_entity_list("project")),
+            Err(e) => return Err(e),
         };
 
         if let Some(pr) = project {
             self.project_id = Some(pr.id)
         } else {
-            return Err(format!("Could not find project with name {}", project_name).into());
+            return Err(Error::missing_entity_name(project_name));
         };
 
         Ok(self)

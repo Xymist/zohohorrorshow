@@ -43,15 +43,15 @@ impl RequestParameters for PortalRequest {
     type NewModel = NewPortal;
 
     fn post(&self, _data: Self::NewModel) -> Result<Option<Self::ModelCollection>> {
-        bail!("POST requests are not supported for Portals");
+        Err(Error::disallowed_method("POST", "Portal"))
     }
 
     fn put(&self, _data: Self::NewModel) -> Result<Option<Self::ModelCollection>> {
-        bail!("PUT requests are not supported for Portals");
+        Err(Error::disallowed_method("PUT", "Portal"))
     }
 
     fn delete(&self) -> Result<Option<Self::ModelCollection>> {
-        bail!("DELETE requests are not supported for Portals");
+        Err(Error::disallowed_method("DELETE", "Portal"))
     }
 }
 

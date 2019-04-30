@@ -46,15 +46,15 @@ impl RequestParameters for ActivityRequest {
     type NewModel = NewActivity;
 
     fn post(&self, _data: Self::NewModel) -> Result<Option<Self::ModelCollection>> {
-        bail!("POST requests are not supported for Activities");
+        Err(Error::disallowed_method("POST", "Activity"))
     }
 
     fn put(&self, _data: Self::NewModel) -> Result<Option<Self::ModelCollection>> {
-        bail!("PUT requests are not supported for Activities");
+        Err(Error::disallowed_method("PUT", "Activity"))
     }
 
     fn delete(&self) -> Result<Option<Self::ModelCollection>> {
-        bail!("DELETE requests are not supported for Activities");
+        Err(Error::disallowed_method("DELETE", "Activity"))
     }
 }
 

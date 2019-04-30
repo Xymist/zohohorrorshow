@@ -1,3 +1,5 @@
+//! Convenience module for easy import. Exports the various models and the Zoho client.
+
 pub use crate::client::ZohoClient;
 pub use crate::models::{
     activity as zoho_activity, bug as zoho_bug, category as zoho_category, event as zoho_event,

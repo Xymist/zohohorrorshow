@@ -1,6 +1,4 @@
 extern crate dotenv;
-#[macro_use]
-extern crate error_chain;
 extern crate zohohorrorshow;
 
 use dotenv::dotenv;

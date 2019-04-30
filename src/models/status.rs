@@ -42,11 +42,11 @@ impl RequestParameters for StatusRequest {
     type NewModel = NewStatus;
 
     fn put(&self, _data: Self::NewModel) -> Result<Option<Self::ModelCollection>> {
-        bail!("PUT requests are not supported for Statuses");
+        Err(Error::disallowed_method("PUT", "Status"))
     }
 
     fn delete(&self) -> Result<Option<Self::ModelCollection>> {
-        bail!("DELETE requests are not supported for Statuses");
+        Err(Error::disallowed_method("DELETE", "Status"))
     }
 }
 

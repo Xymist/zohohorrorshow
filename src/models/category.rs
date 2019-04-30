@@ -46,7 +46,7 @@ impl RequestParameters for CategoryRequest {
     type NewModel = NewCategory;
 
     fn put(&self, _data: Self::NewModel) -> Result<Option<Self::ModelCollection>> {
-        bail!("PUT requests are not supported for Categories");
+        Err(Error::disallowed_method("PUT", "Category"))
     }
 }
 
