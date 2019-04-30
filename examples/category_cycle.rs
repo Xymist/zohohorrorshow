@@ -1,6 +1,4 @@
 extern crate dotenv;
-#[macro_use]
-extern crate error_chain;
 extern crate zohohorrorshow;
 
 use dotenv::dotenv;
@@ -29,4 +27,15 @@ fn run() -> Result<i32> {
     Ok(0)
 }
 
-quick_main!(run);
+fn main() {
+    ::std::process::exit(match run() {
+        Ok(_) => {
+            println!("Goodbye");
+            0
+        }
+        Err(err) => {
+            eprintln!("Error occurred while running: {:?}", err);
+            1
+        }
+    });
+}

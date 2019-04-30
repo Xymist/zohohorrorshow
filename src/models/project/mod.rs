@@ -71,23 +71,6 @@ impl FilterOptions for Filter {
     }
 }
 
-// impl ProjectFragment {
-//     // Fetch available custom fields (can be applied when creating projects)
-//     pub fn customfields(self) -> Result<Option<Vec<CustomField>>> {
-//         let mut path_frags = self.path.split('?').collect::<Vec<&str>>();
-//         if path_frags[1].contains('&') {
-//             let autht = path_frags.remove(1).split('&').collect::<Vec<&str>>()[0];
-//             path_frags.push(autht)
-//         }
-//         println!("{:?}", self);
-//         let fields: CustomFields = self.client.get(&format!(
-//             "{}{}/?{}",
-//             path_frags[0], "customfields", path_frags[1]
-//         ))?;
-//         Ok(Some(fields.fields))
-//     }
-// }
-
 #[derive(Debug, Serialize, Clone)]
 pub struct NewProject {
     name: String,

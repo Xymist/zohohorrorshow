@@ -15,17 +15,23 @@ fn run() -> Result<i32> {
         &env::var("ZOHO_CLIENT_SECRET")?,
     )
     .set_portal(&env::var("ZOHO_PORTAL_NAME")?)?
-    .set_project(&env::var("ZOHO_PROJECT_NAME")?)
-    .chain_err(|| "Could not initialize; exiting")?;
+    .set_project(&env::var("ZOHO_PROJECT_NAME")?)?;
 
     let pjts = client.projects().get()?;
     println!("Existing projects: {:?}", pjts);
 
-    // Commented until reimplemented
-    // let custom_fields = client.projects().customfields().get()?;
-    // println!("Existing custom fields: {:?}", custom_fields);
-
     Ok(0)
 }
 
-quick_main!(run);
+fn main() {
+    ::std::process::exit(match run() {
+        Ok(_) => {
+            println!("Goodbye");
+            0
+        }
+        Err(err) => {
+            eprintln!("Error occurred while running: {:?}", err);
+            1
+        }
+    });
+}

@@ -14,10 +14,7 @@ fn run() -> Result<i32> {
         &env::var("ZOHO_CLIENT_SECRET")?,
     )
     .set_portal(&env::var("ZOHO_PORTAL_NAME")?)?
-    .set_project(&env::var("ZOHO_PROJECT_NAME")?)
-    .chain_err(|| "Could not initialize; exiting")?;
-
-    // let users = project_users(&client).fetch()?;
+    .set_project(&env::var("ZOHO_PROJECT_NAME")?)?;
 
     let mut event = zoho_event::NewEvent {
         title: "TestEvent".to_string(),
@@ -49,4 +46,15 @@ fn run() -> Result<i32> {
     Ok(0)
 }
 
-quick_main!(run);
+fn main() {
+    ::std::process::exit(match run() {
+        Ok(_) => {
+            println!("Goodbye");
+            0
+        }
+        Err(err) => {
+            eprintln!("Error occurred while running: {:?}", err);
+            1
+        }
+    });
+}
