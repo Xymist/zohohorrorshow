@@ -1,6 +1,7 @@
 use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
 use crate::serializers::from_str;
 use std::collections::HashMap;
+use crate::errors::*;
 
 pub(crate) fn model_path(
     portal: impl std::fmt::Display,
@@ -15,6 +16,10 @@ pub struct TaskRequest(RequestDetails);
 impl TaskRequest {
     pub fn new(access_token: &str, model_path: &str, id: Option<i64>) -> Self {
         TaskRequest(RequestDetails::new(access_token, model_path, id))
+    }
+
+    pub fn iter_get(self) -> TaskIterator {
+        TaskIterator::new(self)
     }
 }
 
@@ -255,4 +260,76 @@ pub struct Tasklist {
     pub id: i64,
     #[serde(rename = "name")]
     pub name: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct TaskIterator {
+    pub items: <Vec<Task> as IntoIterator>::IntoIter,
+    pub last_full: bool,
+    pub request: TaskRequest,
+    pub start_index: usize,
+}
+
+impl TaskIterator {
+    pub fn new(request: TaskRequest) -> TaskIterator {
+        TaskIterator {
+            items: Vec::new().into_iter(),
+            last_full: true,
+            request,
+            start_index: 0,
+        }
+    }
+
+    fn range(&self) -> i8 {
+        match self.request.params() {
+            Some(params) => match params.get("range") {
+                Some(range_string) => range_string.parse::<i8>().unwrap_or(100),
+                None => 100,
+            },
+            None => 100,
+        }
+    }
+
+    pub fn try_next(&mut self) -> Result<Option<Task>> {
+        // If there are still items in the local cache from the last request, use the next one of those.
+        if let Some(task) = self.items.next() {
+            return Ok(Some(task));
+        }
+
+        // If we didn't get a full 100 (the default number to retrieve) the last time, then we must have
+        // run out in Zoho; don't request any more.
+        if !self.last_full {
+            return Ok(None);
+        }
+
+        let returned_tasks = self
+            .request
+            .clone()
+            .filter(Filter::Index(self.start_index))
+            .get()?;
+
+        if let Some(task_list) = returned_tasks {
+            self.last_full = task_list.tasks.len() as i8 == self.range();
+
+            self.start_index += task_list.tasks.len();
+
+            self.items = task_list.tasks.into_iter();
+
+            Ok(self.items.next())
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+impl Iterator for TaskIterator {
+    type Item = Result<Task>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.try_next() {
+            Ok(Some(val)) => Some(Ok(val)),
+            Ok(None) => None,
+            Err(err) => Some(Err(err)),
+        }
+    }
 }

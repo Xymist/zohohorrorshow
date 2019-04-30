@@ -1,6 +1,7 @@
 use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
 use crate::serializers::from_str;
 use std::collections::HashMap;
+use crate::errors::*;
 
 pub mod task;
 
@@ -17,6 +18,10 @@ pub struct TasklistRequest(RequestDetails);
 impl TasklistRequest {
     pub fn new(access_token: &str, model_path: &str, id: Option<i64>) -> Self {
         TasklistRequest(RequestDetails::new(access_token, model_path, id))
+    }
+
+    pub fn iter_get(self) -> TasklistIterator {
+        TasklistIterator::new(self)
     }
 }
 
@@ -88,7 +93,7 @@ impl FilterOptions for Filter {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct ZohoTasklists {
     #[serde(rename = "tasklists")]
     pub tasklists: Vec<Tasklist>,
@@ -102,7 +107,7 @@ pub struct NewTasklist {
 }
 
 // TODO(Xymist): Implement Tasklist::tasks() to create a new request to fetch all tasks for a tasklist
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct Tasklist {
     #[serde(rename = "id")]
     pub id: i64,
@@ -126,7 +131,7 @@ pub struct Tasklist {
     pub link: TasklistLink,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct TasklistLink {
     #[serde(rename = "self")]
     pub link: Link,
@@ -134,13 +139,13 @@ pub struct TasklistLink {
     pub task: Link,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct Link {
     #[serde(rename = "url")]
     pub url: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct Milestone {
     #[serde(rename = "id")]
     pub id: i64,
@@ -166,10 +171,82 @@ pub struct Milestone {
     pub status: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct MilestoneLink {
     #[serde(rename = "self")]
     pub link: Link,
     #[serde(rename = "status")]
     pub status: Link,
+}
+
+#[derive(Clone, Debug)]
+pub struct TasklistIterator {
+    pub items: <Vec<Tasklist> as IntoIterator>::IntoIter,
+    pub last_full: bool,
+    pub request: TasklistRequest,
+    pub start_index: usize,
+}
+
+impl TasklistIterator {
+    pub fn new(request: TasklistRequest) -> TasklistIterator {
+        TasklistIterator {
+            items: Vec::new().into_iter(),
+            last_full: true,
+            request,
+            start_index: 0,
+        }
+    }
+
+    fn range(&self) -> i8 {
+        match self.request.params() {
+            Some(params) => match params.get("range") {
+                Some(range_string) => range_string.parse::<i8>().unwrap_or(100),
+                None => 100,
+            },
+            None => 100,
+        }
+    }
+
+    pub fn try_next(&mut self) -> Result<Option<Tasklist>> {
+        // If there are still items in the local cache from the last request, use the next one of those.
+        if let Some(tasklist) = self.items.next() {
+            return Ok(Some(tasklist));
+        }
+
+        // If we didn't get a full 100 (the default number to retrieve) the last time, then we must have
+        // run out in Zoho; don't request any more.
+        if !self.last_full {
+            return Ok(None);
+        }
+
+        let returned_tasklists = self
+            .request
+            .clone()
+            .filter(Filter::Index(self.start_index))
+            .get()?;
+
+        if let Some(tasklist_list) = returned_tasklists {
+            self.last_full = tasklist_list.tasklists.len() as i8 == self.range();
+
+            self.start_index += tasklist_list.tasklists.len();
+
+            self.items = tasklist_list.tasklists.into_iter();
+
+            Ok(self.items.next())
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+impl Iterator for TasklistIterator {
+    type Item = Result<Tasklist>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.try_next() {
+            Ok(Some(val)) => Some(Ok(val)),
+            Ok(None) => None,
+            Err(err) => Some(Err(err)),
+        }
+    }
 }

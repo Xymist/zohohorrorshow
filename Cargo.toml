@@ -1,6 +1,6 @@
 [package]
 name = "zohohorrorshow"
-version = "0.7.0"
+version = "0.7.1"
 authors = ["Xymist <james@jamieduerden.me>"]
 repository = "https://github.com/Xymist/zohohorrorshow"
 readme = "README.md"
