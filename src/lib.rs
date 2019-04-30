@@ -4,7 +4,7 @@
 //! optional fields, random casing and largely absent documentation. Xорошо́!
 
 #![deny(unused_imports)]
-#![warn(missing_docs)]
+// #![warn(missing_docs)]
 
 #[macro_use]
 extern crate error_chain;

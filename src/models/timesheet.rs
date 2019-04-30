@@ -71,8 +71,8 @@ impl FilterOptions for Filter {
             Filter::Date(date) => date.to_owned(),
             Filter::Users(users) => match users {
                 Some(u) => u
-                    .into_iter()
-                    .map(|p| p.to_string())
+                    .iter()
+                    .map(ToString::to_string)
                     .collect::<Vec<String>>()
                     .join(","),
                 None => "all".to_owned(),

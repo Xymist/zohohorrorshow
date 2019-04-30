@@ -20,7 +20,7 @@ where
     serializer.serialize_str(&match maybe_ids {
         Some(ids) => ids
             .iter()
-            .map(|id| id.to_string())
+            .map(ToString::to_string)
             .collect::<Vec<String>>()
             .join(","),
         None => "".to_owned(),

@@ -92,12 +92,18 @@ impl<T: serde::Serialize + Clone> ZohoRequest<T> {
     }
 }
 
+/// Wrapper for the details used when making a single request to the Zoho API
 #[derive(Clone, Debug)]
 pub struct RequestDetails {
+    /// Path required to generate URI, which references a particular model in the Zoho DB
     pub model_path: String,
+    /// ID of the model instance to be referenced, if any. Irrelevant for POST requests.
     pub id: Option<i64>,
+    /// TODO(Xymist): Fix this
     pub name: Option<String>,
+    /// Token identifying the caller of the API.
     pub access_token: String,
+    /// Any parameters to be passed in the request, such as filters for retrieval or fields for creation.
     pub params: HashMap<String, String>,
 }
 
@@ -106,7 +112,7 @@ impl RequestDetails {
     pub fn new(access_token: &str, model_path: &str, id: Option<i64>) -> Self {
         RequestDetails {
             model_path: model_path.to_owned(),
-            id: id,
+            id,
             name: None,
             access_token: access_token.to_owned(),
             params: HashMap::new(),

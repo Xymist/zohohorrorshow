@@ -4,8 +4,7 @@ extern crate error_chain;
 extern crate zohohorrorshow;
 
 use dotenv::dotenv;
-use std::env;
-use zohohorrorshow::{errors::*, prelude::*};
+use zohohorrorshow::errors::*;
 
 fn run() -> Result<i32> {
     dotenv().ok();

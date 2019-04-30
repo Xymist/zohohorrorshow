@@ -140,7 +140,7 @@ impl ForumIterator {
         ForumIterator {
             items: Vec::new().into_iter(),
             last_full: true,
-            request: request,
+            request,
         }
     }
 

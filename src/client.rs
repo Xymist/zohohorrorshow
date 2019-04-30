@@ -7,6 +7,7 @@
 use crate::errors::*;
 use crate::models::{
     activity, bug, category, event, forum, milestone, portal, project, status, task, tasklist,
+    timesheet,
 };
 use crate::oauth;
 use crate::request::RequestParameters;
@@ -137,7 +138,7 @@ impl ZohoClient {
     pub fn forum(&mut self, id: i64) -> forum::ForumRequest {
         forum::ForumRequest::new(
             &self.access_token(),
-            &event::model_path(self.portal_id(), self.project_id()),
+            &forum::model_path(self.portal_id(), self.project_id()),
             Some(id),
         )
     }
@@ -145,7 +146,7 @@ impl ZohoClient {
     pub fn forums(&mut self) -> forum::ForumRequest {
         forum::ForumRequest::new(
             &self.access_token(),
-            &event::model_path(self.portal_id(), self.project_id()),
+            &forum::model_path(self.portal_id(), self.project_id()),
             None,
         )
     }
@@ -186,6 +187,14 @@ impl ZohoClient {
         portal::PortalRequest::new(&self.access_token())
     }
 
+    pub fn portal_users(&mut self) -> portal::user::PortalUserRequest {
+        portal::user::PortalUserRequest::new(
+            &self.access_token(),
+            &portal::user::model_path(self.portal_id()),
+            None,
+        )
+    }
+
     pub fn project(&mut self, id: i64) -> project::ProjectRequest {
         project::ProjectRequest::new(
             &self.access_token(),
@@ -198,6 +207,14 @@ impl ZohoClient {
         project::ProjectRequest::new(
             &self.access_token(),
             &project::model_path(self.portal_id()),
+            None,
+        )
+    }
+
+    pub fn project_users(&mut self) -> project::user::ProjectUserRequest {
+        project::user::ProjectUserRequest::new(
+            &self.access_token(),
+            &project::user::model_path(self.portal_id(), self.project_id()),
             None,
         )
     }
@@ -237,6 +254,42 @@ impl ZohoClient {
         tasklist::TasklistRequest::new(
             &self.access_token(),
             &tasklist::model_path(self.portal_id(), self.project_id()),
+            None,
+        )
+    }
+
+    pub fn tasklist_task(
+        &mut self,
+        tasklist_id: usize,
+        id: i64,
+    ) -> tasklist::task::TasklistTaskRequest {
+        tasklist::task::TasklistTaskRequest::new(
+            &self.access_token(),
+            &tasklist::task::model_path(self.portal_id(), self.project_id(), tasklist_id),
+            Some(id),
+        )
+    }
+
+    pub fn tasklist_tasks(&mut self, tasklist_id: usize) -> tasklist::task::TasklistTaskRequest {
+        tasklist::task::TasklistTaskRequest::new(
+            &self.access_token(),
+            &tasklist::task::model_path(self.portal_id(), self.project_id(), tasklist_id),
+            None,
+        )
+    }
+
+    pub fn timesheet(&mut self, id: i64) -> timesheet::TimesheetRequest {
+        timesheet::TimesheetRequest::new(
+            &self.access_token(),
+            &timesheet::model_path(self.portal_id(), self.project_id()),
+            Some(id),
+        )
+    }
+
+    pub fn timesheets(&mut self) -> timesheet::TimesheetRequest {
+        timesheet::TimesheetRequest::new(
+            &self.access_token(),
+            &timesheet::model_path(self.portal_id(), self.project_id()),
             None,
         )
     }

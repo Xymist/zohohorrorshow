@@ -114,47 +114,47 @@ impl FilterOptions for Filter {
             Filter::Flag(flag) => flag.value(),
             Filter::Status(status) => status
                 .iter()
-                .map(|i| i.to_string())
+                .map(ToString::to_string)
                 .collect::<Vec<String>>()
                 .join(","),
             Filter::Severity(severity) => severity
                 .iter()
-                .map(|i| i.to_string())
+                .map(ToString::to_string)
                 .collect::<Vec<String>>()
                 .join(","),
             Filter::Classification(classification) => classification
                 .iter()
-                .map(|i| i.to_string())
+                .map(ToString::to_string)
                 .collect::<Vec<String>>()
                 .join(","),
             Filter::Module(module) => module
                 .iter()
-                .map(|i| i.to_string())
+                .map(ToString::to_string)
                 .collect::<Vec<String>>()
                 .join(","),
             Filter::Milestone(milestone) => milestone
                 .iter()
-                .map(|i| i.to_string())
+                .map(ToString::to_string)
                 .collect::<Vec<String>>()
                 .join(","),
             Filter::Assignee(assignee) => assignee
                 .iter()
-                .map(|i| i.to_string())
+                .map(ToString::to_string)
                 .collect::<Vec<String>>()
                 .join(","),
             Filter::Escalation(escalation) => escalation
                 .iter()
-                .map(|i| i.to_string())
+                .map(ToString::to_string)
                 .collect::<Vec<String>>()
                 .join(","),
             Filter::Reporter(reporter) => reporter
                 .iter()
-                .map(|i| i.to_string())
+                .map(ToString::to_string)
                 .collect::<Vec<String>>()
                 .join(","),
             Filter::Affected(affected) => affected
                 .iter()
-                .map(|i| i.to_string())
+                .map(ToString::to_string)
                 .collect::<Vec<String>>()
                 .join(","),
         }
@@ -316,7 +316,7 @@ impl BugIterator {
         BugIterator {
             items: Vec::new().into_iter(),
             last_full: true,
-            request: request,
+            request,
             start_index: 0,
         }
     }

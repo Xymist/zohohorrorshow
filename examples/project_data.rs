@@ -6,7 +6,7 @@ extern crate zohohorrorshow;
 use dotenv::dotenv;
 use std::env;
 use zohohorrorshow::errors::*;
-use zohohorrorshow::{errors::*, prelude::*};
+use zohohorrorshow::prelude::*;
 
 fn run() -> Result<i32> {
     dotenv().ok();

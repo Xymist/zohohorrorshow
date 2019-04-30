@@ -126,8 +126,8 @@ impl ZohoClient {
         ));
 
         ZohoClient {
-            oauth_client: oauth_client,
-            credentials: credentials,
+            oauth_client,
+            credentials,
         }
     }
 
