@@ -15,3 +15,12 @@ pub mod status;
 pub mod task;
 pub mod tasklist;
 pub mod timesheet;
+
+fn multi_filter_format(elements: &[impl std::fmt::Display]) -> String {
+    let element_string = elements
+        .iter()
+        .map(ToString::to_string)
+        .collect::<Vec<String>>()
+        .join(",");
+    format!("[{:?}]", element_string)
+}

@@ -2,6 +2,7 @@ use crate::errors::*;
 use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
 use crate::serializers::from_str;
 use std::collections::HashMap;
+use crate::models::multi_filter_format;
 
 pub(crate) fn model_path(
     portal: impl std::fmt::Display,
@@ -112,51 +113,15 @@ impl FilterOptions for Filter {
             Filter::SortColumn(sort_column) => sort_column.to_string(),
             Filter::SortOrder(sort_order) => sort_order.to_string(),
             Filter::Flag(flag) => flag.value(),
-            Filter::Status(status) => status
-                .iter()
-                .map(ToString::to_string)
-                .collect::<Vec<String>>()
-                .join(","),
-            Filter::Severity(severity) => severity
-                .iter()
-                .map(ToString::to_string)
-                .collect::<Vec<String>>()
-                .join(","),
-            Filter::Classification(classification) => classification
-                .iter()
-                .map(ToString::to_string)
-                .collect::<Vec<String>>()
-                .join(","),
-            Filter::Module(module) => module
-                .iter()
-                .map(ToString::to_string)
-                .collect::<Vec<String>>()
-                .join(","),
-            Filter::Milestone(milestone) => milestone
-                .iter()
-                .map(ToString::to_string)
-                .collect::<Vec<String>>()
-                .join(","),
-            Filter::Assignee(assignee) => assignee
-                .iter()
-                .map(ToString::to_string)
-                .collect::<Vec<String>>()
-                .join(","),
-            Filter::Escalation(escalation) => escalation
-                .iter()
-                .map(ToString::to_string)
-                .collect::<Vec<String>>()
-                .join(","),
-            Filter::Reporter(reporter) => reporter
-                .iter()
-                .map(ToString::to_string)
-                .collect::<Vec<String>>()
-                .join(","),
-            Filter::Affected(affected) => affected
-                .iter()
-                .map(ToString::to_string)
-                .collect::<Vec<String>>()
-                .join(","),
+            Filter::Status(status) => multi_filter_format(status),
+            Filter::Severity(severity) => multi_filter_format(severity),
+            Filter::Classification(classification) => multi_filter_format(classification),
+            Filter::Module(module) => multi_filter_format(module),
+            Filter::Milestone(milestone) => multi_filter_format(milestone),
+            Filter::Assignee(assignee) => multi_filter_format(assignee),
+            Filter::Escalation(escalation) => multi_filter_format(escalation),
+            Filter::Reporter(reporter) => multi_filter_format(reporter),
+            Filter::Affected(affected) => multi_filter_format(affected),
         }
     }
 }
@@ -350,16 +315,20 @@ impl BugIterator {
             .get()?;
 
         if let Some(ticket_list) = returned_tickets {
+            if ticket_list.bugs.is_empty() {
+                return Ok(None);
+            }
+
             self.last_full = ticket_list.bugs.len() as i8 == self.range();
 
             self.start_index += ticket_list.bugs.len();
 
             self.items = ticket_list.bugs.into_iter();
 
-            Ok(self.items.next())
-        } else {
-            Ok(None)
+            return Ok(self.items.next());
         }
+
+        Ok(None)
     }
 }
 

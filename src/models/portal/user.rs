@@ -106,7 +106,7 @@ pub enum Role {
 }
 
 impl fmt::Display for Role {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let role = match self {
             Role::Manager => "manager",
             Role::Employee => "employee",

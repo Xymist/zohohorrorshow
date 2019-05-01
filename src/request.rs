@@ -70,6 +70,7 @@ impl<T: serde::Serialize + Clone> ZohoRequest<T> {
         if self.data.is_some() {
             builder = builder.query(&self.data().unwrap());
         }
+
         let mut response = builder.send()?;
         if !response.status().is_success() {
             return Err(Error::server_error(response.status().to_string()));

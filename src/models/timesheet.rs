@@ -1,5 +1,6 @@
 use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
 use std::collections::HashMap;
+use crate::models::multi_filter_format;
 
 pub(crate) fn model_path(
     portal: impl std::fmt::Display,
@@ -70,11 +71,7 @@ impl FilterOptions for Filter {
             Filter::Range(range) => range.to_string(),
             Filter::Date(date) => date.to_owned(),
             Filter::Users(users) => match users {
-                Some(u) => u
-                    .iter()
-                    .map(ToString::to_string)
-                    .collect::<Vec<String>>()
-                    .join(","),
+                Some(u) => multi_filter_format(u),
                 None => "all".to_owned(),
             },
             Filter::ViewType(view_type) => view_type.to_string(),
