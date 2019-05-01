@@ -60,7 +60,7 @@ impl Credentials {
         self.access_token.clone().unwrap()
     }
 
-    fn raw_access_token(&self) -> Option<String> {
+    pub fn raw_access_token(&self) -> Option<String> {
         self.access_token.clone()
     }
 

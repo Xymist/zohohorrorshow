@@ -28,16 +28,25 @@ impl ZohoClient {
     pub fn new(client_id: &str, client_secret: &str) -> Self {
         let credentials = oauth::Credentials::new(client_id, client_secret, None, None);
 
-        ZohoClient {
+        let mut client = ZohoClient {
             oauth_credentials: credentials,
             portal_id: None,
             project_id: None,
-        }
+        };
+
+        client.initial_access_token();
+        client
     }
 
     /// Fetch API access token from OAuth
-    pub fn access_token(&mut self) -> String {
+    fn initial_access_token(&mut self) -> String {
         self.oauth_credentials.access_token()
+    }
+
+    pub fn access_token(&self) -> String {
+        self.oauth_credentials
+            .raw_access_token()
+            .expect("Client was incompletely initialized")
     }
 
     pub fn set_portal(mut self, portal_name: &str) -> Result<Self> {
@@ -84,14 +93,14 @@ impl ZohoClient {
             .expect("Project context called without project id set.")
     }
 
-    pub fn activities(&mut self) -> activity::ActivityRequest {
+    pub fn activities(&self) -> activity::ActivityRequest {
         activity::ActivityRequest::new(
             &self.access_token(),
             &activity::model_path(self.portal_id(), self.project_id()),
         )
     }
 
-    pub fn bug(&mut self, id: i64) -> bug::BugRequest {
+    pub fn bug(&self, id: i64) -> bug::BugRequest {
         bug::BugRequest::new(
             &self.access_token(),
             &bug::model_path(self.portal_id(), self.project_id()),
@@ -99,7 +108,7 @@ impl ZohoClient {
         )
     }
 
-    pub fn bugs(&mut self) -> bug::BugRequest {
+    pub fn bugs(&self) -> bug::BugRequest {
         bug::BugRequest::new(
             &self.access_token(),
             &bug::model_path(self.portal_id(), self.project_id()),
@@ -107,7 +116,7 @@ impl ZohoClient {
         )
     }
 
-    pub fn category(&mut self, id: i64) -> category::CategoryRequest {
+    pub fn category(&self, id: i64) -> category::CategoryRequest {
         category::CategoryRequest::new(
             &self.access_token(),
             &category::model_path(self.portal_id(), self.project_id()),
@@ -115,7 +124,7 @@ impl ZohoClient {
         )
     }
 
-    pub fn categories(&mut self) -> category::CategoryRequest {
+    pub fn categories(&self) -> category::CategoryRequest {
         category::CategoryRequest::new(
             &self.access_token(),
             &category::model_path(self.portal_id(), self.project_id()),
@@ -123,7 +132,7 @@ impl ZohoClient {
         )
     }
 
-    pub fn event(&mut self, id: i64) -> event::EventRequest {
+    pub fn event(&self, id: i64) -> event::EventRequest {
         event::EventRequest::new(
             &self.access_token(),
             &event::model_path(self.portal_id(), self.project_id()),
@@ -131,7 +140,7 @@ impl ZohoClient {
         )
     }
 
-    pub fn events(&mut self) -> event::EventRequest {
+    pub fn events(&self) -> event::EventRequest {
         event::EventRequest::new(
             &self.access_token(),
             &event::model_path(self.portal_id(), self.project_id()),
@@ -139,7 +148,7 @@ impl ZohoClient {
         )
     }
 
-    pub fn forum(&mut self, id: i64) -> forum::ForumRequest {
+    pub fn forum(&self, id: i64) -> forum::ForumRequest {
         forum::ForumRequest::new(
             &self.access_token(),
             &forum::model_path(self.portal_id(), self.project_id()),
@@ -147,7 +156,7 @@ impl ZohoClient {
         )
     }
 
-    pub fn forums(&mut self) -> forum::ForumRequest {
+    pub fn forums(&self) -> forum::ForumRequest {
         forum::ForumRequest::new(
             &self.access_token(),
             &forum::model_path(self.portal_id(), self.project_id()),
@@ -155,7 +164,7 @@ impl ZohoClient {
         )
     }
 
-    pub fn forum_comment(&mut self, forum_id: i64, id: i64) -> forum::comment::CommentRequest {
+    pub fn forum_comment(&self, forum_id: i64, id: i64) -> forum::comment::CommentRequest {
         forum::comment::CommentRequest::new(
             &self.access_token(),
             &forum::comment::model_path(self.portal_id(), self.project_id(), forum_id),
@@ -163,7 +172,7 @@ impl ZohoClient {
         )
     }
 
-    pub fn forum_comments(&mut self, forum_id: i64) -> forum::comment::CommentRequest {
+    pub fn forum_comments(&self, forum_id: i64) -> forum::comment::CommentRequest {
         forum::comment::CommentRequest::new(
             &self.access_token(),
             &forum::comment::model_path(self.portal_id(), self.project_id(), forum_id),
@@ -171,7 +180,7 @@ impl ZohoClient {
         )
     }
 
-    pub fn milestone(&mut self, id: i64) -> milestone::MilestoneRequest {
+    pub fn milestone(&self, id: i64) -> milestone::MilestoneRequest {
         milestone::MilestoneRequest::new(
             &self.access_token(),
             &milestone::model_path(self.portal_id(), self.project_id()),
@@ -179,7 +188,7 @@ impl ZohoClient {
         )
     }
 
-    pub fn milestones(&mut self) -> milestone::MilestoneRequest {
+    pub fn milestones(&self) -> milestone::MilestoneRequest {
         milestone::MilestoneRequest::new(
             &self.access_token(),
             &milestone::model_path(self.portal_id(), self.project_id()),
@@ -187,11 +196,11 @@ impl ZohoClient {
         )
     }
 
-    pub fn portals(&mut self) -> portal::PortalRequest {
+    pub fn portals(&self) -> portal::PortalRequest {
         portal::PortalRequest::new(&self.access_token())
     }
 
-    pub fn portal_users(&mut self) -> portal::user::PortalUserRequest {
+    pub fn portal_users(&self) -> portal::user::PortalUserRequest {
         portal::user::PortalUserRequest::new(
             &self.access_token(),
             &portal::user::model_path(self.portal_id()),
@@ -199,7 +208,7 @@ impl ZohoClient {
         )
     }
 
-    pub fn project(&mut self, id: i64) -> project::ProjectRequest {
+    pub fn project(&self, id: i64) -> project::ProjectRequest {
         project::ProjectRequest::new(
             &self.access_token(),
             &project::model_path(self.portal_id()),
@@ -207,7 +216,7 @@ impl ZohoClient {
         )
     }
 
-    pub fn projects(&mut self) -> project::ProjectRequest {
+    pub fn projects(&self) -> project::ProjectRequest {
         project::ProjectRequest::new(
             &self.access_token(),
             &project::model_path(self.portal_id()),
@@ -215,7 +224,7 @@ impl ZohoClient {
         )
     }
 
-    pub fn project_users(&mut self) -> project::user::ProjectUserRequest {
+    pub fn project_users(&self) -> project::user::ProjectUserRequest {
         project::user::ProjectUserRequest::new(
             &self.access_token(),
             &project::user::model_path(self.portal_id(), self.project_id()),
@@ -223,14 +232,14 @@ impl ZohoClient {
         )
     }
 
-    pub fn statuses(&mut self) -> status::StatusRequest {
+    pub fn statuses(&self) -> status::StatusRequest {
         status::StatusRequest::new(
             &self.access_token(),
             &status::model_path(self.portal_id(), self.project_id()),
         )
     }
 
-    pub fn task(&mut self, id: i64) -> task::TaskRequest {
+    pub fn task(&self, id: i64) -> task::TaskRequest {
         task::TaskRequest::new(
             &self.access_token(),
             &task::model_path(self.portal_id(), self.project_id()),
@@ -238,7 +247,7 @@ impl ZohoClient {
         )
     }
 
-    pub fn tasks(&mut self) -> task::TaskRequest {
+    pub fn tasks(&self) -> task::TaskRequest {
         task::TaskRequest::new(
             &self.access_token(),
             &task::model_path(self.portal_id(), self.project_id()),
@@ -246,7 +255,7 @@ impl ZohoClient {
         )
     }
 
-    pub fn tasklist(&mut self, id: i64) -> tasklist::TasklistRequest {
+    pub fn tasklist(&self, id: i64) -> tasklist::TasklistRequest {
         tasklist::TasklistRequest::new(
             &self.access_token(),
             &tasklist::model_path(self.portal_id(), self.project_id()),
@@ -254,7 +263,7 @@ impl ZohoClient {
         )
     }
 
-    pub fn tasklists(&mut self) -> tasklist::TasklistRequest {
+    pub fn tasklists(&self) -> tasklist::TasklistRequest {
         tasklist::TasklistRequest::new(
             &self.access_token(),
             &tasklist::model_path(self.portal_id(), self.project_id()),
@@ -263,7 +272,7 @@ impl ZohoClient {
     }
 
     pub fn tasklist_task(
-        &mut self,
+        &self,
         tasklist_id: usize,
         id: i64,
     ) -> tasklist::task::TasklistTaskRequest {
@@ -274,7 +283,7 @@ impl ZohoClient {
         )
     }
 
-    pub fn tasklist_tasks(&mut self, tasklist_id: usize) -> tasklist::task::TasklistTaskRequest {
+    pub fn tasklist_tasks(&self, tasklist_id: usize) -> tasklist::task::TasklistTaskRequest {
         tasklist::task::TasklistTaskRequest::new(
             &self.access_token(),
             &tasklist::task::model_path(self.portal_id(), self.project_id(), tasklist_id),
@@ -282,7 +291,7 @@ impl ZohoClient {
         )
     }
 
-    pub fn timesheet(&mut self, id: i64) -> timesheet::TimesheetRequest {
+    pub fn timesheet(&self, id: i64) -> timesheet::TimesheetRequest {
         timesheet::TimesheetRequest::new(
             &self.access_token(),
             &timesheet::model_path(self.portal_id(), self.project_id()),
@@ -290,7 +299,7 @@ impl ZohoClient {
         )
     }
 
-    pub fn timesheets(&mut self) -> timesheet::TimesheetRequest {
+    pub fn timesheets(&self) -> timesheet::TimesheetRequest {
         timesheet::TimesheetRequest::new(
             &self.access_token(),
             &timesheet::model_path(self.portal_id(), self.project_id()),

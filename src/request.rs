@@ -43,14 +43,6 @@ impl<T: serde::Serialize + Clone> ZohoRequest<T> {
         self.url.clone()
     }
 
-    pub(crate) fn data(&self) -> Option<T> {
-        self.data.clone()
-    }
-
-    pub(crate) fn params(&self) -> Option<HashMap<String, String>> {
-        self.params.clone()
-    }
-
     fn access_token(&self) -> String {
         self.access_token.clone()
     }
@@ -64,11 +56,11 @@ impl<T: serde::Serialize + Clone> ZohoRequest<T> {
         let req_client: reqwest::Client = reqwest::Client::new();
         let mut builder = req_client.request(self.method(), &self.url());
         builder = builder.header("Authorization", format!("Bearer {}", self.access_token()));
-        if self.params.is_some() {
-            builder = builder.query(&self.params().unwrap());
+        if let Some(ref params) = self.params {
+            builder = builder.query(params);
         }
-        if self.data.is_some() {
-            builder = builder.query(&self.data().unwrap());
+        if let Some(ref data) = self.data {
+            builder = builder.query(data);
         }
 
         let mut response = builder.send()?;

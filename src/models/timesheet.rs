@@ -1,6 +1,6 @@
+use crate::models::multi_filter_format;
 use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
 use std::collections::HashMap;
-use crate::models::multi_filter_format;
 
 pub(crate) fn model_path(
     portal: impl std::fmt::Display,

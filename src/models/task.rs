@@ -1,7 +1,7 @@
+use crate::errors::*;
 use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
 use crate::serializers::from_str;
 use std::collections::HashMap;
-use crate::errors::*;
 
 pub(crate) fn model_path(
     portal: impl std::fmt::Display,
