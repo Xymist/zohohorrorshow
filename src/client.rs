@@ -49,8 +49,10 @@ impl ZohoClient {
     /// # Panics
     ///
     /// Will panic if an access token has not been set for this client. As a ZohoClient
-    /// cannot be constructed other than via `ZohoClient::new`, and that calls the
+    /// cannot be constructed other than via [`new`] and that calls the
     /// necessary API endpoint to set the access token, this is not recoverable.
+    ///
+    /// [`new`]: #method.new
     pub fn access_token(&self) -> String {
         self.oauth_credentials
             .raw_access_token()
