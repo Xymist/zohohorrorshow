@@ -11,7 +11,7 @@
     clippy::all
 )]
 #![warn(missing_docs)]
-#![doc(html_root_url = "https://docs.rs/zohohorrorshow/0.7.3")]
+#![doc(html_root_url = "https://docs.rs/zohohorrorshow/0.7.4")]
 
 #[macro_use]
 extern crate serde_derive;
