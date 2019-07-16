@@ -14,10 +14,13 @@ pub(crate) fn model_path(
 pub struct TaskRequest(RequestDetails);
 
 impl TaskRequest {
+    /// Generate a new TaskRequest
     pub fn new(access_token: &str, model_path: &str, id: Option<i64>) -> Self {
         TaskRequest(RequestDetails::new(access_token, model_path, id))
     }
 
+    /// Return a new TaskIterator, which allows batch iteration across grouped
+    /// responses from the Zoho API
     pub fn iter_get(self) -> TaskIterator {
         TaskIterator::new(self)
     }
@@ -47,14 +50,25 @@ impl RequestParameters for TaskRequest {
     type NewModel = NewTask;
 }
 
+/// Various fields by which a Zoho Task API response may be filtered
 pub enum Filter {
+    /// The index of the first record to be returned. Useful for pagination.
     Index(usize),
+    /// The number of records to be returned, counting from the provided Index if any
     Range(i8),
+    /// The owner/creator of the Tasks to be retrieved
     Owner(i64),
+    /// The Priority of Tasks to be retrieved
     Priority(String),
+    /// The ID of the Tasklist to which the retrieved Tasks must belong
     TasklistId(i64),
+    /// The CustomStatus of Tasks to be retrieved
     CustomStatus(String),
+    /// The Status of Tasks to be retrieved, from the predefined list
+    /// See [TaskStatus] for details
     Status(TaskStatus),
+    /// The Time status of the Tasks to be retrieved, from the predefined list
+    /// See [TaskTimePeriod] for details
     Time(TaskTimePeriod),
 }
 
@@ -86,10 +100,14 @@ impl FilterOptions for Filter {
     }
 }
 
+/// Completion status of Tasks to be called from the API. Used for filtering.
 #[derive(Debug)]
 pub enum TaskStatus {
+    /// All Tasks regardless of status
     All,
+    /// Only Tasks marked as Completed
     Completed,
+    /// Only Tasks not marked as Completed
     NotCompleted,
 }
 

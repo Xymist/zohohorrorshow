@@ -13,6 +13,7 @@ pub(crate) fn model_path(
 pub struct TimesheetRequest(RequestDetails);
 
 impl TimesheetRequest {
+    /// Construct a new TimesheetRequest
     pub fn new(access_token: &str, model_path: &str, id: Option<i64>) -> Self {
         TimesheetRequest(RequestDetails::new(access_token, model_path, id))
     }

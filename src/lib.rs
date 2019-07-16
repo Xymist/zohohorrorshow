@@ -10,7 +10,7 @@
     unsafe_code,
     clippy::all
 )]
-// #![warn(missing_docs)]
+#![warn(missing_docs)]
 
 #[macro_use]
 extern crate serde_derive;

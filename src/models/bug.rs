@@ -173,7 +173,10 @@ pub struct Bug {
 }
 
 #[derive(Clone, Debug, Serialize)]
-pub struct NewBug {}
+pub struct NewBug {
+    #[serde(rename = "CHAR4")]
+    pub work_category: String,
+}
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Default)]
 pub struct IntClassification {

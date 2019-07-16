@@ -3,3 +3,4 @@
 .vscode
 .env
 /examples/get_team_assignments.rs
+/examples/bug_updates.rs

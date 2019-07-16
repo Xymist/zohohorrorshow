@@ -10,7 +10,7 @@ fn run() -> Result<i32> {
     dotenv().ok();
 
     // Generate the client, with a valid auth token.
-    let mut client = ZohoClient::new(
+    let client = ZohoClient::new(
         &env::var("ZOHO_CLIENT_ID")?,
         &env::var("ZOHO_CLIENT_SECRET")?,
     )
