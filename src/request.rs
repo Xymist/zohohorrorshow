@@ -114,8 +114,8 @@ impl RequestDetails {
 
     /// Setter method for request parameters. Utilises the Filter enums from the various models
     /// to ensure valid input.
-    pub fn filter(mut self, param: &impl FilterOptions) -> Self {
-        self.params.insert(param.key(), param.value());
+    pub fn filter(mut self, param: &(impl FilterOptions + std::fmt::Display)) -> Self {
+        self.params.insert(param.key(), param.to_string());
         self
     }
 
@@ -145,8 +145,6 @@ impl RequestDetails {
 pub trait FilterOptions {
     /// Returns the String to use as the 'key' part of a key=value parameter pair for a given Filter
     fn key(&self) -> String;
-    /// Returns the String to use as the 'value' part of a key=value parameter pair for a given Filter
-    fn value(&self) -> String;
 }
 
 /// All Model Requests need to implement a small number of convenience methods for accessing the Zoho API
@@ -158,7 +156,7 @@ pub trait ModelRequest {
     /// Find or create the access token with which we can authenticate the request
     fn access_token(&self) -> String;
     /// For GET requests, set filters to reduce the number of hits returned
-    fn filter(self, param: impl FilterOptions) -> Self;
+    fn filter(self, param: (impl FilterOptions + std::fmt::Display)) -> Self;
 }
 
 /// Trait with global implementations for issuing requests of each Method.

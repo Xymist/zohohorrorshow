@@ -30,7 +30,7 @@ impl ModelRequest for ProjectRequest {
         self.0.access_token()
     }
 
-    fn filter(mut self, param: impl FilterOptions) -> Self {
+    fn filter(mut self, param: (impl FilterOptions + std::fmt::Display)) -> Self {
         self.0 = self.0.filter(&param);
         self
     }
@@ -59,15 +59,19 @@ impl FilterOptions for Filter {
             Filter::SortOrder(_) => "sort_order".to_owned(),
         }
     }
+}
 
-    fn value(&self) -> String {
-        match self {
+impl std::fmt::Display for Filter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str_rep = match self {
             Filter::Index(index) => index.to_string(),
             Filter::Range(range) => range.to_string(),
             Filter::Status(status) => status.to_owned(),
             Filter::SortColumn(column) => column.to_owned(),
             Filter::SortOrder(order) => order.to_owned(),
-        }
+        };
+
+        write!(f, "{}", str_rep)
     }
 }
 

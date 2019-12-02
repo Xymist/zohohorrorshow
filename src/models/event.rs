@@ -32,7 +32,7 @@ impl ModelRequest for EventRequest {
         self.0.access_token()
     }
 
-    fn filter(mut self, param: impl FilterOptions) -> Self {
+    fn filter(mut self, param: (impl FilterOptions + std::fmt::Display)) -> Self {
         self.0 = self.0.filter(&param);
         self
     }
@@ -57,13 +57,17 @@ impl FilterOptions for Filter {
             Filter::Status(_) => "status".to_owned(),
         }
     }
+}
 
-    fn value(&self) -> String {
-        match self {
+impl std::fmt::Display for Filter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str_rep = match self {
             Filter::Index(index) => index.to_string(),
             Filter::Range(range) => range.to_string(),
             Filter::Status(status) => status.clone(),
-        }
+        };
+
+        write!(f, "{}", str_rep)
     }
 }
 
@@ -137,12 +141,14 @@ impl Default for AmPm {
     }
 }
 
-impl AmPm {
-    pub fn to_string(&self) -> String {
-        match *self {
-            AmPm::Am => "am".to_owned(),
-            AmPm::Pm => "pm".to_owned(),
-        }
+impl std::fmt::Display for AmPm {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str_rep = match self {
+            AmPm::Am => "am",
+            AmPm::Pm => "pm",
+        };
+
+        write!(f, "{}", str_rep)
     }
 }
 
@@ -164,15 +170,17 @@ pub enum Repeat {
     EveryYear,
 }
 
-impl Repeat {
-    pub fn to_string(&self) -> String {
-        match *self {
-            Repeat::Once => "once".to_owned(),
-            Repeat::EveryDay => "everyday".to_owned(),
-            Repeat::EveryWeek => "everyweek".to_owned(),
-            Repeat::EveryMonth => "everymonth".to_owned(),
-            Repeat::EveryYear => "everyyear".to_owned(),
-        }
+impl std::fmt::Display for Repeat {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str_rep = match self {
+            Repeat::Once => "once",
+            Repeat::EveryDay => "everyday",
+            Repeat::EveryWeek => "everyweek",
+            Repeat::EveryMonth => "everymonth",
+            Repeat::EveryYear => "everyyear",
+        };
+
+        write!(f, "{}", str_rep)
     }
 }
 
@@ -188,18 +196,20 @@ pub enum RemindBefore {
     OneDay,
 }
 
-impl RemindBefore {
-    pub fn to_string(&self) -> String {
-        match *self {
-            RemindBefore::OnTime => "ontime".to_owned(),
-            RemindBefore::FifteenMins => "15mins".to_owned(),
-            RemindBefore::ThirtyMins => "30mins".to_owned(),
-            RemindBefore::OneHour => "1hour".to_owned(),
-            RemindBefore::TwoHours => "2hours".to_owned(),
-            RemindBefore::SixHours => "6hours".to_owned(),
-            RemindBefore::TwelveHours => "12hours".to_owned(),
-            RemindBefore::OneDay => "1day".to_owned(),
-        }
+impl std::fmt::Display for RemindBefore {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str_rep = match self {
+            RemindBefore::OnTime => "ontime",
+            RemindBefore::FifteenMins => "15mins",
+            RemindBefore::ThirtyMins => "30mins",
+            RemindBefore::OneHour => "1hour",
+            RemindBefore::TwoHours => "2hours",
+            RemindBefore::SixHours => "6hours",
+            RemindBefore::TwelveHours => "12hours",
+            RemindBefore::OneDay => "1day",
+        };
+
+        write!(f, "{}", str_rep)
     }
 }
 

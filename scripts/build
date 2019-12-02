@@ -3,4 +3,4 @@
 set -euo pipefail
 
 # Build with specific Rust toolchain
-docker run --rm --user "$(id -u)":"$(id -g)" -v "$PWD":/usr/src/zohohorrorshow -w /usr/src/zohohorrorshow rust:1.23.0 cargo build --release
+docker run --rm --user "$(id -u)":"$(id -g)" -v "$PWD":/usr/src/zohohorrorshow -w /usr/src/zohohorrorshow rust:1.39.0 cargo build --release

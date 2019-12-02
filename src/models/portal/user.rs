@@ -29,7 +29,7 @@ impl ModelRequest for PortalUserRequest {
         self.0.access_token()
     }
 
-    fn filter(mut self, param: impl FilterOptions) -> Self {
+    fn filter(mut self, param: (impl FilterOptions + std::fmt::Display)) -> Self {
         self.0 = self.0.filter(&param);
         self
     }
@@ -40,21 +40,19 @@ impl RequestParameters for PortalUserRequest {
     type NewModel = NewUser;
 }
 
-pub enum Filter {
-    UserType(String),
-}
+// There is exactly one variant of this, "usertype", so the usual enum is
+// overkill.
+pub struct Filter(String);
 
 impl FilterOptions for Filter {
     fn key(&self) -> String {
-        match self {
-            Filter::UserType(_) => "usertype".to_owned(),
-        }
+        "usertype".to_owned()
     }
+}
 
-    fn value(&self) -> String {
-        match self {
-            Filter::UserType(usertype) => usertype.to_owned(),
-        }
+impl std::fmt::Display for Filter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 

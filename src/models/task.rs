@@ -39,7 +39,7 @@ impl ModelRequest for TaskRequest {
         self.0.access_token()
     }
 
-    fn filter(mut self, param: impl FilterOptions) -> Self {
+    fn filter(mut self, param: (impl FilterOptions + std::fmt::Display)) -> Self {
         self.0 = self.0.filter(&param);
         self
     }
@@ -85,9 +85,11 @@ impl FilterOptions for Filter {
             Filter::Time(_) => "time".to_owned(),
         }
     }
+}
 
-    fn value(&self) -> String {
-        match self {
+impl std::fmt::Display for Filter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str_rep = match self {
             Filter::Index(index) => index.to_string(),
             Filter::Range(range) => range.to_string(),
             Filter::Owner(owner) => owner.to_string(),
@@ -96,7 +98,9 @@ impl FilterOptions for Filter {
             Filter::CustomStatus(custom_status) => custom_status.clone(),
             Filter::Status(status) => status.to_string(),
             Filter::Time(time) => time.to_string(),
-        }
+        };
+
+        write!(f, "{}", str_rep)
     }
 }
 
@@ -111,37 +115,48 @@ pub enum TaskStatus {
     NotCompleted,
 }
 
-impl TaskStatus {
-    pub fn to_string(&self) -> String {
-        match *self {
-            TaskStatus::All => "all".to_owned(),
-            TaskStatus::Completed => "completed".to_owned(),
-            TaskStatus::NotCompleted => "notcompleted".to_owned(),
-        }
+impl std::fmt::Display for TaskStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str_rep = match self {
+            TaskStatus::All => "all",
+            TaskStatus::Completed => "completed",
+            TaskStatus::NotCompleted => "notcompleted",
+        };
+
+        write!(f, "{}", str_rep)
     }
 }
 
+// When is this Task due to be completed?
 #[derive(Debug)]
 pub enum TaskTimePeriod {
+    // Ignore this field, return everything
     All,
+    // Task end date is already in the past
     Overdue,
+    // Task end date is today
     Today,
+    // Task end date is tomorrow
     Tomorrow,
 }
 
-impl TaskTimePeriod {
-    pub fn to_string(&self) -> String {
-        match *self {
-            TaskTimePeriod::All => "all".to_owned(),
-            TaskTimePeriod::Overdue => "overdue".to_owned(),
-            TaskTimePeriod::Today => "Today".to_owned(),
-            TaskTimePeriod::Tomorrow => "Tomorrow".to_owned(),
-        }
+impl std::fmt::Display for TaskTimePeriod {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str_rep = match self {
+            TaskTimePeriod::All => "all",
+            TaskTimePeriod::Overdue => "overdue",
+            TaskTimePeriod::Today => "Today",
+            TaskTimePeriod::Tomorrow => "Tomorrow",
+        };
+
+        write!(f, "{}", str_rep)
     }
 }
 
+// Root node for what the various Task endpoints return.
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct ZohoTasks {
+    // A List of tasks, either in total or within a given Tasklist.
     #[serde(rename = "tasks")]
     pub tasks: Vec<Task>,
 }

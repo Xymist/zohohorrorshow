@@ -34,7 +34,7 @@ impl ModelRequest for TasklistTaskRequest {
         self.0.access_token()
     }
 
-    fn filter(mut self, param: impl FilterOptions) -> Self {
+    fn filter(mut self, param: (impl FilterOptions + std::fmt::Display)) -> Self {
         self.0 = self.0.filter(&param);
         self
     }

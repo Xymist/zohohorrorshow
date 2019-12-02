@@ -38,7 +38,7 @@ impl ModelRequest for TasklistRequest {
         self.0.access_token()
     }
 
-    fn filter(mut self, param: impl FilterOptions) -> Self {
+    fn filter(mut self, param: (impl FilterOptions + std::fmt::Display)) -> Self {
         self.0 = self.0.filter(&param);
         self
     }
@@ -64,12 +64,14 @@ pub enum Flag {
     External,
 }
 
-impl Flag {
-    pub fn to_string(&self) -> String {
-        match self {
-            Flag::Internal => "internal".to_owned(),
-            Flag::External => "external".to_owned(),
-        }
+impl std::fmt::Display for Flag {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str_rep = match self {
+            Flag::Internal => "internal",
+            Flag::External => "external",
+        };
+
+        write!(f, "{}", str_rep)
     }
 }
 
@@ -82,14 +84,18 @@ impl FilterOptions for Filter {
             Filter::Milestone(_) => "milestone_id".to_owned(),
         }
     }
+}
 
-    fn value(&self) -> String {
-        match self {
+impl std::fmt::Display for Filter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str_rep = match self {
             Filter::Index(index) => index.to_string(),
             Filter::Range(range) => range.to_string(),
             Filter::Flag(flag) => flag.to_string(),
             Filter::Milestone(id) => id.to_string(),
-        }
+        };
+
+        write!(f, "{}", str_rep)
     }
 }
 

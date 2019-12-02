@@ -32,7 +32,7 @@ impl ModelRequest for TimesheetRequest {
         self.0.access_token()
     }
 
-    fn filter(mut self, param: impl FilterOptions) -> Self {
+    fn filter(mut self, param: (impl FilterOptions + std::fmt::Display)) -> Self {
         self.0 = self.0.filter(&param);
         self
     }
@@ -65,9 +65,11 @@ impl FilterOptions for Filter {
             Filter::BillStatus(_) => "bill_status".to_owned(),
         }
     }
+}
 
-    fn value(&self) -> String {
-        match self {
+impl std::fmt::Display for Filter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str_rep = match self {
             Filter::Index(index) => index.to_string(),
             Filter::Range(range) => range.to_string(),
             Filter::Date(date) => date.to_owned(),
@@ -78,7 +80,9 @@ impl FilterOptions for Filter {
             Filter::ViewType(view_type) => view_type.to_string(),
             Filter::ComponentType(component_type) => component_type.to_string(),
             Filter::BillStatus(bill_status) => bill_status.to_string(),
-        }
+        };
+
+        write!(f, "{}", str_rep)
     }
 }
 
@@ -89,13 +93,15 @@ pub enum ViewType {
     Month,
 }
 
-impl ViewType {
-    pub fn to_string(&self) -> String {
-        match *self {
-            ViewType::Day => "day".to_owned(),
-            ViewType::Month => "month".to_owned(),
-            ViewType::Week => "week".to_owned(),
-        }
+impl std::fmt::Display for ViewType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str_rep = match self {
+            ViewType::Day => "day",
+            ViewType::Month => "month",
+            ViewType::Week => "week",
+        };
+
+        write!(f, "{}", str_rep)
     }
 }
 
@@ -106,13 +112,15 @@ pub enum BillStatus {
     NonBillable,
 }
 
-impl BillStatus {
-    pub fn to_string(&self) -> String {
-        match *self {
-            BillStatus::All => "all".to_owned(),
-            BillStatus::Billable => "billable".to_owned(),
-            BillStatus::NonBillable => "non_billable".to_owned(),
-        }
+impl std::fmt::Display for BillStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str_rep = match self {
+            BillStatus::All => "all",
+            BillStatus::Billable => "billable",
+            BillStatus::NonBillable => "non_billable",
+        };
+
+        write!(f, "{}", str_rep)
     }
 }
 
@@ -123,13 +131,15 @@ pub enum ComponentType {
     General,
 }
 
-impl ComponentType {
-    pub fn to_string(&self) -> String {
-        match *self {
-            ComponentType::Task => "task".to_owned(),
-            ComponentType::Bug => "bug".to_owned(),
-            ComponentType::General => "general".to_owned(),
-        }
+impl std::fmt::Display for ComponentType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str_rep = match self {
+            ComponentType::Task => "task",
+            ComponentType::Bug => "bug",
+            ComponentType::General => "general",
+        };
+
+        write!(f, "{}", str_rep)
     }
 }
 

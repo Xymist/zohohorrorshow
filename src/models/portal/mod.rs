@@ -33,7 +33,7 @@ impl ModelRequest for PortalRequest {
         self.0.access_token()
     }
 
-    fn filter(self, _param: impl FilterOptions) -> Self {
+    fn filter(self, _param: (impl FilterOptions + std::fmt::Display)) -> Self {
         self
     }
 }

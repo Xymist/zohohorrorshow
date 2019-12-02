@@ -31,7 +31,7 @@ impl ModelRequest for MilestoneRequest {
         self.0.access_token()
     }
 
-    fn filter(mut self, param: impl FilterOptions) -> Self {
+    fn filter(mut self, param: (impl FilterOptions + std::fmt::Display)) -> Self {
         self.0 = self.0.filter(&param);
         self
     }
@@ -50,6 +50,32 @@ pub enum Filter {
     Flag(Flag),
 }
 
+impl FilterOptions for Filter {
+    fn key(&self) -> String {
+        match self {
+            Filter::Index(_) => "index".to_owned(),
+            Filter::Range(_) => "range".to_owned(),
+            Filter::Status(_) => "status".to_owned(),
+            Filter::DisplayType(_) => "display_type".to_owned(),
+            Filter::Flag(_) => "flag".to_owned(),
+        }
+    }
+}
+
+impl std::fmt::Display for Filter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str_rep = match self {
+            Filter::Index(index) => index.to_string(),
+            Filter::Range(range) => range.to_string(),
+            Filter::Status(status) => status.to_string(),
+            Filter::DisplayType(display_type) => display_type.to_string(),
+            Filter::Flag(flag) => flag.to_string(),
+        };
+
+        write!(f, "{}", str_rep)
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum Flag {
     #[serde(rename = "all")]
@@ -60,13 +86,15 @@ pub enum Flag {
     External,
 }
 
-impl Flag {
-    pub fn to_string(&self) -> String {
-        match self {
-            Flag::AllFlag => "all".to_owned(),
-            Flag::Internal => "internal".to_owned(),
-            Flag::External => "external".to_owned(),
-        }
+impl std::fmt::Display for Flag {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str_rep = match self {
+            Flag::AllFlag => "all",
+            Flag::Internal => "internal",
+            Flag::External => "external",
+        };
+
+        write!(f, "{}", str_rep)
     }
 }
 
@@ -86,13 +114,15 @@ pub enum DisplayType {
     Delayed,
 }
 
-impl DisplayType {
-    pub fn to_string(&self) -> String {
-        match self {
-            DisplayType::All => "all".to_owned(),
-            DisplayType::Upcoming => "upcoming".to_owned(),
-            DisplayType::Delayed => "delayed".to_owned(),
-        }
+impl std::fmt::Display for DisplayType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str_rep = match self {
+            DisplayType::All => "all",
+            DisplayType::Upcoming => "upcoming",
+            DisplayType::Delayed => "delayed",
+        };
+
+        write!(f, "{}", str_rep)
     }
 }
 
@@ -112,41 +142,21 @@ pub enum Status {
     NotCompleted,
 }
 
-impl Status {
-    pub fn to_string(&self) -> String {
-        match self {
-            Status::All => "all".to_owned(),
-            Status::Completed => "completed".to_owned(),
-            Status::NotCompleted => "notcompleted".to_owned(),
-        }
+impl std::fmt::Display for Status {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str_rep = match self {
+            Status::All => "all",
+            Status::Completed => "completed",
+            Status::NotCompleted => "notcompleted",
+        };
+
+        write!(f, "{}", str_rep)
     }
 }
 
 impl Default for Status {
     fn default() -> Self {
         Status::All
-    }
-}
-
-impl FilterOptions for Filter {
-    fn key(&self) -> String {
-        match self {
-            Filter::Index(_) => "index".to_owned(),
-            Filter::Range(_) => "range".to_owned(),
-            Filter::Status(_) => "status".to_owned(),
-            Filter::DisplayType(_) => "display_type".to_owned(),
-            Filter::Flag(_) => "flag".to_owned(),
-        }
-    }
-
-    fn value(&self) -> String {
-        match self {
-            Filter::Index(index) => index.to_string(),
-            Filter::Range(range) => range.to_string(),
-            Filter::Status(status) => status.to_string(),
-            Filter::DisplayType(display_type) => display_type.to_string(),
-            Filter::Flag(flag) => flag.to_string(),
-        }
     }
 }
 

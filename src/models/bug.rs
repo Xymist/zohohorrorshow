@@ -37,7 +37,7 @@ impl ModelRequest for BugRequest {
         self.0.access_token()
     }
 
-    fn filter(mut self, param: impl FilterOptions) -> Self {
+    fn filter(mut self, param: (impl FilterOptions + std::fmt::Display)) -> Self {
         self.0 = self.0.filter(&param);
         self
     }
@@ -103,9 +103,11 @@ impl FilterOptions for Filter {
             Filter::Affected(_) => "affected".to_owned(),
         }
     }
+}
 
-    fn value(&self) -> String {
-        match self {
+impl std::fmt::Display for Filter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str_rep = match self {
             Filter::Index(index) => index.to_string(),
             Filter::Range(range) => range.to_string(),
             Filter::StatusType(status_type) => status_type.to_string(),
@@ -122,7 +124,9 @@ impl FilterOptions for Filter {
             Filter::Escalation(escalation) => multi_filter_format(escalation),
             Filter::Reporter(reporter) => multi_filter_format(reporter),
             Filter::Affected(affected) => multi_filter_format(affected),
-        }
+        };
+
+        write!(f, "{}", str_rep)
     }
 }
 
@@ -232,12 +236,14 @@ pub enum SortOrder {
     Descending,
 }
 
-impl SortOrder {
-    pub fn to_string(&self) -> String {
-        match self {
-            SortOrder::Ascending => "ascending".to_owned(),
-            SortOrder::Descending => "descending".to_owned(),
-        }
+impl std::fmt::Display for SortOrder {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str_rep = match self {
+            SortOrder::Ascending => "ascending",
+            SortOrder::Descending => "descending",
+        };
+
+        write!(f, "{}", str_rep)
     }
 }
 
@@ -247,12 +253,14 @@ pub enum SortColumn {
     LastModifiedTime,
 }
 
-impl SortColumn {
-    pub fn to_string(&self) -> String {
-        match self {
-            SortColumn::CreatedTime => "created_time".to_owned(),
-            SortColumn::LastModifiedTime => "last_modified_time".to_owned(),
-        }
+impl std::fmt::Display for SortColumn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str_rep = match self {
+            SortColumn::CreatedTime => "created_time",
+            SortColumn::LastModifiedTime => "last_modified_time",
+        };
+
+        write!(f, "{}", str_rep)
     }
 }
 
@@ -262,12 +270,14 @@ pub enum StatusType {
     Closed,
 }
 
-impl StatusType {
-    pub fn to_string(&self) -> String {
-        match self {
-            StatusType::Open => "open".to_owned(),
-            StatusType::Closed => "closed".to_owned(),
-        }
+impl std::fmt::Display for StatusType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str_rep = match self {
+            StatusType::Open => "open",
+            StatusType::Closed => "closed",
+        };
+
+        write!(f, "{}", str_rep)
     }
 }
 
