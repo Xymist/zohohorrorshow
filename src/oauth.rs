@@ -1,5 +1,4 @@
 use oauth2::basic::BasicClient;
-use oauth2::prelude::*;
 use oauth2::{
     AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, RedirectUrl, Scope, TokenUrl,
 };
@@ -96,34 +95,12 @@ impl ZohoClient {
         let oauth_client = BasicClient::new(
             ClientId::new(credentials.client_id.clone()),
             Some(ClientSecret::new(credentials.client_secret.clone())),
-            AuthUrl::new(
-                Url::parse(&credentials.auth_url).expect("Failed to parse authentication URL"),
-            ),
-            Some(TokenUrl::new(
-                Url::parse(&credentials.token_url).expect("Failed to parse token URL"),
-            )),
+            AuthUrl::new(credentials.auth_url.clone()).expect("Failed to parse auth URL"),
+            Some(TokenUrl::new(credentials.token_url.clone()).expect("Failed to parse token URL")),
         )
-        .add_scope(Scope::new("ZohoProjects.portals.READ".to_string()))
-        .add_scope(Scope::new("ZohoProjects.projects.ALL".to_string()))
-        .add_scope(Scope::new("ZohoProjects.events.ALL".to_string()))
-        .add_scope(Scope::new("ZohoProjects.bugs.ALL".to_string()))
-        .add_scope(Scope::new("ZohoProjects.status.READ".to_string()))
-        .add_scope(Scope::new("ZohoProjects.status.CREATE".to_string()))
-        .add_scope(Scope::new("ZohoProjects.forums.ALL".to_string()))
-        .add_scope(Scope::new("ZohoProjects.milestones.ALL".to_string()))
-        .add_scope(Scope::new("ZohoProjects.tasks.ALL".to_string()))
-        .add_scope(Scope::new("ZohoProjects.tasklists.ALL".to_string()))
-        .add_scope(Scope::new("ZohoProjects.users.ALL".to_string()))
-        .add_scope(Scope::new("ZohoProjects.documents.READ".to_string()))
-        .add_scope(Scope::new("ZohoProjects.documents.CREATE".to_string()))
-        .add_scope(Scope::new("ZohoProjects.documents.UPDATE".to_string()))
-        .add_scope(Scope::new("ZohoProjects.documents.DELETE".to_string()))
-        .add_scope(Scope::new("ZohoPC.files.READ".to_string()))
-        .add_scope(Scope::new("ZohoPC.files.CREATE".to_string()))
-        .add_scope(Scope::new("ZohoPC.files.DELETE".to_string()))
-        .set_redirect_url(RedirectUrl::new(
-            Url::parse("http://localhost:8080").expect("Invalid redirect URL"),
-        ));
+        .set_redirect_url(
+            RedirectUrl::new("http://localhost:8080/".to_owned()).expect("Invalid redirect URL"),
+        );
 
         ZohoClient {
             oauth_client,
@@ -132,7 +109,29 @@ impl ZohoClient {
     }
 
     pub(in crate::oauth) fn request_access(&mut self) {
-        let (authorize_url, csrf_state) = self.oauth_client.authorize_url(CsrfToken::new_random);
+        let (authorize_url, csrf_state) = self
+            .oauth_client
+            .authorize_url(CsrfToken::new_random)
+            .add_scope(Scope::new("ZohoProjects.portals.READ".to_string()))
+            .add_scope(Scope::new("ZohoProjects.projects.ALL".to_string()))
+            .add_scope(Scope::new("ZohoProjects.events.ALL".to_string()))
+            .add_scope(Scope::new("ZohoProjects.bugs.ALL".to_string()))
+            .add_scope(Scope::new("ZohoProjects.status.READ".to_string()))
+            .add_scope(Scope::new("ZohoProjects.status.CREATE".to_string()))
+            .add_scope(Scope::new("ZohoProjects.forums.ALL".to_string()))
+            .add_scope(Scope::new("ZohoProjects.milestones.ALL".to_string()))
+            .add_scope(Scope::new("ZohoProjects.tasks.ALL".to_string()))
+            .add_scope(Scope::new("ZohoProjects.tasklists.ALL".to_string()))
+            .add_scope(Scope::new("ZohoProjects.users.ALL".to_string()))
+            .add_scope(Scope::new("ZohoProjects.documents.READ".to_string()))
+            .add_scope(Scope::new("ZohoProjects.documents.CREATE".to_string()))
+            .add_scope(Scope::new("ZohoProjects.documents.UPDATE".to_string()))
+            .add_scope(Scope::new("ZohoProjects.documents.DELETE".to_string()))
+            .add_scope(Scope::new("ZohoPC.files.READ".to_string()))
+            .add_scope(Scope::new("ZohoPC.files.CREATE".to_string()))
+            .add_scope(Scope::new("ZohoPC.files.DELETE".to_string()))
+            // .set_pkce_challenge(pkce_challenge)
+            .url();
 
         if webbrowser::open(&authorize_url.to_string()).is_err() {
             println!(
