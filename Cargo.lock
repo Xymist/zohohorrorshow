@@ -1434,7 +1434,7 @@ dependencies = [
 
 [[package]]
 name = "zohohorrorshow"
-version = "0.7.4"
+version = "0.7.5"
 dependencies = [
  "chrono 0.4.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "dotenv 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
