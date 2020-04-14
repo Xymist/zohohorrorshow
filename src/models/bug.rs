@@ -325,23 +325,33 @@ impl BugIterator {
             .request
             .clone()
             .filter(Filter::Index(self.start_index))
-            .get()?;
+            .get();
 
-        if let Some(ticket_list) = returned_tickets {
-            if ticket_list.bugs.is_empty() {
-                return Ok(None);
+        match returned_tickets {
+            Ok(Some(ticket_list)) => {
+                if ticket_list.bugs.is_empty() {
+                    self.last_full = false;
+                    return Ok(None);
+                }
+
+                self.last_full = ticket_list.bugs.len() as i8 == self.range();
+
+                self.start_index += ticket_list.bugs.len();
+
+                self.items = ticket_list.bugs.into_iter();
+
+                Ok(self.items.next())
             }
+            Ok(None) => {
+                self.last_full = false;
 
-            self.last_full = ticket_list.bugs.len() as i8 == self.range();
-
-            self.start_index += ticket_list.bugs.len();
-
-            self.items = ticket_list.bugs.into_iter();
-
-            return Ok(self.items.next());
+                Ok(None)
+            }
+            Err(err) => {
+                self.last_full = false;
+                Err(err)
+            }
         }
-
-        Ok(None)
     }
 }
 
@@ -349,10 +359,14 @@ impl Iterator for BugIterator {
     type Item = Result<Bug>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        use log::warn;
         match self.try_next() {
             Ok(Some(val)) => Some(Ok(val)),
             Ok(None) => None,
-            Err(err) => Some(Err(err)),
+            Err(err) => {
+                warn!("Fetching Bugs from Zoho experienced an error: {}", err);
+                None
+            }
         }
     }
 }

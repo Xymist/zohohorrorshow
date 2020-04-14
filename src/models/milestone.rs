@@ -160,13 +160,13 @@ impl Default for Status {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct ZohoMilestones {
     #[serde(rename = "milestones")]
     pub milestones: Vec<Milestone>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct Milestone {
     #[serde(rename = "id")]
     pub id: i64,

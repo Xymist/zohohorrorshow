@@ -229,18 +229,26 @@ impl TasklistIterator {
             .request
             .clone()
             .filter(Filter::Index(self.start_index))
-            .get()?;
+            .get();
 
-        if let Some(tasklist_list) = returned_tasklists {
-            self.last_full = tasklist_list.tasklists.len() as i8 == self.range();
+        match returned_tasklists {
+            Ok(Some(tasklist_list)) => {
+                self.last_full = tasklist_list.tasklists.len() as i8 == self.range();
 
-            self.start_index += tasklist_list.tasklists.len();
+                self.start_index += tasklist_list.tasklists.len();
 
-            self.items = tasklist_list.tasklists.into_iter();
+                self.items = tasklist_list.tasklists.into_iter();
 
-            Ok(self.items.next())
-        } else {
-            Ok(None)
+                Ok(self.items.next())
+            }
+            Ok(None) => {
+                self.last_full = false;
+                Ok(None)
+            }
+            Err(err) => {
+                self.last_full = false;
+                Err(err)
+            }
         }
     }
 }
@@ -249,10 +257,14 @@ impl Iterator for TasklistIterator {
     type Item = Result<Tasklist>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        use log::warn;
         match self.try_next() {
             Ok(Some(val)) => Some(Ok(val)),
             Ok(None) => None,
-            Err(err) => Some(Err(err)),
+            Err(err) => {
+                warn!("Fetching Tasklists from Zoho experienced an error: {}", err);
+                None
+            }
         }
     }
 }

@@ -154,7 +154,7 @@ impl std::fmt::Display for TaskTimePeriod {
 }
 
 // Root node for what the various Task endpoints return.
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct ZohoTasks {
     // A List of tasks, either in total or within a given Tasklist.
     #[serde(rename = "tasks")]
@@ -339,18 +339,31 @@ impl TaskIterator {
             .request
             .clone()
             .filter(Filter::Index(self.start_index))
-            .get()?;
+            .get();
 
-        if let Some(task_list) = returned_tasks {
-            self.last_full = task_list.tasks.len() as i8 == self.range();
+        match returned_tasks {
+            Ok(Some(task_list)) => {
+                if task_list.tasks.is_empty() {
+                    self.last_full = false;
+                    return Ok(None);
+                }
 
-            self.start_index += task_list.tasks.len();
+                self.last_full = task_list.tasks.len() as i8 == self.range();
 
-            self.items = task_list.tasks.into_iter();
+                self.start_index += task_list.tasks.len();
 
-            Ok(self.items.next())
-        } else {
-            Ok(None)
+                self.items = task_list.tasks.into_iter();
+
+                return Ok(self.items.next());
+            }
+            Ok(None) => {
+                self.last_full = false;
+                Ok(None)
+            }
+            Err(err) => {
+                self.last_full = false;
+                Err(err)
+            }
         }
     }
 }
@@ -359,10 +372,14 @@ impl Iterator for TaskIterator {
     type Item = Result<Task>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        use log::warn;
         match self.try_next() {
             Ok(Some(val)) => Some(Ok(val)),
             Ok(None) => None,
-            Err(err) => Some(Err(err)),
+            Err(err) => {
+                warn!("Fetching Tasks from Zoho experienced an error: {}", err);
+                None
+            }
         }
     }
 }
