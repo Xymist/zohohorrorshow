@@ -11,12 +11,23 @@ pub(crate) fn model_path(
 }
 
 #[derive(Clone, Debug)]
-pub struct TaskRequest(RequestDetails);
+pub struct TaskRequest {
+    details: RequestDetails,
+    with_subtasks: bool,
+}
 
 impl TaskRequest {
     /// Generate a new TaskRequest
     pub fn new(access_token: &str, model_path: &str, id: Option<i64>) -> Self {
-        TaskRequest(RequestDetails::new(access_token, model_path, id))
+        TaskRequest {
+            details: RequestDetails::new(access_token, model_path, id),
+            with_subtasks: false,
+        }
+    }
+
+    pub fn with_subtasks(mut self) -> Self {
+        self.with_subtasks = true;
+        self
     }
 
     /// Return a new TaskIterator, which allows batch iteration across grouped
@@ -28,19 +39,19 @@ impl TaskRequest {
 
 impl ModelRequest for TaskRequest {
     fn uri(&self) -> String {
-        self.0.uri()
+        self.details.uri()
     }
 
     fn params(&self) -> Option<HashMap<String, String>> {
-        self.0.params()
+        self.details.params()
     }
 
     fn access_token(&self) -> String {
-        self.0.access_token()
+        self.details.access_token()
     }
 
     fn filter(mut self, param: (impl FilterOptions + std::fmt::Display)) -> Self {
-        self.0 = self.0.filter(&param);
+        self.details = self.details.filter(&param);
         self
     }
 }
@@ -213,6 +224,8 @@ pub struct Task {
     pub tasklist: Option<Tasklist>,
     #[serde(rename = "status")]
     pub status: Status,
+    #[serde(rename = "subtasks")]
+    pub subtasks: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
@@ -301,6 +314,8 @@ pub struct TaskIterator {
     pub last_full: bool,
     pub request: TaskRequest,
     pub start_index: usize,
+    pub subtask_parent_ids: Vec<i64>,
+    pub base_path: String,
 }
 
 impl TaskIterator {
@@ -308,31 +323,45 @@ impl TaskIterator {
         TaskIterator {
             items: Vec::new().into_iter(),
             last_full: true,
-            request,
             start_index: 0,
-        }
-    }
-
-    fn range(&self) -> i8 {
-        match self.request.params() {
-            Some(params) => match params.get("range") {
-                Some(range_string) => range_string.parse::<i8>().unwrap_or(100),
-                None => 100,
-            },
-            None => 100,
+            subtask_parent_ids: Vec::new(),
+            base_path: request.details.model_path.clone(),
+            request,
         }
     }
 
     pub fn try_next(&mut self) -> Result<Option<Task>> {
         // If there are still items in the local cache from the last request, use the next one of those.
         if let Some(task) = self.items.next() {
+            // While we're looking at the task, check if we're fetching subtasks
+            // and should be expecting subtasks for this task. If we do and are,
+            // save the ID of this task for use in the URL later.
+            if task.subtasks && self.request.with_subtasks {
+                self.subtask_parent_ids.push(task.id)
+            }
             return Ok(Some(task));
         }
 
         // If we didn't get a full 100 (the default number to retrieve) the last time, then we must have
-        // run out in Zoho; don't request any more.
+        // run out of top level tasks in Zoho; don't request any more.
         if !self.last_full {
-            return Ok(None);
+            // If we're not looking for subtasks, we can stop here.
+            if !self.request.with_subtasks {
+                return Ok(None);
+            }
+
+            // Otherwise, start popping IDs off our queue of subtask parents
+            // and requesting their children.
+            self.start_index = 0;
+
+            if let Some(id) = self.subtask_parent_ids.pop() {
+                // FIXME(Xymist): This will crash if this is a single task search.
+                // I.e. if an ID was provided to the initial request.
+                self.request.details.model_path = format!("{}{}/subtasks/", self.base_path, id)
+            } else {
+                // We have run out of not only top level tasks, but all subtasks.
+                return Ok(None);
+            }
         }
 
         let returned_tasks = self
@@ -364,6 +393,16 @@ impl TaskIterator {
                 self.last_full = false;
                 Err(err)
             }
+        }
+    }
+
+    fn range(&self) -> i8 {
+        match self.request.params() {
+            Some(params) => match params.get("range") {
+                Some(range_string) => range_string.parse::<i8>().unwrap_or(100),
+                None => 100,
+            },
+            None => 100,
         }
     }
 }
