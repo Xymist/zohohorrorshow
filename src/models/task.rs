@@ -316,6 +316,7 @@ pub struct TaskIterator {
     pub start_index: usize,
     pub subtask_parent_ids: Vec<i64>,
     pub base_path: String,
+    pub rate_limit_notified: bool,
 }
 
 impl TaskIterator {
@@ -327,10 +328,13 @@ impl TaskIterator {
             subtask_parent_ids: Vec::new(),
             base_path: request.details.model_path.clone(),
             request,
+            rate_limit_notified: false,
         }
     }
 
     pub fn try_next(&mut self) -> Result<Option<Task>> {
+        use std::{thread, time};
+
         // If there are still items in the local cache from the last request, use the next one of those.
         if let Some(task) = self.items.next() {
             // While we're looking at the task, check if we're fetching subtasks
@@ -350,11 +354,21 @@ impl TaskIterator {
                 return Ok(None);
             }
 
+            let subtask_tasks = self.subtask_parent_ids.len();
+
+            if subtask_tasks > 99 && !self.rate_limit_notified {
+                eprintln!(
+                    "{} tasks have subtasks. This would exceed Zoho's rate limit (100 requests per 120 seconds) \
+                    if processed at full speed. Processing will be artificially slowed to that limit.",
+                    subtask_tasks
+                );
+                self.rate_limit_notified = true;
+            }
+
             // Otherwise, start popping IDs off our queue of subtask parents
             // and requesting their children.
-            self.start_index = 0;
-
             if let Some(id) = self.subtask_parent_ids.pop() {
+                self.start_index = 0;
                 // FIXME(Xymist): This will crash if this is a single task search.
                 // I.e. if an ID was provided to the initial request.
                 self.request.details.model_path = format!("{}{}/subtasks/", self.base_path, id)
@@ -364,6 +378,9 @@ impl TaskIterator {
             }
         }
 
+        if self.rate_limit_notified {
+            thread::sleep(time::Duration::from_millis(1250));
+        }
         let returned_tasks = self
             .request
             .clone()
@@ -391,7 +408,7 @@ impl TaskIterator {
             }
             Err(err) => {
                 self.last_full = false;
-                Err(err)
+                Err(dbg!(err))
             }
         }
     }

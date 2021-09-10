@@ -1,6 +1,3 @@
-extern crate dotenv;
-extern crate zohohorrorshow;
-
 use dotenv::dotenv;
 use std::env;
 use zohohorrorshow::errors::*;
@@ -30,6 +27,8 @@ fn run() -> Result<i32> {
 }
 
 fn main() {
+    pretty_env_logger::init();
+
     ::std::process::exit(match run() {
         Ok(_) => {
             println!("Goodbye");
