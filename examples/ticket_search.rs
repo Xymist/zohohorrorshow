@@ -1,3 +1,6 @@
+extern crate dotenv;
+extern crate zohohorrorshow;
+
 use dotenv::dotenv;
 use std::env;
 use zohohorrorshow::errors::*;
@@ -14,21 +17,18 @@ fn run() -> Result<i32> {
     .set_portal(&env::var("ZOHO_PORTAL_NAME")?)?
     .set_project(&env::var("ZOHO_PROJECT_NAME")?)?;
 
-    let tasks = client
-        .tasks()
-        .with_subtasks()
+    let tickets = client
+        .bugs()
         .iter_get()
-        .filter(std::result::Result::is_ok)
-        .map(std::result::Result::unwrap)
-        .collect::<Vec<_>>();
-    println!("Existing tasks: {:#?}", tasks);
+        .filter_map(|bug| bug.ok())
+        .filter(|bug| bug.title.contains("exception"))
+        .count();
+    println!("Existing exception tickets: {}", tickets);
 
     Ok(0)
 }
 
 fn main() {
-    pretty_env_logger::init();
-
     ::std::process::exit(match run() {
         Ok(_) => {
             println!("Goodbye");
