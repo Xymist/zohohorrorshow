@@ -228,6 +228,7 @@ pub trait RequestParameters: ModelRequest {
 /// type available for Delete responses to be parsed into.
 /// This type will never be returned; if a Delete request is successfully made the response
 /// from this wrapper is Ok(None).
+#[allow(dead_code)]
 #[derive(Deserialize, Clone)]
 struct DeleteResponse {
     response: String,

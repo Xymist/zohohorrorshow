@@ -76,9 +76,10 @@ impl std::fmt::Display for Filter {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub enum Flag {
     #[serde(rename = "all")]
+    #[default]
     AllFlag,
     #[serde(rename = "internal")]
     Internal,
@@ -98,15 +99,10 @@ impl std::fmt::Display for Flag {
     }
 }
 
-impl Default for Flag {
-    fn default() -> Self {
-        Flag::AllFlag
-    }
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub enum DisplayType {
     #[serde(rename = "all")]
+    #[default]
     All,
     #[serde(rename = "upcoming")]
     Upcoming,
@@ -126,15 +122,10 @@ impl std::fmt::Display for DisplayType {
     }
 }
 
-impl Default for DisplayType {
-    fn default() -> Self {
-        DisplayType::All
-    }
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub enum Status {
     #[serde(rename = "all")]
+    #[default]
     All,
     #[serde(rename = "completed")]
     Completed,
@@ -151,12 +142,6 @@ impl std::fmt::Display for Status {
         };
 
         write!(f, "{}", str_rep)
-    }
-}
-
-impl Default for Status {
-    fn default() -> Self {
-        Status::All
     }
 }
 

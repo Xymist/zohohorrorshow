@@ -86,6 +86,7 @@ impl fmt::Display for Error {
 }
 
 /// Varieties of error which may be encountered
+#[non_exhaustive]
 pub enum ErrorKind {
     /// Wrapper for an error thrown by Reqwest
     Reqwest(String),
@@ -114,8 +115,6 @@ pub enum ErrorKind {
     MissingEntityName(String),
     /// Model sought en masse returned no results
     EmptyList(String),
-    #[doc(hidden)]
-    __Nonexhaustive,
 }
 
 impl fmt::Display for ErrorKind {
@@ -139,7 +138,6 @@ impl fmt::Display for ErrorKind {
                 write!(f, "Failed to find entity with name {}", name)
             }
             ErrorKind::EmptyList(ref model) => write!(f, "No entries found for {}", model),
-            ErrorKind::__Nonexhaustive => panic!("Invalid ErrorKind encountered"),
         }
     }
 }

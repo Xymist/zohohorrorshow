@@ -123,6 +123,7 @@ pub struct NewForum {
     //TODO(Xymist): notify, flag, type, file
 }
 
+#[allow(dead_code)]
 #[derive(Clone, Debug, Deserialize, Default)]
 pub struct Response {
     response: String,

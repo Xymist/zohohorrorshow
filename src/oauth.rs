@@ -2,13 +2,12 @@ use oauth2::basic::BasicClient;
 use oauth2::{
     AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, RedirectUrl, Scope, TokenUrl,
 };
-use reqwest;
+
 use std::collections::HashMap;
 use std::io::{BufRead, BufReader, Write};
 use std::net::TcpListener;
 use std::time::{Duration, SystemTime};
 use url::Url;
-use webbrowser;
 
 #[derive(Debug, Clone)]
 pub struct Credentials {
@@ -75,6 +74,7 @@ impl Credentials {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Deserialize)]
 struct ZohoTokenResponse {
     access_token: Option<String>,
@@ -133,78 +133,79 @@ impl ZohoClient {
             // .set_pkce_challenge(pkce_challenge)
             .url();
 
-        if webbrowser::open(&authorize_url.to_string()).is_err() {
-            println!(
-                "Open this URL in your browser:\n{}\n",
-                authorize_url.to_string()
-            );
+        if webbrowser::open(authorize_url.as_str()).is_err() {
+            println!("Open this URL in your browser:\n{}\n", authorize_url);
         }
 
         let listener = TcpListener::bind("127.0.0.1:8080").unwrap();
         for stream in listener.incoming() {
-            if let Ok(mut stream) = stream {
-                let code;
-                let state;
-                let now = SystemTime::now();
-                {
-                    let mut reader = BufReader::new(&stream);
-
-                    let mut request_line = String::new();
-                    reader.read_line(&mut request_line).unwrap();
-
-                    let redirect_url = request_line.split_whitespace().nth(1).unwrap();
-                    let url = Url::parse(&("http://localhost".to_string() + redirect_url)).unwrap();
-
-                    let code_pair = url
-                        .query_pairs()
-                        .find(|pair| {
-                            let &(ref key, _) = pair;
-                            key == "code"
-                        })
-                        .unwrap();
-
-                    let (_, value) = code_pair;
-                    code = AuthorizationCode::new(value.into_owned());
-
-                    let state_pair = url
-                        .query_pairs()
-                        .find(|pair| {
-                            let &(ref key, _) = pair;
-                            key == "state"
-                        })
-                        .unwrap();
-
-                    let (_, value) = state_pair;
-                    state = CsrfToken::new(value.into_owned());
-                }
-
-                let message = "Authenticated successfully. You can now close this tab.";
-                let response = format!(
-                    "HTTP/1.1 200 OK\r\ncontent-length: {}\r\n\r\n{}",
-                    message.len(),
-                    message
-                );
-                stream.write_all(response.as_bytes()).unwrap();
-
-                if state.secret() != csrf_state.secret() {
-                    println!(
-                        "CSRF Tokens appear to differ. Please check:\n{:?}\n{:?}",
-                        state.secret(),
-                        csrf_state.secret()
-                    )
-                }
-
-                // Exchange the code with a token.
-                let token_response = self.exchange_code(code.clone());
-
-                self.credentials.access_token = token_response.access_token;
-                self.credentials.access_token_expiry =
-                    Some(now + Duration::from_secs(token_response.expires_in_sec as u64));
-                self.credentials.refresh_token = token_response.refresh_token;
-
-                // The server will terminate itself after collecting the first code.
-                break;
+            if stream.is_err() {
+                continue;
             }
+
+            let mut stream = stream.unwrap();
+
+            let code;
+            let state;
+            let now = SystemTime::now();
+            {
+                let mut reader = BufReader::new(&stream);
+
+                let mut request_line = String::new();
+                reader.read_line(&mut request_line).unwrap();
+
+                let redirect_url = request_line.split_whitespace().nth(1).unwrap();
+                let url = Url::parse(&("http://localhost".to_string() + redirect_url)).unwrap();
+
+                let code_pair = url
+                    .query_pairs()
+                    .find(|pair| {
+                        let (ref key, _) = pair;
+                        key == "code"
+                    })
+                    .unwrap();
+
+                let (_, value) = code_pair;
+                code = AuthorizationCode::new(value.into_owned());
+
+                let state_pair = url
+                    .query_pairs()
+                    .find(|pair| {
+                        let (ref key, _) = pair;
+                        key == "state"
+                    })
+                    .unwrap();
+
+                let (_, value) = state_pair;
+                state = CsrfToken::new(value.into_owned());
+            }
+
+            let message = "Authenticated successfully. You can now close this tab.";
+            let response = format!(
+                "HTTP/1.1 200 OK\r\ncontent-length: {}\r\n\r\n{}",
+                message.len(),
+                message
+            );
+            stream.write_all(response.as_bytes()).unwrap();
+
+            if state.secret() != csrf_state.secret() {
+                println!(
+                    "CSRF Tokens appear to differ. Please check:\n{:?}\n{:?}",
+                    state.secret(),
+                    csrf_state.secret()
+                )
+            }
+
+            // Exchange the code with a token.
+            let token_response = self.exchange_code(code);
+
+            self.credentials.access_token = token_response.access_token;
+            self.credentials.access_token_expiry =
+                Some(now + Duration::from_secs(token_response.expires_in_sec as u64));
+            self.credentials.refresh_token = token_response.refresh_token;
+
+            // The server will terminate itself after collecting the first code.
+            break;
         }
     }
 

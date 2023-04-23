@@ -140,6 +140,7 @@ pub struct Attachment {
     pub is_image: bool,
 }
 
+#[allow(dead_code)]
 #[derive(Clone, Debug, Deserialize, Default)]
 pub struct Response {
     response: String,

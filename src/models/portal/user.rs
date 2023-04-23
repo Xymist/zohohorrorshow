@@ -56,11 +56,13 @@ impl std::fmt::Display for Filter {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Clone, Debug, Deserialize, Default)]
 pub struct Response {
     response: String,
 }
 
+#[allow(dead_code)]
 #[derive(Clone, Debug, Deserialize, Default)]
 pub struct AvailCount {
     available_user_count: String,

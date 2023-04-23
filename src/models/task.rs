@@ -400,7 +400,7 @@ impl TaskIterator {
 
                 self.items = task_list.tasks.into_iter();
 
-                return Ok(self.items.next());
+                Ok(self.items.next())
             }
             Ok(None) => {
                 self.last_full = false;

@@ -129,16 +129,11 @@ pub struct NewEvent {
     pub location: Option<String>,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Default, Deserialize)]
 pub enum AmPm {
+    #[default]
     Am,
     Pm,
-}
-
-impl Default for AmPm {
-    fn default() -> AmPm {
-        AmPm::Am
-    }
 }
 
 impl std::fmt::Display for AmPm {

@@ -50,6 +50,7 @@ impl RequestParameters for CategoryRequest {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Clone, Debug, Deserialize, Default)]
 pub struct Response {
     response: String,
