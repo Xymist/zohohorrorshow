@@ -100,7 +100,7 @@ impl ZohoClient {
             AuthUrl::new(credentials.auth_url.clone()).expect("Failed to parse auth URL"),
             Some(TokenUrl::new(credentials.token_url.clone()).expect("Failed to parse token URL")),
         )
-        .set_redirect_url(
+        .set_redirect_uri(
             RedirectUrl::new("http://localhost:8080/".to_owned()).expect("Invalid redirect URL"),
         );
 
