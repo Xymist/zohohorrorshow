@@ -1,6 +1,7 @@
 use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
 use crate::serializers::{from_str, join_ids};
-use serde::ser::{Serialize, Serializer};
+use serde::ser::{self, Serializer};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 pub(crate) fn model_path(
@@ -147,7 +148,7 @@ impl std::fmt::Display for AmPm {
     }
 }
 
-impl Serialize for AmPm {
+impl ser::Serialize for AmPm {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,

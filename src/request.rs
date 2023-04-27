@@ -3,7 +3,7 @@
 
 use crate::errors::*;
 use reqwest::{Method, StatusCode};
-use serde;
+use serde::{self, Deserialize};
 use std::collections::HashMap;
 
 // TODO(Xymist): Split this; POST/PUT requests should carry data, GET and DELETE should not.
@@ -53,8 +53,8 @@ impl<T: serde::Serialize + Clone> ZohoRequest<T> {
     where
         U: serde::de::DeserializeOwned,
     {
-        let req_client: reqwest::Client = reqwest::Client::new();
-        let mut builder = req_client.request(self.method(), &self.url());
+        let req_client = reqwest::blocking::Client::new();
+        let mut builder = req_client.request(self.method(), self.url());
         builder = builder.header("Authorization", format!("Bearer {}", self.access_token()));
         if let Some(ref params) = self.params {
             builder = builder.query(params);
@@ -63,7 +63,7 @@ impl<T: serde::Serialize + Clone> ZohoRequest<T> {
             builder = builder.query(data);
         }
 
-        let mut response = builder.send()?;
+        let response = builder.send()?;
         if !response.status().is_success() {
             return Err(Error::server_error(response.status().to_string()));
         };

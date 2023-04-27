@@ -9,16 +9,18 @@ description = "A library for interacting with the Zoho Projects API"
 edition = "2018"
 
 [dependencies]
-failure = "0.1.6"
-reqwest = "0.9.22"
+# Blocking because it's easier to use, async_iterators aren't stable yet,
+# and the Zoho API is slow enough (and rate-limited heavily enough) that
+# it doesn't matter.
+reqwest = { version = "0.11.16", features = ["json", "blocking"] }
 serde = "1.0.103"
-serde_derive = "1.0.103"
 serde_json = "1.0.42"
 oauth2 = "3.0.0-alpha.6"
 url = "2.1.0"
 webbrowser = "0.5.2"
-log = "0.4.8"
 openssl = { version = "0.10.24", features = ["vendored"] }
+tracing = "0.1.38"
+thiserror = "1.0.40"
 
 [dependencies.chrono]
 features = ["serde"]

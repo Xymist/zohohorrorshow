@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
 use crate::serializers::from_str;
 use std::collections::HashMap;

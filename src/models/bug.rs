@@ -1,3 +1,6 @@
+use serde::{Deserialize, Serialize};
+use tracing::warn;
+
 use crate::errors::*;
 use crate::models::multi_filter_format;
 use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
@@ -359,7 +362,6 @@ impl Iterator for BugIterator {
     type Item = Result<Bug>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        use log::warn;
         match self.try_next() {
             Ok(Some(val)) => Some(Ok(val)),
             Ok(None) => None,

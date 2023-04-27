@@ -1,3 +1,6 @@
+use serde::{Deserialize, Serialize};
+use tracing::warn;
+
 use crate::errors::*;
 use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters};
 use crate::serializers::from_str;
@@ -257,7 +260,6 @@ impl Iterator for TasklistIterator {
     type Item = Result<Tasklist>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        use log::warn;
         match self.try_next() {
             Ok(Some(val)) => Some(Ok(val)),
             Ok(None) => None,

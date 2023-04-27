@@ -1,6 +1,7 @@
 use crate::errors::*;
 use crate::request::{FilterOptions, ModelRequest, RequestDetails, RequestParameters, ZohoRequest};
 use reqwest::Method;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 pub(crate) fn model_path(

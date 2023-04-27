@@ -12,9 +12,6 @@
 )]
 #![doc(html_root_url = "https://docs.rs/zohohorrorshow/0.7.4")]
 
-#[macro_use]
-extern crate serde_derive;
-
 pub mod client;
 pub mod errors;
 pub mod models;

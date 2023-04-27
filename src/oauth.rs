@@ -2,6 +2,8 @@ use oauth2::basic::BasicClient;
 use oauth2::{
     AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, RedirectUrl, Scope, TokenUrl,
 };
+use serde::Deserialize;
+use tracing::debug;
 
 use std::collections::HashMap;
 use std::io::{BufRead, BufReader, Write};
@@ -133,13 +135,17 @@ impl ZohoClient {
             // .set_pkce_challenge(pkce_challenge)
             .url();
 
-        if webbrowser::open(authorize_url.as_str()).is_err() {
+        if webbrowser::open(authorize_url.as_str()).is_ok() {
+            debug!("Opened browser successfully")
+        } else {
+            debug!("Failed to open browser; falling back to manual entry");
             println!("Open this URL in your browser:\n{}\n", authorize_url);
         }
 
         let listener = TcpListener::bind("127.0.0.1:8080").unwrap();
         for stream in listener.incoming() {
             if stream.is_err() {
+                debug!("Failed to read stream");
                 continue;
             }
 
@@ -180,6 +186,7 @@ impl ZohoClient {
                 state = CsrfToken::new(value.into_owned());
             }
 
+            // Write a minimal HTTP response to the browser to reassure the user.
             let message = "Authenticated successfully. You can now close this tab.";
             let response = format!(
                 "HTTP/1.1 200 OK\r\ncontent-length: {}\r\n\r\n{}",
@@ -210,9 +217,9 @@ impl ZohoClient {
     }
 
     fn exchange_code(&self, code: AuthorizationCode) -> ZohoTokenResponse {
-        let req_client: reqwest::Client = reqwest::Client::new();
+        let req_client = reqwest::blocking::Client::new();
         let mut builder =
-            req_client.request(reqwest::Method::POST, &self.credentials.token_url.clone());
+            req_client.request(reqwest::Method::POST, self.credentials.token_url.clone());
         let mut params = HashMap::new();
         params.insert("code".to_owned(), code.secret().to_owned());
         params.insert(
