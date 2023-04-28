@@ -20,14 +20,14 @@ fn run() -> Result<i32> {
         .iter_get()
         .filter(std::result::Result::is_ok)
         .map(std::result::Result::unwrap)
-        .collect::<Vec<_>>();
-    println!("Existing tasks: {:#?}", tasks);
+        .count();
+    println!("Existing tasks and subtasks: {:#?}", tasks);
 
     Ok(0)
 }
 
 fn main() {
-    pretty_env_logger::init();
+    tracing_subscriber::fmt::init();
 
     ::std::process::exit(match run() {
         Ok(_) => {

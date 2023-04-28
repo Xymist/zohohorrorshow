@@ -384,6 +384,7 @@ impl TaskIterator {
         if self.rate_limit_notified {
             thread::sleep(time::Duration::from_millis(1250));
         }
+
         let returned_tasks = self
             .request
             .clone()
